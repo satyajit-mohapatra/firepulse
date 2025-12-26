@@ -174,7 +174,7 @@ const App: React.FC = () => {
         </div>
 
         {/* PRIMARY DISPLAY */}
-        <section className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-10">
+        <section className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-10 print:hidden">
           <div className="md:col-span-1 bg-indigo-600 p-8 md:p-12 rounded-[2.5rem] md:rounded-[4rem] text-white shadow-2xl shadow-indigo-600/30 relative overflow-hidden group">
             <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full -mr-10 -mt-10 group-hover:scale-110 transition-transform"></div>
             <p className="text-[10px] md:text-xs font-black uppercase tracking-[0.4em] opacity-80 mb-6 md:mb-8">Solvency FIRE Age</p>
