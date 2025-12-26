@@ -199,21 +199,6 @@ const App: React.FC = () => {
 
         {/* Print Layout - Reordered for better print flow */}
         <div className="hidden print:block space-y-6">
-          {/* 1. Top Row: FIRE Age, Longevity, Savings Velocity */}
-          <div className="grid grid-cols-3 gap-4 p-4 bg-slate-50 border border-slate-300 rounded">
-            <div className="text-center">
-              <p className="text-xs font-black uppercase text-slate-500 mb-2">Solvency FIRE Age</p>
-              <h2 className="text-3xl font-black text-indigo-600">{results.fiAge || '—'}</h2>
-            </div>
-            <div className="text-center">
-              <p className="text-xs font-black uppercase text-slate-500 mb-2">Longevity Limit</p>
-              <h2 className="text-3xl font-black text-slate-900">Age {data.liveUntilAge}</h2>
-            </div>
-            <div className="text-center">
-              <p className="text-xs font-black uppercase text-slate-500 mb-2">Savings Velocity</p>
-              <h2 className="text-3xl font-black text-slate-900">{savingsRate.toFixed(1)}%</h2>
-            </div>
-          </div>
 
           {/* 2. Core Stats */}
           <div className="p-4 bg-white border border-slate-300 rounded">
@@ -277,7 +262,7 @@ const App: React.FC = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {results.projections.filter((_, idx) => idx % 5 === 0 || idx === results.projections.length - 1).map((p) => (
+                  {results.projections.map((p) => (
                     <tr key={`${p.age}-${p.year}`} className={p.isRetired ? 'bg-teal-50' : ''}>
                       <td className="border border-slate-300 p-1">{p.age} ({p.year})</td>
                       <td className="border border-slate-300 p-1 text-right">{formatCompactNumber(p.openingBalance, currency)}</td>
