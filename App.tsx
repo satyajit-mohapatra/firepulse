@@ -170,37 +170,6 @@ const App: React.FC = () => {
         <div className="hidden print:block mb-6">
           <h1 className="text-2xl font-black text-slate-900 mb-2">FirePulse - Financial Independence Report</h1>
           <p className="text-sm text-slate-600">Generated on {new Date().toLocaleDateString()}</p>
-          
-          {/* Print Summary */}
-          <div className="mt-4 p-4 bg-slate-50 border border-slate-300 rounded">
-            <h2 className="text-lg font-black text-slate-800 mb-3">Financial Summary</h2>
-            <div className="grid grid-cols-2 gap-3 text-sm">
-              <div>
-                <span className="font-bold">Current Age:</span> {data.currentAge}
-              </div>
-              <div>
-                <span className="font-bold">Retirement Age:</span> {data.retirementAge}
-              </div>
-              <div>
-                <span className="font-bold">Current Net Worth:</span> {formatCurrency(data.currentNetWorth, currency)}
-              </div>
-              <div>
-                <span className="font-bold">Monthly Income:</span> {formatCurrency(data.monthlyIncome, currency)}
-              </div>
-              <div>
-                <span className="font-bold">Monthly Expenses:</span> {formatCurrency(data.monthlyExpenses + data.monthlyMedical, currency)}
-              </div>
-              <div>
-                <span className="font-bold">Savings Rate:</span> {savingsRate.toFixed(1)}%
-              </div>
-              <div>
-                <span className="font-bold">FIRE Age:</span> {results.fiAge || 'Not Achievable'}
-              </div>
-              <div>
-                <span className="font-bold">Strategy:</span> {data.simulationMode}
-              </div>
-            </div>
-          </div>
           <hr className="my-4 border-slate-300" />
         </div>
 
@@ -228,8 +197,125 @@ const App: React.FC = () => {
           </div>
         </section>
 
+        {/* Print Layout - Reordered for better print flow */}
+        <div className="hidden print:block space-y-6">
+          {/* 1. Top Row: FIRE Age, Longevity, Savings Velocity */}
+          <div className="grid grid-cols-3 gap-4 p-4 bg-slate-50 border border-slate-300 rounded">
+            <div className="text-center">
+              <p className="text-xs font-black uppercase text-slate-500 mb-2">Solvency FIRE Age</p>
+              <h2 className="text-3xl font-black text-indigo-600">{results.fiAge || '—'}</h2>
+            </div>
+            <div className="text-center">
+              <p className="text-xs font-black uppercase text-slate-500 mb-2">Longevity Limit</p>
+              <h2 className="text-3xl font-black text-slate-900">Age {data.liveUntilAge}</h2>
+            </div>
+            <div className="text-center">
+              <p className="text-xs font-black uppercase text-slate-500 mb-2">Savings Velocity</p>
+              <h2 className="text-3xl font-black text-slate-900">{savingsRate.toFixed(1)}%</h2>
+            </div>
+          </div>
+
+          {/* 2. Core Stats */}
+          <div className="p-4 bg-white border border-slate-300 rounded">
+            <h3 className="text-sm font-black text-indigo-600 uppercase mb-3 border-b border-slate-200 pb-2">Core Stats</h3>
+            <div className="grid grid-cols-2 gap-2 text-xs">
+              <div><span className="font-bold">Age Now:</span> {data.currentAge}</div>
+              <div><span className="font-bold">Retire Age:</span> {data.retirementAge}</div>
+              <div><span className="font-bold">Live Until Age:</span> {data.liveUntilAge}</div>
+              <div><span className="font-bold">Net Worth:</span> {formatCurrency(data.currentNetWorth, currency)}</div>
+            </div>
+          </div>
+
+          {/* 3. Cash Flow */}
+          <div className="p-4 bg-white border border-slate-300 rounded">
+            <h3 className="text-sm font-black text-emerald-600 uppercase mb-3 border-b border-slate-200 pb-2">Cash Flow</h3>
+            <div className="grid grid-cols-2 gap-2 text-xs">
+              <div><span className="font-bold">Monthly Income:</span> {formatCurrency(data.monthlyIncome, currency)}</div>
+              <div><span className="font-bold">Monthly Living:</span> {formatCurrency(data.monthlyExpenses, currency)}</div>
+              <div><span className="font-bold">Monthly Medical:</span> {formatCurrency(data.monthlyMedical, currency)}</div>
+              <div><span className="font-bold">Monthly Surplus:</span> {formatCurrency(data.monthlySavings, currency)}</div>
+            </div>
+          </div>
+
+          {/* 4. Estimated Numbers */}
+          <div className="p-4 bg-white border border-slate-300 rounded">
+            <h3 className="text-sm font-black text-slate-400 uppercase mb-3 border-b border-slate-200 pb-2">Estimated</h3>
+            <div className="grid grid-cols-2 gap-2 text-xs">
+              <div><span className="font-bold">Simulation Mode:</span> {data.simulationMode}</div>
+              <div><span className="font-bold">Income Growth:</span> {data.incomeIncreaseRate}%</div>
+              <div><span className="font-bold">Global Inflation:</span> {data.inflationRate}%</div>
+              <div><span className="font-bold">Medical Inflation:</span> {data.medicalInflation}%</div>
+              <div><span className="font-bold">Est. Return:</span> {data.annualReturn}%</div>
+              <div><span className="font-bold">Post-Retire Tax:</span> {data.retirementTaxRate}%</div>
+            </div>
+          </div>
+
+          {/* 5. Visual Graph */}
+          <div className="p-4 bg-white border border-slate-300 rounded">
+            <h3 className="text-sm font-black text-slate-400 uppercase mb-3 border-b border-slate-200 pb-2">Projection Chart</h3>
+            <div className="text-xs text-slate-500 italic mb-2">
+              Chart shows net worth progression over time. FIRE age: {results.fiAge || 'Not reached'}
+            </div>
+            <div className="h-48 bg-slate-50 border border-slate-200 rounded flex items-center justify-center text-slate-400 text-xs">
+              [Chart visualization would appear here - see web version for interactive chart]
+            </div>
+          </div>
+
+          {/* 6. Table View */}
+          <div className="p-4 bg-white border border-slate-300 rounded">
+            <h3 className="text-sm font-black text-slate-400 uppercase mb-3 border-b border-slate-200 pb-2">Detailed Projections</h3>
+            <div className="overflow-x-auto">
+              <table className="w-full text-xs border-collapse">
+                <thead className="bg-slate-50">
+                  <tr>
+                    <th className="border border-slate-300 p-1 font-bold">Age/Year</th>
+                    <th className="border border-slate-300 p-1 font-bold text-right">Start NW</th>
+                    <th className="border border-slate-300 p-1 font-bold text-right">Income</th>
+                    <th className="border border-slate-300 p-1 font-bold text-right">Expenses</th>
+                    <th className="border border-slate-300 p-1 font-bold text-right">Returns</th>
+                    <th className="border border-slate-300 p-1 font-bold text-right">End NW</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {results.projections.filter((_, idx) => idx % 5 === 0 || idx === results.projections.length - 1).map((p) => (
+                    <tr key={`${p.age}-${p.year}`} className={p.isRetired ? 'bg-teal-50' : ''}>
+                      <td className="border border-slate-300 p-1">{p.age} ({p.year})</td>
+                      <td className="border border-slate-300 p-1 text-right">{formatCompactNumber(p.openingBalance, currency)}</td>
+                      <td className="border border-slate-300 p-1 text-right text-emerald-600">+{formatCompactNumber(p.income, currency)}</td>
+                      <td className="border border-slate-300 p-1 text-right text-rose-600">-{formatCompactNumber(p.totalOutflow, currency)}</td>
+                      <td className="border border-slate-300 p-1 text-right text-indigo-600">{p.returns > 0 ? '+' : ''}{formatCompactNumber(p.returns, currency)}</td>
+                      <td className="border border-slate-300 p-1 text-right font-bold">{formatCompactNumber(p.netWorth, currency)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          {/* 7. Roadmap Timeline */}
+          {data.goals.length > 0 && (
+            <div className="p-4 bg-white border border-slate-300 rounded">
+              <h3 className="text-sm font-black text-slate-400 uppercase mb-3 border-b border-slate-200 pb-2">Roadmap Timeline</h3>
+              <div className="space-y-2">
+                {data.goals.map(goal => (
+                  <div key={goal.id} className="flex justify-between items-center text-xs p-2 bg-slate-50 rounded">
+                    <span className="font-bold">{goal.name}</span>
+                    <span className="text-slate-600">Target Age: {goal.targetAge}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Print Footer */}
+          <div className="p-4 text-xs text-slate-500 text-center border-t border-slate-300 mt-6">
+            <p>FirePulse - Privacy-first Financial Independence Calculator</p>
+            <p>No data is stored. This report is generated locally on your device.</p>
+          </div>
+        </div>
+
         {/* CONTENT GRID */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 md:gap-12">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 md:gap-12 print:hidden">
           {/* PARAMETERS */}
           <aside className="lg:col-span-4 space-y-8 md:space-y-12 print:hidden">
             <div className="bg-white p-8 md:p-12 rounded-[2.5rem] md:rounded-[3.5rem] border border-slate-200 shadow-sm space-y-12">
