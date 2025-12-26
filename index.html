@@ -68,6 +68,104 @@
             appearance: none;
             box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
         }
+
+        /* Print Styles */
+        @media print {
+          @page {
+            size: A4 portrait;
+            margin: 1cm;
+          }
+          
+          body {
+            print-color-adjust: exact;
+            -webkit-print-color-adjust: exact;
+            background: white !important;
+            color: black !important;
+            font-size: 12px !important;
+          }
+          
+          .print\\:hidden {
+            display: none !important;
+          }
+          
+          .bg-indigo-600 {
+            background-color: #4f46e5 !important;
+            color: white !important;
+          }
+          
+          .bg-slate-900 {
+            background-color: #1e293b !important;
+            color: white !important;
+          }
+          
+          .bg-white, .bg-slate-50 {
+            background-color: white !important;
+            border: 1px solid #e2e8f0 !important;
+          }
+          
+          .shadow-2xl, .shadow-xl, .shadow-sm, .shadow-md {
+            box-shadow: none !important;
+          }
+          
+          .rounded-\\[.*?\\] {
+            border-radius: 0.5rem !important;
+          }
+          
+          .p-8, .p-12, .p-10 {
+            padding: 1rem !important;
+          }
+          
+          .md\\:p-8, .md\\:p-12, .md\\:p-10 {
+            padding: 1rem !important;
+          }
+          
+          .space-y-12 > :not([hidden]) ~ :not([hidden]) {
+            margin-top: 1rem !important;
+          }
+          
+          .space-y-8 > :not([hidden]) ~ :not([hidden]) {
+            margin-top: 0.75rem !important;
+          }
+          
+          .grid {
+            display: block !important;
+          }
+          
+          .md\\:col-span-1, .md\\:col-span-3, .lg\\:col-span-4, .lg\\:col-span-8 {
+            width: 100% !important;
+            margin-bottom: 1rem !important;
+          }
+          
+          .text-9xl, .text-8xl, .text-7xl, .text-6xl, .text-5xl {
+            font-size: 2rem !important;
+          }
+          
+          .text-4xl, .text-3xl {
+            font-size: 1.5rem !important;
+          }
+          
+          h1, h2, h3, h4, h5, h6 {
+            page-break-after: avoid;
+          }
+          
+          .overflow-x-auto {
+            overflow: visible !important;
+          }
+          
+          table {
+            font-size: 10px !important;
+            border-collapse: collapse !important;
+          }
+          
+          th, td {
+            padding: 0.25rem !important;
+            border: 1px solid #e2e8f0 !important;
+          }
+          
+          .custom-scrollbar::-webkit-scrollbar {
+            display: none !important;
+          }
+        }
     </style>
 <script type="importmap">
 {
