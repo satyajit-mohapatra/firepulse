@@ -4,7 +4,6 @@ import { FinancialData, CalculationResults, CurrencyCode, Milestone, InvestmentG
 import { calculateFIRE, formatCurrency, formatCurrencyCompact, getCurrencySymbol, formatCompactNumber } from './utils/finance';
 import SliderInput from './components/SliderInput';
 import ProjectionChart from './components/ProjectionChart';
-import { GoogleGenAI } from "@google/genai";
 
 const currencies: { code: CurrencyCode; name: string }[] = [
   { code: 'USD', name: 'USD ($)' },
@@ -46,8 +45,6 @@ const App: React.FC = () => {
   });
 
   const [currency, setCurrency] = useState<CurrencyCode>('USD');
-  const [aiInsight, setAiInsight] = useState<string>('');
-  const [loadingAi, setLoadingAi] = useState<boolean>(false);
   const [showLedger, setShowLedger] = useState(false);
   const [showLongevityTable, setShowLongevityTable] = useState(false);
 
@@ -66,20 +63,7 @@ const App: React.FC = () => {
     });
   };
 
-  const getAiInsight = async () => {
-    setLoadingAi(true);
-    setAiInsight('');
-    try {
-      const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-      const prompt = `Analyze this plan: ${data.currentAge}yo, retire ${data.retirementAge}yo, Net Worth ${formatCurrency(data.currentNetWorth, currency)}, Income ${formatCurrency(data.monthlyIncome, currency)}/mo, Living ${formatCurrency(data.monthlyExpenses, currency)}/mo, Medical ${formatCurrency(data.monthlyMedical, currency)}/mo growing at ${data.medicalInflation}%. Return Strategy: ${data.simulationMode}. Longevity Target: ${data.liveUntilAge}. FI Age: ${results.fiAge || 'Never'}. Provide 2 quick strategy tips.`;
-      const response = await ai.models.generateContent({ model: 'gemini-3-flash-preview', contents: prompt });
-      setAiInsight(response.text || "");
-    } catch (e) {
-      setAiInsight("Auditor offline.");
-    } finally {
-      setLoadingAi(false);
-    }
-  };
+
 
   const strategies: { id: FinancialData['simulationMode']; label: string }[] = [
     { id: 'leaner', label: 'Leaner' },
@@ -316,15 +300,7 @@ const App: React.FC = () => {
               </section>
             </div>
 
-            <div className="bg-slate-900 rounded-[2.5rem] md:rounded-[3.5rem] p-8 md:p-12 text-slate-300 space-y-6 md:space-y-8 shadow-2xl shadow-slate-900/40 border border-white/5 mt-8">
-              <h3 className="text-[10px] md:text-xs font-black text-white uppercase tracking-[0.5em]">AI Longevity Check</h3>
-              <div className="text-sm md:text-base font-medium leading-relaxed italic opacity-80 min-h-[100px]">
-                {loadingAi ? 'Calculating survival nodes...' : aiInsight || `Validating portfolio until Age ${data.liveUntilAge} with ${data.simulationMode} strategy.`}
-              </div>
-              <button onClick={getAiInsight} disabled={loadingAi} className="w-full py-4 md:py-5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-2xl font-black text-xs md:text-sm uppercase tracking-[0.2em] transition-all shadow-xl shadow-indigo-600/20 active:scale-95">
-                {loadingAi ? 'Calibrating...' : 'Survival Audit'}
-              </button>
-            </div>
+
           </aside>
 
           {/* MAIN VISUALS */}
