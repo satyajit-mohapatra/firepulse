@@ -157,16 +157,16 @@ const App: React.FC = () => {
     <div className="h-screen bg-slate-50 text-slate-900 flex flex-col overflow-hidden transition-colors duration-500">
       {/* FIXED TOP SECTION */}
       <div className="flex-none bg-slate-50 z-50 border-b border-slate-200 shadow-[0_4px_20px_-12px_rgba(0,0,0,0.1)]">
-        <div className="max-w-7xl mx-auto px-4 md:px-8 lg:px-12 pt-4 md:pt-6 lg:pt-6 pb-0 space-y-6 md:space-y-8">
+        <div className="max-w-7xl mx-auto px-4 md:px-8 lg:px-12 pt-1 md:pt-2 lg:pt-2 pb-0 space-y-1 md:space-y-2">
           {/* HEADER */}
-          <header className="flex flex-col sm:flex-row justify-between items-center gap-6 print:hidden">
+          <header className="flex flex-col sm:flex-row justify-between items-center gap-2 print:hidden">
             <div className="flex items-center gap-4 md:gap-6">
-              <div className="w-12 h-12 md:w-16 md:h-16 bg-indigo-600 rounded-2xl md:rounded-[1.5rem] flex items-center justify-center shadow-xl shadow-indigo-600/20">
-                <svg className="w-8 h-8 md:w-10 md:h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" /></svg>
+              <div className="w-10 h-10 md:w-12 md:h-12 bg-indigo-600 rounded-xl md:rounded-2xl flex items-center justify-center shadow-xl shadow-indigo-600/20">
+                <svg className="w-6 h-6 md:w-8 md:h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" /></svg>
               </div>
               <div>
-                <h1 className="text-3xl md:text-5xl font-black tracking-tighter text-slate-900 leading-none italic uppercase">FirePulse</h1>
-                <p className="text-[10px] md:text-xs font-black text-indigo-500 uppercase tracking-[0.4em] mt-2">Longevity Strategy Engine</p>
+                <h1 className="text-2xl md:text-3xl font-black tracking-tighter text-slate-900 leading-none italic uppercase">FirePulse</h1>
+                <p className="text-[8px] md:text-[10px] font-black text-indigo-500 uppercase tracking-[0.4em] mt-2">Longevity Strategy Engine</p>
               </div>
             </div>
             <div className="flex items-center gap-4">
@@ -187,46 +187,45 @@ const App: React.FC = () => {
           </header>
 
           {/* PRIMARY DISPLAY - Always Visible */}
-          <section className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8 print:hidden">
-            <div className="md:col-span-1 bg-indigo-600 p-6 md:p-8 rounded-[2rem] md:rounded-[3rem] text-white shadow-2xl shadow-indigo-600/30 relative overflow-hidden group">
-              <div className="absolute top-0 right-0 w-24 h-24 md:w-32 md:h-32 bg-white/5 rounded-full -mr-8 -mt-8 md:-mr-10 md:-mt-10 group-hover:scale-110 transition-transform"></div>
-              <p className="text-[10px] md:text-xs font-black uppercase tracking-[0.4em] opacity-80 mb-4 md:mb-6">Solvency FIRE Age</p>
-              <h2 className="text-6xl md:text-7xl lg:text-8xl font-black tracking-tighter italic leading-none">{results.fiAge || '—'}</h2>
-              <p className="text-xs md:text-sm font-black uppercase mt-6 md:mt-8 opacity-70 tracking-widest">{results.fiYear ? `Safe Retirement Year: ${results.fiYear}` : 'Capital Exhaustion Risk'}</p>
+          <section className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 print:hidden">
+            <div className="md:col-span-1 bg-indigo-600 p-3 md:p-4 rounded-2xl md:rounded-3xl text-white shadow-xl shadow-indigo-600/20 relative overflow-hidden group">
+              <div className="absolute top-0 right-0 w-16 h-16 md:w-20 md:h-20 bg-white/5 rounded-full -mr-6 -mt-6 md:-mr-8 md:-mt-8 group-hover:scale-110 transition-transform"></div>
+              <p className="text-[9px] md:text-[10px] font-black uppercase tracking-[0.4em] opacity-80 mb-1">Solvency FIRE Age</p>
+              <h2 className="text-3xl md:text-4xl lg:text-5xl font-black tracking-tighter italic leading-none">{results.fiAge || '—'}</h2>
+              <p className="text-[9px] md:text-[10px] font-black uppercase mt-1 opacity-70 tracking-widest">{results.fiYear ? `Safe Retirement Year: ${results.fiYear}` : 'Capital Exhaustion Risk'}</p>
             </div>
 
-            <div className="md:col-span-1 bg-white p-6 md:p-8 rounded-[2rem] md:rounded-[3rem] border border-slate-200 shadow-sm flex flex-col justify-center">
-              <p className="text-[10px] md:text-xs font-black text-slate-400 uppercase tracking-[0.4em] mb-4 md:mb-6">Longevity Limit</p>
-              <h2 className="text-4xl md:text-5xl lg:text-6xl font-black text-slate-900 tracking-tighter italic mono">Age {data.liveUntilAge}</h2>
-              <p className={`text-[10px] font-bold uppercase mt-6 md:mt-8 tracking-widest ${results.isSolventAtEnd ? 'text-teal-600' : 'text-rose-600 animate-pulse'}`}>
+            <div className="md:col-span-1 bg-white p-3 md:p-4 rounded-2xl md:rounded-3xl border border-slate-200 shadow-sm flex flex-col justify-center">
+              <p className="text-[9px] md:text-[10px] font-black text-slate-400 uppercase tracking-[0.4em] mb-1">Longevity Limit</p>
+              <h2 className="text-2xl md:text-3xl lg:text-4xl font-black text-slate-900 tracking-tighter italic mono">Age {data.liveUntilAge}</h2>
+              <p className={`text-[9px] font-bold uppercase mt-1 tracking-widest ${results.isSolventAtEnd ? 'text-teal-600' : 'text-rose-600 animate-pulse'}`}>
                 {results.isSolventAtEnd ? 'Portfolio remains solvent' : 'Warning: Portfolio exhausts'}
               </p>
             </div>
 
-            <div className="md:col-span-1 bg-white p-6 md:p-8 rounded-[2rem] md:rounded-[3rem] border border-slate-200 shadow-sm flex flex-col justify-center">
-              <p className="text-[10px] md:text-xs font-black text-slate-400 uppercase tracking-[0.4em] mb-4 md:mb-6">Savings Velocity</p>
-              <h2 className="text-4xl md:text-5xl lg:text-6xl font-black text-slate-900 tracking-tighter italic mono">{savingsRate.toFixed(1)}%</h2>
-              <p className="text-[10px] md:text-xs font-bold text-indigo-500 uppercase mt-6 md:mt-8 tracking-widest">Surplus: {formatCurrencyCompact(data.monthlySavings, currency)}/mo</p>
+            <div className="md:col-span-1 bg-white p-3 md:p-4 rounded-2xl md:rounded-3xl border border-slate-200 shadow-sm flex flex-col justify-center">
+              <p className="text-[9px] md:text-[10px] font-black text-slate-400 uppercase tracking-[0.4em] mb-1">Savings Velocity</p>
+              <h2 className="text-2xl md:text-3xl lg:text-4xl font-black text-slate-900 tracking-tighter italic mono">{savingsRate.toFixed(1)}%</h2>
+              <p className="text-[9px] md:text-[10px] font-bold text-indigo-500 uppercase mt-1 tracking-widest">Surplus: {formatCurrencyCompact(data.monthlySavings, currency)}/mo</p>
             </div>
           </section>
 
-          {/* TAB NAVIGATION - Moved Below Stats */}
           <div className="print:hidden">
-            <div className="flex gap-8 -mb-[1px]">
+            <div className="flex gap-4 -mb-[1px]">
               <button
                 onClick={() => setActiveTab('inputs')}
-                className={`pb-4 px-2 text-sm font-black uppercase tracking-widest transition-all border-b-4 ${activeTab === 'inputs'
-                    ? 'border-indigo-600 text-indigo-900'
-                    : 'border-transparent text-slate-400 hover:text-slate-600 hover:border-slate-200'
+                className={`pb-1 px-2 text-[10px] font-black uppercase tracking-widest transition-all border-b-2 ${activeTab === 'inputs'
+                  ? 'border-indigo-600 text-indigo-900'
+                  : 'border-transparent text-slate-400 hover:text-slate-600 hover:border-slate-200'
                   }`}
               >
                 Input Parameters
               </button>
               <button
                 onClick={() => setActiveTab('results')}
-                className={`pb-4 px-2 text-sm font-black uppercase tracking-widest transition-all border-b-4 ${activeTab === 'results'
-                    ? 'border-indigo-600 text-indigo-900'
-                    : 'border-transparent text-slate-400 hover:text-slate-600 hover:border-slate-200'
+                className={`pb-1 px-2 text-[10px] font-black uppercase tracking-widest transition-all border-b-2 ${activeTab === 'results'
+                  ? 'border-indigo-600 text-indigo-900'
+                  : 'border-transparent text-slate-400 hover:text-slate-600 hover:border-slate-200'
                   }`}
               >
                 Results & Analysis
@@ -248,8 +247,8 @@ const App: React.FC = () => {
                     key={strat.id}
                     onClick={() => updateData('simulationMode', strat.id)}
                     className={`px-4 py-4 rounded-xl text-[10px] md:text-xs font-black uppercase tracking-widest transition-all border ${data.simulationMode === strat.id
-                        ? 'bg-indigo-600 text-white border-indigo-600 shadow-md shadow-indigo-600/20'
-                        : 'bg-white text-slate-500 border-slate-100 hover:border-indigo-200'
+                      ? 'bg-indigo-600 text-white border-indigo-600 shadow-md shadow-indigo-600/20'
+                      : 'bg-white text-slate-500 border-slate-100 hover:border-indigo-200'
                       }`}
                   >
                     {strat.label}

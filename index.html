@@ -1,235 +1,260 @@
-
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="theme-color" content="#6366f1">
-    <meta name="description" content="Privacy-first Financial Independence Calculator">
-    <link rel="manifest" href="./manifest.json">
-    <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/3135/3135706.png">
-    
-    <title>FirePulse | Financial Independence Calculator</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
-    <style>
-        :root {
-            font-size: 16px;
-        }
-        @media (max-width: 640px) {
-            :root {
-                font-size: 14px;
-            }
-        }
-        body {
-            font-family: 'Inter', sans-serif;
-            -webkit-font-smoothing: antialiased;
-            -moz-osx-font-smoothing: grayscale;
-            background-color: #f8fafc;
-            color: #0f172a;
-        }
-        .mono {
-            font-family: 'JetBrains Mono', monospace;
-        }
-        
-        /* Custom layout fixes */
-        .slider-input-container {
-            min-width: 0;
-        }
-        
-        .slider-input-value {
-            min-width: 0;
-            flex-shrink: 0;
-        }
-        
-        .slider-input-label {
-            min-width: 0;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-        }
-        
-        /* Grid layout improvements */
-        .input-grid {
-            gap: 1rem;
-        }
-        
-        @media (min-width: 768px) {
-            .input-grid {
-                gap: 1.5rem;
-            }
-        }
-        
-        /* Prevent overlapping */
-        .space-y-8 > :not([hidden]) ~ :not([hidden]) {
-            margin-top: 2rem;
-        }
-        
-        .space-y-10 > :not([hidden]) ~ :not([hidden]) {
-            margin-top: 2.5rem;
-        }
-        
-        @media (min-width: 768px) {
-            .space-y-8 > :not([hidden]) ~ :not([hidden]) {
-                margin-top: 2rem;
-            }
-            
-            .space-y-10 > :not([hidden]) ~ :not([hidden]) {
-                margin-top: 2.5rem;
-            }
-        }
-        /* Hide number input spinners for a cleaner UI as requested */
-        input[type=number]::-webkit-inner-spin-button, 
-        input[type=number]::-webkit-outer-spin-button { 
-            -webkit-appearance: none;
-            margin: 0;
-        }
-        input[type=number] {
-            -moz-appearance: textfield;
-        }
-        ::-webkit-scrollbar {
-            width: 8px;
-        }
-        ::-webkit-scrollbar-track {
-            background: #f1f5f9;
-        }
-        ::-webkit-scrollbar-thumb {
-            background: #cbd5e1;
-            border-radius: 10px;
-        }
-        input[type=range]::-webkit-slider-runnable-track {
-            background: #e2e8f0;
-            border-radius: 1rem;
-            height: 0.4rem;
-        }
-        input[type=range]::-webkit-slider-thumb {
-            background: #4f46e5;
-            border: 2px solid white;
-            width: 1.2rem;
-            height: 1.2rem;
-            margin-top: -0.4rem;
-            cursor: pointer;
-            border-radius: 999px;
-            appearance: none;
-            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
-        }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#6366f1">
+  <meta name="description" content="Privacy-first Financial Independence Calculator">
+  <link rel="manifest" href="./manifest.json">
+  <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/3135/3135706.png">
 
-        /* Print Styles */
-        @media print {
-          @page {
-            size: A4 portrait;
-            margin: 1cm;
-          }
-          
-          body {
-            print-color-adjust: exact;
-            -webkit-print-color-adjust: exact;
-            background: white !important;
-            color: black !important;
-            font-size: 12px !important;
-          }
-          
-          .bg-indigo-600 {
-            background-color: #4f46e5 !important;
-            color: white !important;
-          }
-          
-          .bg-slate-900 {
-            background-color: #1e293b !important;
-            color: white !important;
-          }
-          
-          .bg-white, .bg-slate-50 {
-            background-color: white !important;
-            border: 1px solid #e2e8f0 !important;
-          }
-          
-          .shadow-2xl, .shadow-xl, .shadow-sm, .shadow-md {
-            box-shadow: none !important;
-          }
-          
-          .rounded-\\[.*?\\] {
-            border-radius: 0.5rem !important;
-          }
-          
-          .p-8, .p-12, .p-10 {
-            padding: 1rem !important;
-          }
-          
-          .md\\:p-8, .md\\:p-12, .md\\:p-10 {
-            padding: 1rem !important;
-          }
-          
-          .space-y-12 > :not([hidden]) ~ :not([hidden]) {
-            margin-top: 1rem !important;
-          }
-          
-          .space-y-8 > :not([hidden]) ~ :not([hidden]) {
-            margin-top: 0.75rem !important;
-          }
-          
-          .grid {
-            display: block !important;
-          }
-          
-          .md\\:col-span-1, .md\\:col-span-3, .lg\\:col-span-4, .lg\\:col-span-8 {
-            width: 100% !important;
-            margin-bottom: 1rem !important;
-          }
-          
-          .text-9xl, .text-8xl, .text-7xl, .text-6xl, .text-5xl {
-            font-size: 2rem !important;
-          }
-          
-          .text-4xl, .text-3xl {
-            font-size: 1.5rem !important;
-          }
-          
-          h1, h2, h3, h4, h5, h6 {
-            page-break-after: avoid;
-          }
-          
-          .overflow-x-auto {
-            overflow: visible !important;
-          }
-          
-          table {
-            font-size: 10px !important;
-            border-collapse: collapse !important;
-          }
-          
-          th, td {
-            padding: 0.25rem !important;
-            border: 1px solid #e2e8f0 !important;
-          }
-          
-          .custom-scrollbar::-webkit-scrollbar {
-            display: none !important;
-          }
+  <title>FirePulse | Financial Independence Calculator</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap"
+    rel="stylesheet">
+  <style>
+    :root {
+      font-size: 16px;
+    }
 
-          .print\\:hidden {
-            display: none !important;
-          }
-        }
-    </style>
-<script type="importmap">
-{
-  "imports": {
-    "react": "https://esm.sh/react@^19.2.3",
-    "react-dom/": "https://esm.sh/react-dom@^19.2.3/",
-    "react/": "https://esm.sh/react@^19.2.3/",
-    "recharts": "https://esm.sh/recharts@^3.6.0",
-    "@vitejs/plugin-react": "https://esm.sh/@vitejs/plugin-react@^5.1.2",
-    "vite": "https://esm.sh/vite@^7.3.0"
-  }
-}
-</script>
+    @media (max-width: 640px) {
+      :root {
+        font-size: 14px;
+      }
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      background-color: #f8fafc;
+      color: #0f172a;
+    }
+
+    .mono {
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    /* Custom layout fixes */
+    .slider-input-container {
+      min-width: 0;
+    }
+
+    .slider-input-value {
+      min-width: 0;
+      flex-shrink: 0;
+    }
+
+    .slider-input-label {
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    /* Grid layout improvements */
+    .input-grid {
+      gap: 1rem;
+    }
+
+    @media (min-width: 768px) {
+      .input-grid {
+        gap: 1.5rem;
+      }
+    }
+
+    /* Prevent overlapping */
+    .space-y-8> :not([hidden])~ :not([hidden]) {
+      margin-top: 2rem;
+    }
+
+    .space-y-10> :not([hidden])~ :not([hidden]) {
+      margin-top: 2.5rem;
+    }
+
+    @media (min-width: 768px) {
+      .space-y-8> :not([hidden])~ :not([hidden]) {
+        margin-top: 2rem;
+      }
+
+      .space-y-10> :not([hidden])~ :not([hidden]) {
+        margin-top: 2.5rem;
+      }
+    }
+
+    /* Hide number input spinners for a cleaner UI as requested */
+    input[type=number]::-webkit-inner-spin-button,
+    input[type=number]::-webkit-outer-spin-button {
+      -webkit-appearance: none;
+      appearance: none;
+      margin: 0;
+    }
+
+    input[type=number] {
+      -moz-appearance: textfield;
+      appearance: textfield;
+    }
+
+    ::-webkit-scrollbar {
+      width: 8px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: #f1f5f9;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 10px;
+    }
+
+    input[type=range]::-webkit-slider-runnable-track {
+      background: #e2e8f0;
+      border-radius: 1rem;
+      height: 0.4rem;
+    }
+
+    input[type=range]::-webkit-slider-thumb {
+      background: #4f46e5;
+      border: 2px solid white;
+      width: 1.2rem;
+      height: 1.2rem;
+      margin-top: -0.4rem;
+      cursor: pointer;
+      border-radius: 999px;
+      appearance: none;
+      box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+    }
+
+    /* Print Styles */
+    @media print {
+      @page {
+        size: A4 portrait;
+        margin: 1cm;
+      }
+
+      body {
+        print-color-adjust: exact;
+        -webkit-print-color-adjust: exact;
+        background: white !important;
+        color: black !important;
+        font-size: 12px !important;
+      }
+
+      .bg-indigo-600 {
+        background-color: #4f46e5 !important;
+        color: white !important;
+      }
+
+      .bg-slate-900 {
+        background-color: #1e293b !important;
+        color: white !important;
+      }
+
+      .bg-white,
+      .bg-slate-50 {
+        background-color: white !important;
+        border: 1px solid #e2e8f0 !important;
+      }
+
+      .shadow-2xl,
+      .shadow-xl,
+      .shadow-sm,
+      .shadow-md {
+        box-shadow: none !important;
+      }
+
+      [class*="rounded-["] {
+        border-radius: 0.5rem !important;
+      }
+
+      .p-8,
+      .p-12,
+      .p-10 {
+        padding: 1rem !important;
+      }
+
+      .md\\:p-8,
+      .md\\:p-12,
+      .md\\:p-10 {
+        padding: 1rem !important;
+      }
+
+      .space-y-12> :not([hidden])~ :not([hidden]) {
+        margin-top: 1rem !important;
+      }
+
+      .space-y-8> :not([hidden])~ :not([hidden]) {
+        margin-top: 0.75rem !important;
+      }
+
+      .grid {
+        display: block !important;
+      }
+
+      .md\\:col-span-1,
+      .md\\:col-span-3,
+      .lg\\:col-span-4,
+      .lg\\:col-span-8 {
+        width: 100% !important;
+        margin-bottom: 1rem !important;
+      }
+
+      .text-9xl,
+      .text-8xl,
+      .text-7xl,
+      .text-6xl,
+      .text-5xl {
+        font-size: 2rem !important;
+      }
+
+      .text-4xl,
+      .text-3xl {
+        font-size: 1.5rem !important;
+      }
+
+      h1,
+      h2,
+      h3,
+      h4,
+      h5,
+      h6 {
+        page-break-after: avoid;
+      }
+
+      .overflow-x-auto {
+        overflow: visible !important;
+      }
+
+      table {
+        font-size: 10px !important;
+        border-collapse: collapse !important;
+      }
+
+      th,
+      td {
+        padding: 0.25rem !important;
+        border: 1px solid #e2e8f0 !important;
+      }
+
+      .custom-scrollbar::-webkit-scrollbar {
+        display: none !important;
+      }
+
+      .print\\:hidden {
+        display: none !important;
+      }
+    }
+  </style>
 </head>
+
 <body class="bg-slate-50 text-slate-900 selection:bg-indigo-100">
-    <div id="root"></div>
-    <script type="module" src="./index.tsx"></script>
-<script type="module" src="/index.tsx"></script>
+  <div id="root"></div>
+  <script type="module" src="./index.tsx"></script>
 </body>
+
 </html>
