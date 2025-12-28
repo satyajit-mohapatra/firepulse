@@ -33,6 +33,53 @@
         .mono {
             font-family: 'JetBrains Mono', monospace;
         }
+        
+        /* Custom layout fixes */
+        .slider-input-container {
+            min-width: 0;
+        }
+        
+        .slider-input-value {
+            min-width: 0;
+            flex-shrink: 0;
+        }
+        
+        .slider-input-label {
+            min-width: 0;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        
+        /* Grid layout improvements */
+        .input-grid {
+            gap: 1rem;
+        }
+        
+        @media (min-width: 768px) {
+            .input-grid {
+                gap: 1.5rem;
+            }
+        }
+        
+        /* Prevent overlapping */
+        .space-y-8 > :not([hidden]) ~ :not([hidden]) {
+            margin-top: 2rem;
+        }
+        
+        .space-y-10 > :not([hidden]) ~ :not([hidden]) {
+            margin-top: 2.5rem;
+        }
+        
+        @media (min-width: 768px) {
+            .space-y-8 > :not([hidden]) ~ :not([hidden]) {
+                margin-top: 2rem;
+            }
+            
+            .space-y-10 > :not([hidden]) ~ :not([hidden]) {
+                margin-top: 2.5rem;
+            }
+        }
         /* Hide number input spinners for a cleaner UI as requested */
         input[type=number]::-webkit-inner-spin-button, 
         input[type=number]::-webkit-outer-spin-button { 

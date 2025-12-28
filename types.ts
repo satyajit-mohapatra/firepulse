@@ -14,30 +14,27 @@ export interface FinancialData {
   retirementAge: number;
   liveUntilAge: number;
   currentNetWorth: number;
-  monthlyIncome: number;    
+  nonLiquidAssets: number;
+  monthlyIncome: number;
   monthlySavings: number;
   annualBonus: number;
-  incomeIncreaseRate: number; // Renamed from savingsIncreaseRate
+  incomeIncreaseRate: number;
   expenseIncreaseRate: number;
   retirementExpenseMultiplier: number;
-  monthlyExpenses: number; 
-  monthlyMedical: number;   
-  medicalInflation: number; 
+  monthlyExpenses: number;
+  monthlyMedical: number;
+  medicalInflation: number;
   annualExpenses: number;
   swpAmount: number;
   retirementTaxRate: number;
-  annualReturn: number;
+  liquidAssetReturn: number;
+  nonLiquidAssetReturn: number;
   inflationRate: number;
   withdrawalRate: number;
   futureIncome: number;
   futureIncomeStartAge: number;
   simulationMode: 'leaner' | 'conservative' | 'crash' | 'aggressive';
-  withdrawalStrategy: 'fixed' | 'variable'; 
-  goals: InvestmentGoal[];
-}
-
-export interface Milestone {
-  name: string;
+  withdrawalStrategy: 'fixed' | 'variable';
   age: number | null;
   target: number;
   reached: boolean;

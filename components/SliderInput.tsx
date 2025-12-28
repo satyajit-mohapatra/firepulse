@@ -25,12 +25,12 @@ const SliderInput: React.FC<SliderInputProps> = ({
   tooltip
 }) => {
   return (
-    <div className="flex flex-col space-y-3 group w-full">
+    <div className="flex flex-col space-y-3 group w-full slider-input-container">
       <div className="flex justify-between items-end gap-2">
-        <label className="text-[10px] md:text-[11px] font-black text-slate-500 group-hover:text-indigo-600 transition-colors uppercase tracking-[0.2em] leading-tight flex-1">
+        <label className="text-[10px] md:text-[11px] font-black text-slate-500 group-hover:text-indigo-600 transition-colors uppercase tracking-[0.2em] leading-tight flex-1 min-w-0 slider-input-label">
           {label}
         </label>
-        <div className="flex items-center gap-1 shrink-0">
+        <div className="flex items-center gap-1 shrink-0 min-w-0 slider-input-value">
           {prefix && <span className="text-xs font-bold text-slate-400 self-center mb-1">{prefix}</span>}
           <input
             type="number"
@@ -39,7 +39,7 @@ const SliderInput: React.FC<SliderInputProps> = ({
             min={min}
             max={max}
             step={step}
-            className="w-24 md:w-32 bg-transparent text-right text-xl font-black text-slate-900 outline-none border-b border-slate-200 focus:border-indigo-500 transition-all mono py-0"
+            className="w-20 md:w-28 bg-transparent text-right text-lg md:text-xl font-black text-slate-900 outline-none border-b border-slate-200 focus:border-indigo-500 transition-all mono py-0"
           />
           {suffix && <span className="text-xs font-bold text-slate-400 self-center mb-1">{suffix}</span>}
         </div>
