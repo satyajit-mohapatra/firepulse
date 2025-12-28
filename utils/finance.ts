@@ -1,3 +1,4 @@
+import { FinancialData, CalculationResults, YearProjection, CurrencyCode, Milestone } from '../types';
 
 /**
  * Calculates age-based asset allocation for liquid assets

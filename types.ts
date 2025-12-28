@@ -9,6 +9,14 @@ export interface InvestmentGoal {
   category: 'Housing' | 'Education' | 'Travel' | 'Vehicle' | 'Other';
 }
 
+export interface Milestone {
+  name: string;
+  age: number | null;
+  target: number;
+  reached: boolean;
+  description: string;
+}
+
 export interface FinancialData {
   currentAge: number;
   retirementAge: number;
@@ -35,10 +43,7 @@ export interface FinancialData {
   futureIncomeStartAge: number;
   simulationMode: 'leaner' | 'conservative' | 'crash' | 'aggressive';
   withdrawalStrategy: 'fixed' | 'variable';
-  age: number | null;
-  target: number;
-  reached: boolean;
-  description: string;
+  goals: InvestmentGoal[];
 }
 
 export interface YearProjection {
@@ -48,7 +53,7 @@ export interface YearProjection {
   returns: number;
   netWorth: number;
   isRetired: boolean;
-  income: number;           
+  income: number;
   livingExpenses: number;
   medicalExpenses: number;
   totalOutflow: number;
