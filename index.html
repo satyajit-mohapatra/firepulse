@@ -21,9 +21,56 @@
       font-size: 16px;
     }
 
+    /* Mobile-specific improvements */
     @media (max-width: 640px) {
       :root {
         font-size: 14px;
+      }
+      
+      /* Better touch targets */
+      button, input, select {
+        min-height: 44px;
+      }
+      
+      /* Improved slider touch handling */
+      input[type="range"] {
+        height: 44px;
+        margin: 10px 0;
+      }
+      
+      /* Better spacing for mobile */
+      .space-y-8 > :not([hidden]) ~ :not([hidden]) {
+        margin-top: 1rem;
+      }
+      
+      .space-y-6 > :not([hidden]) ~ :not([hidden]) {
+        margin-top: 0.75rem;
+      }
+      
+      /* Mobile-friendly hover states */
+      button:hover {
+        transform: scale(1.02);
+      }
+      
+      /* Better mobile scrolling */
+      .overflow-y-auto {
+        -webkit-overflow-scrolling: touch;
+      }
+      
+      /* Mobile table improvements */
+      .custom-scrollbar {
+        scroll-snap-type: x mandatory;
+      }
+      
+      .custom-scrollbar > * {
+        scroll-snap-align: start;
+      }
+    }
+    
+    /* Tablet improvements */
+    @media (min-width: 641px) and (max-width: 1024px) {
+      :root {
+        font-size: 15px;
       }
     }
 
@@ -99,8 +146,10 @@
       appearance: textfield;
     }
 
+    /* Mobile-friendly scrollbars */
     ::-webkit-scrollbar {
       width: 8px;
+      height: 8px;
     }
 
     ::-webkit-scrollbar-track {
@@ -116,6 +165,18 @@
 
     ::-webkit-scrollbar-thumb:hover {
       background: linear-gradient(to bottom, #94a3b8, #64748b);
+    }
+    
+    /* Mobile scrollbar improvements */
+    @media (max-width: 640px) {
+      ::-webkit-scrollbar {
+        width: 6px;
+        height: 6px;
+      }
+      
+      ::-webkit-scrollbar-thumb {
+        border: 1px solid #f1f5f9;
+      }
     }
 
     .custom-scrollbar::-webkit-scrollbar {
@@ -138,6 +199,7 @@
       background: linear-gradient(to right, #94a3b8, #64748b);
     }
 
+    /* Enhanced slider styling for mobile */
     input[type=range]::-webkit-slider-runnable-track {
       background: linear-gradient(to right, #e2e8f0, #cbd5e1);
       border-radius: 1rem;
@@ -156,6 +218,9 @@
       appearance: none;
       box-shadow: 0 4px 8px -1px rgba(79, 70, 229, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.1);
       transition: all 0.2s ease;
+      /* Better touch target */
+      min-width: 44px;
+      min-height: 44px;
     }
 
     input[type=range]::-webkit-slider-thumb:hover {
@@ -165,6 +230,20 @@
 
     input[type=range]::-webkit-slider-thumb:active {
       transform: scale(0.95);
+    }
+    
+    /* Mobile-specific slider improvements */
+    @media (max-width: 640px) {
+      input[type=range]::-webkit-slider-thumb {
+        width: 1.6rem;
+        height: 1.6rem;
+        min-width: 44px;
+        min-height: 44px;
+      }
+      
+      input[type=range]::-webkit-slider-runnable-track {
+        height: 0.6rem;
+      }
     }
 
     /* Print Styles - Professional White Background */

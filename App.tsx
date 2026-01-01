@@ -307,110 +307,117 @@ const App: React.FC = () => {
       <div className="flex-none bg-gradient-to-r from-indigo-600 via-purple-600 to-indigo-700 z-50 border-b border-white/20 shadow-[0_8px_32px_-16px_rgba(0,0,0,0.3)] backdrop-blur-xl">
         <div className="w-full max-w-[1600px] mx-auto px-6 md:px-10 lg:px-16 pt-4 md:pt-6 lg:pt-8 pb-4 space-y-3 md:space-y-4">
           {/* HEADER */}
-          <header className="flex flex-col lg:flex-row justify-between items-center gap-6 lg:gap-8 print:hidden">
-            <div className="flex items-center gap-6 md:gap-8">
-              <div className="w-16 h-16 md:w-20 md:h-20 bg-gradient-to-br from-white/20 to-white/10 rounded-2xl md:rounded-3xl flex items-center justify-center shadow-2xl shadow-black/20 ring-2 ring-white/30 backdrop-blur-sm border border-white/20">
-                <svg className="w-9 h-9 md:w-12 md:h-12 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" /></svg>
+          <header className="flex flex-col lg:flex-row justify-between items-center gap-4 lg:gap-8 print:hidden">
+            <div className="flex items-center gap-4 lg:gap-6 lg:gap-8">
+              <div className="w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 lg:w-20 lg:h-20 bg-gradient-to-br from-white/20 to-white/10 rounded-xl md:rounded-2xl lg:rounded-3xl flex items-center justify-center shadow-2xl shadow-black/20 ring-2 ring-white/30 backdrop-blur-sm border border-white/20">
+                <svg className="w-6 h-6 sm:w-7 sm:h-7 md:w-9 md:h-9 lg:w-12 lg:h-12 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" /></svg>
               </div>
               <div className="text-center lg:text-left">
-                <h1 className="text-4xl md:text-5xl font-black tracking-tighter text-white leading-none italic uppercase bg-gradient-to-r from-white to-white/80 bg-clip-text text-transparent drop-shadow-lg">FirePulse</h1>
-                <p className="text-[11px] md:text-[13px] font-black text-white/80 uppercase tracking-[0.3em] mt-3 bg-gradient-to-r from-white/60 to-white/40 bg-clip-text text-transparent">Longevity Strategy Engine</p>
+                <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-black tracking-tighter text-white leading-none italic uppercase bg-gradient-to-r from-white to-white/80 bg-clip-text text-transparent drop-shadow-lg">FirePulse</h1>
+                <p className="text-[9px] sm:text-[10px] md:text-[11px] md:text-[13px] font-black text-white/80 uppercase tracking-[0.2em] sm:tracking-[0.25em] md:tracking-[0.3em] mt-2 sm:mt-2.5 md:mt-3 bg-gradient-to-r from-white/60 to-white/40 bg-clip-text text-transparent">Longevity Strategy Engine</p>
               </div>
             </div>
-            <div className="flex items-center gap-4 flex-wrap justify-center lg:justify-end">
-              <select value={currency} onChange={(e) => setCurrency(e.target.value as CurrencyCode)} className="px-5 py-3 bg-white/20 backdrop-blur-md border border-white/30 rounded-2xl text-sm font-bold outline-none cursor-pointer shadow-lg hover:shadow-xl hover:bg-white/30 transition-all duration-300 text-white">
+            <div className="flex flex-col sm:flex-row items-center gap-2 sm:gap-3 lg:gap-4 w-full lg:w-auto">
+              <select value={currency} onChange={(e) => setCurrency(e.target.value as CurrencyCode)} className="w-full sm:w-auto px-3 sm:px-4 py-2 sm:py-2.5 lg:px-5 lg:py-3 bg-white/20 backdrop-blur-md border border-white/30 rounded-xl lg:rounded-2xl text-xs sm:text-sm font-bold outline-none cursor-pointer shadow-lg hover:shadow-xl hover:bg-white/30 transition-all duration-300 text-white">
                 {currencies.map(c => <option key={c.code} value={c.code} className="text-gray-900">{c.name}</option>)}
               </select>
-              <button
-                onClick={exportToCSV}
-                className="px-5 py-3 bg-gradient-to-r from-emerald-500 to-emerald-600 border border-emerald-400/50 rounded-2xl text-sm font-bold text-white hover:from-emerald-600 hover:to-emerald-700 transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105 flex items-center gap-2 print:hidden"
-                title="Export inputs as CSV"
-              >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                </svg>
-                Export
-              </button>
-              <label className="px-5 py-3 bg-gradient-to-r from-white/20 to-white/10 border border-white/30 rounded-2xl text-sm font-bold text-white hover:from-white/30 hover:to-white/20 transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105 flex items-center gap-2 cursor-pointer print:hidden backdrop-blur-md">
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
-                </svg>
-                Import
-                <input
-                  type="file"
-                  accept=".csv"
-                  onChange={importFromCSV}
-                  className="hidden"
-                />
-              </label>
-              <button
-                onClick={() => window.print()}
-                className="px-5 py-3 bg-white/20 backdrop-blur-md border border-white/30 rounded-2xl text-sm font-bold text-white hover:bg-white/30 transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105 flex items-center gap-2 print:hidden"
-                title="Print or Save as PDF"
-              >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
-                </svg>
-                Print
-              </button>
+              <div className="flex flex-wrap justify-center sm:justify-start gap-2 sm:gap-3 lg:gap-4 w-full sm:w-auto">
+                <button
+                  onClick={exportToCSV}
+                  className="flex-1 sm:flex-none px-3 sm:px-4 py-2 sm:py-2.5 lg:px-5 lg:py-3 bg-gradient-to-r from-emerald-500 to-emerald-600 border border-emerald-400/50 rounded-xl lg:rounded-2xl text-xs sm:text-sm font-bold text-white hover:from-emerald-600 hover:to-emerald-700 transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105 flex items-center justify-center gap-1.5 sm:gap-2 print:hidden"
+                  title="Export inputs as CSV"
+                >
+                  <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                  </svg>
+                  <span className="hidden sm:inline">Export</span>
+                  <span className="sm:hidden">📥</span>
+                </button>
+                <label className="flex-1 sm:flex-none px-3 sm:px-4 py-2 sm:py-2.5 lg:px-5 lg:py-3 bg-gradient-to-r from-white/20 to-white/10 border border-white/30 rounded-xl lg:rounded-2xl text-xs sm:text-sm font-bold text-white hover:from-white/30 hover:to-white/20 transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105 flex items-center justify-center gap-1.5 sm:gap-2 cursor-pointer print:hidden backdrop-blur-md">
+                  <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                  </svg>
+                  <span className="hidden sm:inline">Import</span>
+                  <span className="sm:hidden">📤</span>
+                  <input
+                    type="file"
+                    accept=".csv"
+                    onChange={importFromCSV}
+                    className="hidden"
+                  />
+                </label>
+                <button
+                  onClick={() => window.print()}
+                  className="flex-1 sm:flex-none px-3 sm:px-4 py-2 sm:py-2.5 lg:px-5 lg:py-3 bg-white/20 backdrop-blur-md border border-white/30 rounded-xl lg:rounded-2xl text-xs sm:text-sm font-bold text-white hover:bg-white/30 transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105 flex items-center justify-center gap-1.5 sm:gap-2 print:hidden"
+                  title="Print or Save as PDF"
+                >
+                  <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+                  </svg>
+                  <span className="hidden sm:inline">Print</span>
+                  <span className="sm:hidden">🖨️</span>
+                </button>
+              </div>
             </div>
           </header>
 
           {/* PRIMARY DISPLAY - Always Visible */}
-          <section className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 print:hidden">
-            <div className="md:col-span-1 bg-gradient-to-br from-purple-600 via-pink-600 to-purple-700 p-4 md:p-6 rounded-3xl md:rounded-4xl text-white shadow-2xl shadow-purple-600/40 relative overflow-hidden group border border-white/20 backdrop-blur-xl hover:shadow-3xl hover:shadow-purple-600/50 transition-all duration-500 hover:scale-105">
-              <div className="absolute top-0 right-0 w-20 h-20 md:w-24 md:h-24 bg-white/10 rounded-full -mr-10 -mt-10 md:-mr-12 md:-mt-12 group-hover:scale-110 transition-transform duration-500"></div>
-              <div className="absolute bottom-0 left-0 w-16 h-16 bg-white/5 rounded-full -ml-8 -mb-8 group-hover:scale-110 transition-transform duration-500 delay-100"></div>
-              <div className="absolute top-1/2 left-1/2 w-28 h-28 bg-gradient-to-br from-white/5 to-transparent rounded-full -translate-x-1/2 -translate-y-1/2 group-hover:scale-125 transition-transform duration-700"></div>
+          <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 md:gap-6 print:hidden">
+            <div className="sm:col-span-1 bg-gradient-to-br from-purple-600 via-pink-600 to-purple-700 p-3 sm:p-4 md:p-6 rounded-2xl sm:rounded-3xl md:rounded-4xl text-white shadow-2xl shadow-purple-600/40 relative overflow-hidden group border border-white/20 backdrop-blur-xl hover:shadow-3xl hover:shadow-purple-600/50 transition-all duration-500 hover:scale-105">
+              <div className="absolute top-0 right-0 w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 bg-white/10 rounded-full -mr-8 -mt-8 sm:-mr-10 sm:-mt-10 md:-mr-12 md:-mt-12 group-hover:scale-110 transition-transform duration-500"></div>
+              <div className="absolute bottom-0 left-0 w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 bg-white/5 rounded-full -ml-6 -mb-6 sm:-ml-7 sm:-mb-7 md:-ml-8 md:-mb-8 group-hover:scale-110 transition-transform duration-500 delay-100"></div>
+              <div className="absolute top-1/2 left-1/2 w-20 h-20 sm:w-24 sm:h-24 md:w-28 md:h-28 bg-gradient-to-br from-white/5 to-transparent rounded-full -translate-x-1/2 -translate-y-1/2 group-hover:scale-125 transition-transform duration-700"></div>
               <div className="relative z-10">
-                <p className="text-[10px] md:text-[11px] font-black uppercase tracking-[0.3em] mb-2 text-white/90">Solvency FIRE Age</p>
-                <h2 className="text-3xl md:text-4xl lg:text-5xl font-black tracking-tighter italic leading-none drop-shadow-2xl">{results.fiAge || '—'}</h2>
-                <p className="text-[10px] md:text-[11px] font-bold uppercase mt-2 text-white/80 tracking-widest">{results.fiYear ? `Safe Retirement Year: ${results.fiYear}` : 'Capital Exhaustion Risk'}</p>
+                <p className="text-[9px] sm:text-[10px] md:text-[11px] font-black uppercase tracking-[0.2em] sm:tracking-[0.25em] md:tracking-[0.3em] mb-1.5 sm:mb-2 text-white/90">Solvency FIRE Age</p>
+                <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl lg:text-5xl font-black tracking-tighter italic leading-none drop-shadow-2xl">{results.fiAge || '—'}</h2>
+                <p className="text-[9px] sm:text-[10px] md:text-[11px] font-bold uppercase mt-1.5 sm:mt-2 text-white/80 tracking-widest">{results.fiYear ? `Safe Retirement Year: ${results.fiYear}` : 'Capital Exhaustion Risk'}</p>
               </div>
             </div>
 
-            <div className="md:col-span-1 bg-gradient-to-br from-emerald-500 via-teal-600 to-emerald-700 p-4 md:p-6 rounded-3xl md:rounded-4xl text-white shadow-2xl shadow-emerald-600/40 relative overflow-hidden group border border-white/20 backdrop-blur-xl hover:shadow-3xl hover:shadow-emerald-600/50 transition-all duration-500 hover:scale-105">
-              <div className="absolute top-0 right-0 w-20 h-20 md:w-24 md:h-24 bg-white/10 rounded-full -mr-10 -mt-10 md:-mr-12 md:-mt-12 group-hover:scale-110 transition-transform duration-500"></div>
-              <div className="absolute bottom-0 left-0 w-16 h-16 bg-white/5 rounded-full -ml-8 -mb-8 group-hover:scale-110 transition-transform duration-500 delay-100"></div>
+            <div className="sm:col-span-1 bg-gradient-to-br from-emerald-500 via-teal-600 to-emerald-700 p-3 sm:p-4 md:p-6 rounded-2xl sm:rounded-3xl md:rounded-4xl text-white shadow-2xl shadow-emerald-600/40 relative overflow-hidden group border border-white/20 backdrop-blur-xl hover:shadow-3xl hover:shadow-emerald-600/50 transition-all duration-500 hover:scale-105">
+              <div className="absolute top-0 right-0 w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 bg-white/10 rounded-full -mr-8 -mt-8 sm:-mr-10 sm:-mt-10 md:-mr-12 md:-mt-12 group-hover:scale-110 transition-transform duration-500"></div>
+              <div className="absolute bottom-0 left-0 w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 bg-white/5 rounded-full -ml-6 -mb-6 sm:-ml-7 sm:-mb-7 md:-ml-8 md:-mb-8 group-hover:scale-110 transition-transform duration-500 delay-100"></div>
               <div className="relative z-10">
-                <p className="text-[10px] md:text-[11px] font-black uppercase tracking-[0.3em] mb-2 text-white/90">Longevity Limit</p>
-                <h2 className="text-2xl md:text-3xl lg:text-4xl font-black tracking-tighter italic mono drop-shadow-2xl">Age {data.liveUntilAge}</h2>
-                <p className={`text-[10px] md:text-[11px] font-bold uppercase mt-2 tracking-widest ${results.isSolventAtEnd ? 'text-emerald-200' : 'text-pink-200 animate-pulse'}`}>
+                <p className="text-[9px] sm:text-[10px] md:text-[11px] font-black uppercase tracking-[0.2em] sm:tracking-[0.25em] md:tracking-[0.3em] mb-1.5 sm:mb-2 text-white/90">Longevity Limit</p>
+                <h2 className="text-lg sm:text-xl md:text-2xl lg:text-3xl lg:text-4xl font-black tracking-tighter italic mono drop-shadow-2xl">Age {data.liveUntilAge}</h2>
+                <p className={`text-[9px] sm:text-[10px] md:text-[11px] font-bold uppercase mt-1.5 sm:mt-2 tracking-widest ${results.isSolventAtEnd ? 'text-emerald-200' : 'text-pink-200 animate-pulse'}`}>
                   {results.isSolventAtEnd ? 'Portfolio remains solvent' : 'Warning: Portfolio exhausts'}
                 </p>
               </div>
             </div>
 
-            <div className="md:col-span-1 bg-gradient-to-br from-amber-500 via-orange-600 to-amber-700 p-4 md:p-6 rounded-3xl md:rounded-4xl text-white shadow-2xl shadow-amber-600/40 relative overflow-hidden group border border-white/20 backdrop-blur-xl hover:shadow-3xl hover:shadow-amber-600/50 transition-all duration-500 hover:scale-105">
-              <div className="absolute top-0 right-0 w-20 h-20 md:w-24 md:h-24 bg-white/10 rounded-full -mr-10 -mt-10 md:-mr-12 md:-mt-12 group-hover:scale-110 transition-transform duration-500"></div>
-              <div className="absolute bottom-0 left-0 w-16 h-16 bg-white/5 rounded-full -ml-8 -mb-8 group-hover:scale-110 transition-transform duration-500 delay-100"></div>
+            <div className="sm:col-span-2 lg:col-span-1 bg-gradient-to-br from-amber-500 via-orange-600 to-amber-700 p-3 sm:p-4 md:p-6 rounded-2xl sm:rounded-3xl md:rounded-4xl text-white shadow-2xl shadow-amber-600/40 relative overflow-hidden group border border-white/20 backdrop-blur-xl hover:shadow-3xl hover:shadow-amber-600/50 transition-all duration-500 hover:scale-105">
+              <div className="absolute top-0 right-0 w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 bg-white/10 rounded-full -mr-8 -mt-8 sm:-mr-10 sm:-mt-10 md:-mr-12 md:-mt-12 group-hover:scale-110 transition-transform duration-500"></div>
+              <div className="absolute bottom-0 left-0 w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 bg-white/5 rounded-full -ml-6 -mb-6 sm:-ml-7 sm:-mb-7 md:-ml-8 md:-mb-8 group-hover:scale-110 transition-transform duration-500 delay-100"></div>
               <div className="relative z-10">
-                <p className="text-[10px] md:text-[11px] font-black uppercase tracking-[0.3em] mb-2 text-white/90">Savings Velocity</p>
-                <h2 className="text-2xl md:text-3xl lg:text-4xl font-black tracking-tighter italic mono drop-shadow-2xl">{savingsRate.toFixed(1)}%</h2>
-                <p className="text-[10px] md:text-[11px] font-bold text-amber-100 uppercase mt-2 tracking-widest">Surplus: {formatCurrencyCompact(data.monthlySavings, currency)}/mo</p>
+                <p className="text-[9px] sm:text-[10px] md:text-[11px] font-black uppercase tracking-[0.2em] sm:tracking-[0.25em] md:tracking-[0.3em] mb-1.5 sm:mb-2 text-white/90">Savings Velocity</p>
+                <h2 className="text-lg sm:text-xl md:text-2xl lg:text-3xl lg:text-4xl font-black tracking-tighter italic mono drop-shadow-2xl">{savingsRate.toFixed(1)}%</h2>
+                <p className="text-[9px] sm:text-[10px] md:text-[11px] font-bold text-amber-100 uppercase mt-1.5 sm:mt-2 tracking-widest">Surplus: {formatCurrencyCompact(data.monthlySavings, currency)}/mo</p>
               </div>
             </div>
           </section>
 
           <div className="print:hidden">
-            <div className="flex gap-2 bg-white/10 backdrop-blur-md p-2 rounded-2xl -mb-[1px] border border-white/20 shadow-inner">
+            <div className="flex gap-1 sm:gap-2 bg-white/10 backdrop-blur-md p-1.5 sm:p-2 rounded-xl sm:rounded-2xl -mb-[1px] border border-white/20 shadow-inner">
               <button
                 onClick={() => setActiveTab('inputs')}
-                className={`px-6 py-3 text-[11px] font-black uppercase tracking-widest transition-all rounded-xl ${activeTab === 'inputs'
+                className={`flex-1 px-3 sm:px-4 py-2 sm:py-3 text-[9px] sm:text-[10px] md:text-[11px] font-black uppercase tracking-widest transition-all rounded-lg sm:rounded-xl ${activeTab === 'inputs'
                   ? 'bg-white text-purple-700 shadow-xl border border-white/30'
                   : 'text-white/70 hover:text-white hover:bg-white/10'
                   }`}
               >
-                Input Parameters
+                <span className="hidden sm:inline">Input Parameters</span>
+                <span className="sm:hidden">Inputs</span>
               </button>
               <button
                 onClick={() => setActiveTab('results')}
-                className={`px-6 py-3 text-[11px] font-black uppercase tracking-widest transition-all rounded-xl ${activeTab === 'results'
+                className={`flex-1 px-3 sm:px-4 py-2 sm:py-3 text-[9px] sm:text-[10px] md:text-[11px] font-black uppercase tracking-widest transition-all rounded-lg sm:rounded-xl ${activeTab === 'results'
                   ? 'bg-white text-purple-700 shadow-xl border border-white/30'
                   : 'text-white/70 hover:text-white hover:bg-white/10'
                   }`}
               >
-                Results & Analysis
+                <span className="hidden sm:inline">Results & Analysis</span>
+                <span className="sm:hidden">Results</span>
               </button>
             </div>
           </div>
@@ -577,11 +584,11 @@ const App: React.FC = () => {
                   <div className="absolute inset-0 bg-gradient-to-br from-purple-500/5 via-pink-500/5 to-purple-500/5 rounded-[2rem] md:rounded-[3rem] pointer-events-none"></div>
 
                   {/* CORE STATS */}
-                  <section className="space-y-6 md:space-y-8 p-6 md:p-8 rounded-[1.5rem] border border-purple-200/50 bg-gradient-to-br from-purple-50/60 via-pink-50/40 to-purple-50/60 shadow-lg relative z-10">
-                    <h3 className="text-[10px] md:text-xs font-black text-purple-700 uppercase tracking-[0.5em] flex items-center gap-3">
-                      <span className="w-2 h-2 bg-gradient-to-r from-purple-600 to-pink-600 rounded-full shadow-lg shadow-purple-600/40"></span> Core Stats
+                  <section className="space-y-4 sm:space-y-6 md:space-y-8 p-4 sm:p-6 md:p-8 rounded-[1rem] sm:rounded-[1.5rem] border border-purple-200/50 bg-gradient-to-br from-purple-50/60 via-pink-50/40 to-purple-50/60 shadow-lg relative z-10">
+                    <h3 className="text-[9px] sm:text-[10px] md:text-xs font-black text-purple-700 uppercase tracking-[0.4em] sm:tracking-[0.5em] flex items-center gap-2 sm:gap-3">
+                      <span className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-gradient-to-r from-purple-600 to-pink-600 rounded-full shadow-lg shadow-purple-600/40"></span> Core Stats
                     </h3>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 input-grid">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 md:gap-6 input-grid">
                       <SliderInput
                         label="Age Now"
                         value={data.currentAge}
@@ -596,7 +603,7 @@ const App: React.FC = () => {
                         min={data.currentAge + 1}
                         max={data.liveUntilAge - 1}
                       />
-                      <div className="col-span-2">
+                      <div className="col-span-1 sm:col-span-2">
                         <SliderInput
                           label="Live Until Age"
                           value={data.liveUntilAge}
@@ -606,7 +613,7 @@ const App: React.FC = () => {
                           tooltip={longevityTooltip}
                         />
                       </div>
-                      <div className="col-span-2">
+                      <div className="col-span-1 sm:col-span-2">
                         <SliderInput
                           label="Liquid Assets"
                           value={data.currentNetWorth}
@@ -618,7 +625,7 @@ const App: React.FC = () => {
                           tooltip="Cash, stocks, bonds, mutual funds - easily convertible to cash"
                         />
                       </div>
-                      <div className="col-span-2">
+                      <div className="col-span-1 sm:col-span-2">
                         <SliderInput
                           label="Non-Liquid Assets"
                           value={data.nonLiquidAssets}
@@ -683,19 +690,19 @@ const App: React.FC = () => {
                   </section>
 
                   {/* ESTIMATES */}
-                  <section className="space-y-6 md:space-y-8 p-6 md:p-8 rounded-[1.5rem] border border-amber-200/50 bg-gradient-to-br from-amber-50/60 via-orange-50/40 to-amber-50/60 shadow-lg relative z-10">
-                    <h3 className="text-[10px] md:text-xs font-black text-amber-700 uppercase tracking-[0.5em] flex items-center gap-3">
-                      <span className="w-2 h-2 bg-gradient-to-r from-amber-600 to-orange-600 rounded-full shadow-lg shadow-amber-600/40"></span> Estimates
+                  <section className="space-y-4 sm:space-y-6 md:space-y-8 p-4 sm:p-6 md:p-8 rounded-[1rem] sm:rounded-[1.5rem] border border-amber-200/50 bg-gradient-to-br from-amber-50/60 via-orange-50/40 to-amber-50/60 shadow-lg relative z-10">
+                    <h3 className="text-[9px] sm:text-[10px] md:text-xs font-black text-amber-700 uppercase tracking-[0.4em] sm:tracking-[0.5em] flex items-center gap-2 sm:gap-3">
+                      <span className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-gradient-to-r from-amber-600 to-orange-600 rounded-full shadow-lg shadow-amber-600/40"></span> Estimates
                     </h3>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 input-grid">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 md:gap-6 input-grid">
                       <SliderInput label="Income Growth %" value={data.incomeIncreaseRate} onChange={(v) => updateData('incomeIncreaseRate', v)} min={0} max={25} step={0.5} suffix="%" />
                       <SliderInput label="Global Inflation" value={data.inflationRate} onChange={(v) => updateData('inflationRate', v)} min={0} max={15} step={0.1} suffix="%" />
                       <SliderInput label="Medical Inflation" value={data.medicalInflation} onChange={(v) => updateData('medicalInflation', v)} min={0} max={20} step={0.1} suffix="%" />
                       <SliderInput label="Liquid Asset Return" value={data.liquidAssetReturn} onChange={(v) => updateData('liquidAssetReturn', v)} min={1} max={20} step={0.5} suffix="%" tooltip="Expected return on liquid assets (stocks, bonds, cash)" />
                       <SliderInput label="Non-Liquid Asset Return" value={data.nonLiquidAssetReturn} onChange={(v) => updateData('nonLiquidAssetReturn', v)} min={1} max={15} step={0.5} suffix="%" tooltip="Expected return on non-liquid assets (real estate, business)" />
                       <SliderInput label="Retirement Expense %" value={data.retirementExpenseMultiplier} onChange={(v) => updateData('retirementExpenseMultiplier', v)} min={50} max={120} step={1} suffix="%" tooltip="Retirement spending as % of current expenses (adjusted for inflation)" />
-                      <div className="col-span-2">
+                      <div className="col-span-1 sm:col-span-2">
                         <SliderInput label="Post-Retire Tax" value={data.retirementTaxRate} onChange={(v) => updateData('retirementTaxRate', v)} min={0} max={50} step={1} suffix="%" />
                       </div>
                     </div>
@@ -818,140 +825,147 @@ const App: React.FC = () => {
                 </div>
 
                 {/* TABLE VIEW (Permanent) */}
-                <div className="bg-white/95 backdrop-blur-sm p-10 md:p-14 rounded-[2.5rem] md:rounded-[4rem] border border-slate-200/60 shadow-sm hover:shadow-md transition-all duration-300 relative overflow-hidden">
-                  <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-12 md:mb-14 gap-6 relative z-10">
-                    <h2 className="text-xs md:text-sm font-black text-slate-400 uppercase tracking-[0.4em] italic leading-tight">Solvency Ledger</h2>
+                <div className="bg-white/95 backdrop-blur-sm p-4 sm:p-6 md:p-8 lg:p-10 xl:p-14 rounded-[1.5rem] sm:rounded-[2rem] md:rounded-[2.5rem] lg:rounded-[3rem] xl:rounded-[4rem] border border-slate-200/60 shadow-sm hover:shadow-md transition-all duration-300 relative overflow-hidden">
+                  <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 sm:mb-8 md:mb-10 lg:mb-12 xl:mb-14 gap-4 relative z-10">
+                    <h2 className="text-xs sm:text-sm md:text-base font-black text-slate-400 uppercase tracking-[0.3em] sm:tracking-[0.35em] md:tracking-[0.4em] italic leading-tight">Solvency Ledger</h2>
                   </div>
 
-                  <div className="overflow-x-auto rounded-[2rem] md:rounded-[3rem] border border-slate-100/60 custom-scrollbar relative z-10 bg-white/50 backdrop-blur-sm">
-                    <table className="w-full text-left text-[11px] md:text-sm font-mono min-w-[600px]">
-                      <thead className="bg-gradient-to-b from-slate-50 to-slate-100/50 border-b border-slate-200/60 sticky top-0 z-20">
-                        <tr>
-                          <th className="px-4 py-4 md:px-6 md:py-6 font-black uppercase text-slate-500 tracking-wider">Age/Year</th>
-                          <th className="px-4 py-4 md:px-6 md:py-6 font-black uppercase text-slate-500 text-right tracking-wider">Start NW</th>
-                          <th className="px-4 py-4 md:px-6 md:py-6 font-black uppercase text-emerald-600 tracking-wider">In / Out Breakdown</th>
-                          <th className="px-4 py-4 md:px-6 md:py-6 font-black uppercase text-indigo-500 text-right tracking-wider">Returns</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-slate-100/60">
-                        {results.projections.map((p, idx) => {
-                          const prev = idx > 0 ? results.projections[idx - 1] : null;
-                          const incomeInc = prev && prev.income !== 0 ? (((p.income - prev.income) / prev.income) * 100) : 0;
-                          const outflowInc = prev && prev.totalOutflow !== 0 ? (((p.totalOutflow - prev.totalOutflow) / prev.totalOutflow) * 100) : 0;
-                          const earnIncrease = prev && prev.returns !== 0 ? (((p.returns - prev.returns) / Math.abs(prev.returns)) * 100) : 0;
-                          const yearsElapsed = p.age - data.currentAge;
+                  <div className="overflow-x-auto rounded-[1.5rem] sm:rounded-[2rem] md:rounded-[2.5rem] lg:rounded-[3rem] border border-slate-100/60 custom-scrollbar relative z-10 bg-white/50 backdrop-blur-sm">
+                    <div className="min-w-[500px] sm:min-w-[600px]">
+                      <table className="w-full text-left text-[9px] sm:text-[10px] md:text-xs lg:text-sm font-mono">
+                        <thead className="bg-gradient-to-b from-slate-50 to-slate-100/50 border-b border-slate-200/60 sticky top-0 z-20">
+                          <tr>
+                            <th className="px-2 sm:px-3 md:px-4 lg:px-6 py-2 sm:py-3 md:py-4 lg:py-6 font-black uppercase text-slate-500 tracking-wider text-xs sm:text-sm">Age/Year</th>
+                            <th className="px-2 sm:px-3 md:px-4 lg:px-6 py-2 sm:py-3 md:py-4 lg:py-6 font-black uppercase text-slate-500 text-right tracking-wider text-xs sm:text-sm hidden sm:table-cell">Start NW</th>
+                            <th className="px-2 sm:px-3 md:px-4 lg:px-6 py-2 sm:py-3 md:py-4 lg:py-6 font-black uppercase text-emerald-600 tracking-wider text-xs sm:text-sm">In / Out</th>
+                            <th className="px-2 sm:px-3 md:px-4 lg:px-6 py-2 sm:py-3 md:py-4 lg:py-6 font-black uppercase text-indigo-500 text-right tracking-wider text-xs sm:text-sm hidden md:table-cell">Returns</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-slate-100/60">
+                          {results.projections.map((p, idx) => {
+                            const prev = idx > 0 ? results.projections[idx - 1] : null;
+                            const incomeInc = prev && prev.income !== 0 ? (((p.income - prev.income) / prev.income) * 100) : 0;
+                            const outflowInc = prev && prev.totalOutflow !== 0 ? (((p.totalOutflow - prev.totalOutflow) / prev.totalOutflow) * 100) : 0;
+                            const earnIncrease = prev && prev.returns !== 0 ? (((p.returns - prev.returns) / Math.abs(prev.returns)) * 100) : 0;
+                            const yearsElapsed = p.age - data.currentAge;
 
-                          // Calculate effective return rate for this row
-                          const baseReturn = (data.liquidAssetReturn + data.nonLiquidAssetReturn) / 2;
-                          let effRate = baseReturn;
-                          if (data.simulationMode === 'leaner') effRate -= 1;
-                          else if (data.simulationMode === 'conservative') effRate -= 2;
-                          else if (data.simulationMode === 'aggressive') effRate += 2;
-                          const isCrashYear = data.simulationMode === 'crash' && (p.age - data.currentAge) % 10 === 0 && p.age > data.currentAge;
-                          if (isCrashYear) effRate = -20;
+                            // Calculate effective return rate for this row
+                            const baseReturn = (data.liquidAssetReturn + data.nonLiquidAssetReturn) / 2;
+                            let effRate = baseReturn;
+                            if (data.simulationMode === 'leaner') effRate -= 1;
+                            else if (data.simulationMode === 'conservative') effRate -= 2;
+                            else if (data.simulationMode === 'aggressive') effRate += 2;
+                            const isCrashYear = data.simulationMode === 'crash' && (p.age - data.currentAge) % 10 === 0 && p.age > data.currentAge;
+                            if (isCrashYear) effRate = -20;
 
-                          return (
-                            <tr key={`${p.age}-${p.year}`} className={`group transition-all hover:bg-slate-50/60 ${p.isRetired ? 'bg-gradient-to-r from-teal-50/40 to-teal-50/20 text-teal-800' : ''}`}>
-                              <td className="px-4 py-4 md:px-6 md:py-6 font-black text-sm md:text-base whitespace-nowrap">
-                                {p.age} <span className="text-[10px] font-bold opacity-40 ml-1">{p.year}</span>
-                              </td>
-                              <td className="px-4 py-4 md:px-6 md:py-6 opacity-60 font-medium text-right">{formatCompactNumber(p.openingBalance, currency)}</td>
-                              <td className="px-4 py-4 md:px-6 md:py-6 relative">
-                                <div className="flex flex-col gap-1.5">
-                                  {/* INCOME HOVER */}
-                                  <div className="relative group/income cursor-help">
-                                    <div className="font-bold text-emerald-600 leading-none">
-                                      +{formatCompactNumber(p.income, currency)} <span className="text-[8px] opacity-50 uppercase ml-1">In</span>
-                                    </div>
-                                    {!p.isRetired && (
-                                      <div className="absolute left-0 top-full mt-2 hidden group-hover/income:block bg-slate-900 text-white text-[9px] p-3 rounded-xl shadow-2xl z-50 min-w-[180px] pointer-events-none animate-in fade-in zoom-in-95">
-                                        <p className="font-black uppercase tracking-widest text-indigo-400 mb-1">Income Calculation</p>
-                                        <p className="opacity-70">Initial: {formatCurrency(data.monthlyIncome * 12, currency)}/yr</p>
-                                        <p className="opacity-70">Factor: (1 + {data.incomeIncreaseRate}%)^{yearsElapsed} yrs</p>
-                                        <div className="mt-2 border-t border-white/10 pt-2 font-bold">
-                                          = {formatCurrency(p.income, currency)} Total
+                            return (
+                              <tr key={`${p.age}-${p.year}`} className={`group transition-all hover:bg-slate-50/60 ${p.isRetired ? 'bg-gradient-to-r from-teal-50/40 to-teal-50/20 text-teal-800' : ''}`}>
+                                <td className="px-2 sm:px-3 md:px-4 lg:px-6 py-2 sm:py-3 md:py-4 lg:py-6 font-black text-xs sm:text-sm md:text-base whitespace-nowrap">
+                                  <div>
+                                    <span className="font-bold">{p.age}</span>
+                                    <span className="text-[8px] sm:text-[9px] font-bold opacity-40 ml-1">{p.year}</span>
+                                  </div>
+                                </td>
+                                <td className="px-2 sm:px-3 md:px-4 lg:px-6 py-2 sm:py-3 md:py-4 lg:py-6 opacity-60 font-medium text-right hidden sm:table-cell">
+                                  <div className="text-xs sm:text-sm">{formatCompactNumber(p.openingBalance, currency)}</div>
+                                </td>
+                                <td className="px-2 sm:px-3 md:px-4 lg:px-6 py-2 sm:py-3 md:py-4 lg:py-6 relative">
+                                  <div className="flex flex-col gap-1 sm:gap-1.5">
+                                    {/* INCOME HOVER */}
+                                    <div className="relative group/income cursor-help">
+                                      <div className="font-bold text-emerald-600 leading-none text-xs sm:text-sm">
+                                        +{formatCompactNumber(p.income, currency)} <span className="text-[7px] sm:text-[8px] opacity-50 uppercase ml-1">In</span>
+                                      </div>
+                                      {!p.isRetired && (
+                                        <div className="absolute left-0 top-full mt-2 hidden group-hover/income:block bg-slate-900 text-white text-[8px] sm:text-[9px] p-2 sm:p-3 rounded-xl shadow-2xl z-50 min-w-[160px] sm:min-w-[180px] pointer-events-none animate-in fade-in zoom-in-95">
+                                          <p className="font-black uppercase tracking-widest text-indigo-400 mb-1">Income Calculation</p>
+                                          <p className="opacity-70 text-xs">Initial: {formatCurrency(data.monthlyIncome * 12, currency)}/yr</p>
+                                          <p className="opacity-70 text-xs">Factor: (1 + {data.incomeIncreaseRate}%)^{yearsElapsed} yrs</p>
+                                          <div className="mt-2 border-t border-white/10 pt-2 font-bold">
+                                            = {formatCurrency(p.income, currency)} Total
+                                          </div>
                                         </div>
+                                      )}
+                                    </div>
+
+                                    {/* OUTFLOW HOVER */}
+                                    <div className="relative group/outflow flex flex-col text-[8px] sm:text-[9px] font-bold border-l border-slate-100 pl-2 gap-0.5 cursor-help">
+                                      <div className="text-rose-500/80 leading-none">Reg: -{formatCompactNumber(p.livingExpenses, currency)}</div>
+                                      <div className="text-rose-400 leading-none">Med: -{formatCompactNumber(p.medicalExpenses, currency)}</div>
+
+                                      <div className="absolute left-0 top-full mt-2 hidden group-hover/outflow:block bg-slate-900 text-white text-[8px] sm:text-[9px] p-2 sm:p-3 rounded-xl shadow-2xl z-50 min-w-[180px] sm:min-w-[200px] pointer-events-none animate-in fade-in zoom-in-95">
+                                        <p className="font-black uppercase tracking-widest text-rose-400 mb-2">Expense Breakdown</p>
+                                        <div className="space-y-2">
+                                          <div>
+                                            <p className="font-bold text-indigo-300 text-xs">Regular Living:</p>
+                                            <p className="opacity-70 text-xs">Base: {formatCurrency(data.monthlyExpenses * 12, currency)}</p>
+                                            <p className="opacity-70 text-xs">Infl: (1 + {data.inflationRate}%)^{yearsElapsed} yrs</p>
+                                            {p.isRetired && <p className="opacity-70 text-xs">Retire Multiplier: {data.retirementExpenseMultiplier}%</p>}
+                                          </div>
+                                          <div className="border-t border-white/10 pt-2">
+                                            <p className="font-bold text-rose-300 text-xs">Medical:</p>
+                                            <p className="opacity-70 text-xs">Base: {formatCurrency(data.monthlyMedical * 12, currency)}</p>
+                                            <p className="opacity-70 text-xs">Infl: (1 + {data.medicalInflation}%)^{yearsElapsed} yrs</p>
+                                          </div>
+                                        </div>
+                                      </div>
+                                    </div>
+
+                                    {prev && (
+                                      <div className="text-[8px] sm:text-[9px] font-black opacity-30 uppercase tracking-tighter mt-0.5">
+                                        Growth: {incomeInc.toFixed(1)}% / {outflowInc.toFixed(1)}% YoY
                                       </div>
                                     )}
                                   </div>
+                                </td>
+                                <td className="px-2 sm:px-3 md:px-4 lg:px-6 py-2 sm:py-3 md:py-4 lg:py-6 text-right relative hidden md:table-cell">
+                                  <div className="relative group/returns cursor-help">
+                                    <div className={`font-bold text-xs sm:text-sm ${p.returns >= 0 ? 'text-indigo-600' : 'text-rose-600'}`}>
+                                      {p.returns > 0 ? '+' : ''}{formatCompactNumber(p.returns, currency)}
+                                    </div>
 
-                                  {/* OUTFLOW HOVER */}
-                                  <div className="relative group/outflow flex flex-col text-[10px] font-bold border-l-2 border-slate-100 pl-2 gap-0.5 cursor-help">
-                                    <div className="text-rose-500/80 leading-none">Reg: -{formatCompactNumber(p.livingExpenses, currency)}</div>
-                                    <div className="text-rose-400 leading-none">Med: -{formatCompactNumber(p.medicalExpenses, currency)}</div>
-
-                                    <div className="absolute left-0 top-full mt-2 hidden group-hover/outflow:block bg-slate-900 text-white text-[9px] p-3 rounded-xl shadow-2xl z-50 min-w-[200px] pointer-events-none animate-in fade-in zoom-in-95">
-                                      <p className="font-black uppercase tracking-widest text-rose-400 mb-2">Expense Breakdown</p>
-                                      <div className="space-y-2">
-                                        <div>
-                                          <p className="font-bold text-indigo-300">Regular Living:</p>
-                                          <p className="opacity-70">Base: {formatCurrency(data.monthlyExpenses * 12, currency)}</p>
-                                          <p className="opacity-70">Infl: (1 + {data.inflationRate}%)^{yearsElapsed} yrs</p>
-                                          {p.isRetired && <p className="opacity-70">Retire Multiplier: {data.retirementExpenseMultiplier}%</p>}
-                                        </div>
-                                        <div className="border-t border-white/10 pt-2">
-                                          <p className="font-bold text-rose-300">Medical:</p>
-                                          <p className="opacity-70">Base: {formatCurrency(data.monthlyMedical * 12, currency)}</p>
-                                          <p className="opacity-70">Infl: (1 + {data.medicalInflation}%)^{yearsElapsed} yrs</p>
+                                    {/* RETURNS HOVER */}
+                                    <div className="absolute right-0 top-full mt-2 hidden group-hover/returns:block bg-slate-900 text-white text-[8px] sm:text-[9px] p-2 sm:p-3 rounded-xl shadow-2xl z-50 min-w-[180px] sm:min-w-[200px] text-left pointer-events-none animate-in fade-in zoom-in-95">
+                                      <p className="font-black uppercase tracking-widest text-indigo-400 mb-2">Return Logic</p>
+                                      <div className="space-y-1 opacity-80">
+                                        <p className="text-xs">Base Return: {baseReturn.toFixed(1)}%</p>
+                                        <p className="text-xs">Strategy ({data.simulationMode}): {effRate.toFixed(1)}%</p>
+                                        {isCrashYear && <p className="text-rose-400 font-black text-xs">CRASH CYCLE: -20% Applied</p>}
+                                        <div className="mt-2 border-t border-white/10 pt-2">
+                                          <p className="font-bold text-white text-xs">Calculation:</p>
+                                          <p className="text-xs">{formatCompactNumber(p.openingBalance, currency)} × {effRate.toFixed(1)}%</p>
+                                          <p className="font-black text-indigo-400 mt-1 text-xs">= {formatCurrency(p.returns, currency)}</p>
                                         </div>
                                       </div>
                                     </div>
-                                  </div>
 
-                                  {prev && (
-                                    <div className="text-[9px] font-black opacity-30 uppercase tracking-tighter mt-0.5">
-                                      Growth: {incomeInc.toFixed(1)}% / {outflowInc.toFixed(1)}% YoY
-                                    </div>
-                                  )}
-                                </div>
-                              </td>
-                              <td className="px-4 py-4 md:px-6 md:py-6 text-right relative">
-                                <div className="relative group/returns cursor-help">
-                                  <div className={`font-bold ${p.returns >= 0 ? 'text-indigo-600' : 'text-rose-600'}`}>
-                                    {p.returns > 0 ? '+' : ''}{formatCompactNumber(p.returns, currency)}
-                                  </div>
-
-                                  {/* RETURNS HOVER */}
-                                  <div className="absolute right-0 top-full mt-2 hidden group-hover/returns:block bg-slate-900 text-white text-[9px] p-3 rounded-xl shadow-2xl z-50 min-w-[200px] text-left pointer-events-none animate-in fade-in zoom-in-95">
-                                    <p className="font-black uppercase tracking-widest text-indigo-400 mb-2">Return Logic</p>
-                                    <div className="space-y-1 opacity-80">
-                                      <p>Base Return: {baseReturn.toFixed(1)}%</p>
-                                      <p>Strategy ({data.simulationMode}): {effRate.toFixed(1)}%</p>
-                                      {isCrashYear && <p className="text-rose-400 font-black">CRASH CYCLE: -20% Applied</p>}
-                                      <div className="mt-2 border-t border-white/10 pt-2">
-                                        <p className="font-bold text-white">Calculation:</p>
-                                        <p>{formatCompactNumber(p.openingBalance, currency)} × {effRate.toFixed(1)}%</p>
-                                        <p className="font-black text-indigo-400 mt-1">= {formatCurrency(p.returns, currency)}</p>
+                                    {prev && (
+                                      <div className="text-[8px] sm:text-[9px] font-black opacity-40 uppercase tracking-tighter mt-1">
+                                        {earnIncrease >= 0 ? '+' : ''}{earnIncrease.toFixed(1)}% YoY
                                       </div>
-                                    </div>
+                                    )}
                                   </div>
-
-                                  {prev && (
-                                    <div className="text-[9px] font-black opacity-40 uppercase tracking-tighter mt-1">
-                                      {earnIncrease >= 0 ? '+' : ''}{earnIncrease.toFixed(1)}% YoY
-                                    </div>
-                                  )}
-                                </div>
-                              </td>
-                            </tr>
-                          );
-                        })}
-                      </tbody>
-                    </table>
+                                </td>
+                              </tr>
+                            );
+                          })}
+                        </tbody>
+                      </table>
+                    </div>
                   </div>
                 </div>
 
-                <div className="bg-white p-8 md:p-12 rounded-[2.5rem] md:rounded-[4rem] border border-slate-200 shadow-sm">
-                  <h2 className="text-[10px] md:text-xs font-black text-slate-400 uppercase tracking-[0.4em] italic mb-10 md:mb-12">Roadmap Timeline</h2>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
+                <div className="bg-white p-4 sm:p-6 md:p-8 lg:p-12 rounded-[1.5rem] sm:rounded-[2rem] md:rounded-[2.5rem] lg:rounded-[4rem] border border-slate-200 shadow-sm">
+                  <h2 className="text-[9px] sm:text-[10px] md:text-xs font-black text-slate-400 uppercase tracking-[0.3em] sm:tracking-[0.35em] md:tracking-[0.4em] italic mb-6 sm:mb-8 md:mb-10 lg:mb-12">Roadmap Timeline</h2>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6 md:gap-8">
                     {data.goals.map(goal => (
-                      <div key={goal.id} className="p-8 md:p-10 bg-slate-50 rounded-[2rem] md:rounded-[3rem] border border-slate-100 relative space-y-10">
-                        <button onClick={() => updateData('goals', data.goals.filter(g => g.id !== goal.id))} className="absolute top-6 right-6 p-2 text-slate-300 hover:text-rose-500 transition-all"><svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" /></svg></button>
-                        <h4 className="font-black text-lg md:text-xl uppercase tracking-widest text-slate-800">{goal.name}</h4>
+                      <div key={goal.id} className="p-4 sm:p-6 md:p-8 lg:p-10 bg-slate-50 rounded-[1.5rem] sm:rounded-[2rem] md:rounded-[3rem] border border-slate-100 relative space-y-6 sm:space-y-8 md:space-y-10">
+                        <button onClick={() => updateData('goals', data.goals.filter(g => g.id !== goal.id))} className="absolute top-3 sm:top-4 md:top-6 right-3 sm:right-4 md:right-6 p-1.5 sm:p-2 text-slate-300 hover:text-rose-500 transition-all"><svg className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" /></svg></button>
+                        <h4 className="font-black text-sm sm:text-base md:text-lg lg:text-xl uppercase tracking-widest text-slate-800">{goal.name}</h4>
                         <SliderInput label="Target Age" value={goal.targetAge} onChange={(v) => updateData('goals', data.goals.map(g => g.id === goal.id ? { ...g, targetAge: v } : g))} min={data.currentAge} max={data.liveUntilAge} />
                       </div>
                     ))}
-                    <button onClick={() => updateData('goals', [...data.goals, { id: Math.random().toString(), name: 'New Milestone', targetAge: data.currentAge + 5, targetAmount: 20000, category: 'Other' }])} className="p-8 md:p-10 border-2 md:border-4 border-dashed border-slate-200 rounded-[2rem] md:rounded-[3rem] text-[10px] md:text-xs font-black uppercase tracking-widest text-slate-400 hover:border-indigo-500 hover:text-indigo-500 transition-all">+ Add Milestone</button>
+                    <button onClick={() => updateData('goals', [...data.goals, { id: Math.random().toString(), name: 'New Milestone', targetAge: data.currentAge + 5, targetAmount: 20000, category: 'Other' }])} className="p-4 sm:p-6 md:p-8 lg:p-10 border-2 sm:border-3 md:border-4 border-dashed border-slate-200 rounded-[1.5rem] sm:rounded-[2rem] md:rounded-[3rem] text-[9px] sm:text-[10px] md:text-xs font-black uppercase tracking-widest text-slate-400 hover:border-indigo-500 hover:text-indigo-500 transition-all">+ Add Milestone</button>
                   </div>
                 </div>
               </div>
