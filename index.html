@@ -105,148 +105,355 @@
 
     ::-webkit-scrollbar-track {
       background: #f1f5f9;
-    }
-
-    ::-webkit-scrollbar-thumb {
-      background: #cbd5e1;
       border-radius: 10px;
     }
 
+    ::-webkit-scrollbar-thumb {
+      background: linear-gradient(to bottom, #cbd5e1, #94a3b8);
+      border-radius: 10px;
+      border: 2px solid #f1f5f9;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: linear-gradient(to bottom, #94a3b8, #64748b);
+    }
+
+    .custom-scrollbar::-webkit-scrollbar {
+      height: 8px;
+      width: 8px;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar-track {
+      background: #f8fafc;
+      border-radius: 10px;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+      background: linear-gradient(to right, #cbd5e1, #94a3b8);
+      border-radius: 10px;
+      border: 1px solid #f8fafc;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+      background: linear-gradient(to right, #94a3b8, #64748b);
+    }
+
     input[type=range]::-webkit-slider-runnable-track {
-      background: #e2e8f0;
+      background: linear-gradient(to right, #e2e8f0, #cbd5e1);
       border-radius: 1rem;
-      height: 0.4rem;
+      height: 0.5rem;
+      box-shadow: inset 0 1px 2px rgba(0,0,0,0.05);
     }
 
     input[type=range]::-webkit-slider-thumb {
-      background: #4f46e5;
-      border: 2px solid white;
-      width: 1.2rem;
-      height: 1.2rem;
-      margin-top: -0.4rem;
+      background: linear-gradient(135deg, #4f46e5, #6366f1);
+      border: 3px solid white;
+      width: 1.4rem;
+      height: 1.4rem;
+      margin-top: -0.45rem;
       cursor: pointer;
       border-radius: 999px;
       appearance: none;
-      box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+      box-shadow: 0 4px 8px -1px rgba(79, 70, 229, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.1);
+      transition: all 0.2s ease;
     }
 
-    /* Print Styles */
+    input[type=range]::-webkit-slider-thumb:hover {
+      transform: scale(1.1);
+      box-shadow: 0 6px 12px -1px rgba(79, 70, 229, 0.4), 0 4px 8px -1px rgba(0, 0, 0, 0.15);
+    }
+
+    input[type=range]::-webkit-slider-thumb:active {
+      transform: scale(0.95);
+    }
+
+    /* Print Styles - Simplified for Better Compatibility */
     @media print {
       @page {
         size: A4 portrait;
         margin: 1cm;
       }
 
+      /* Force print color adjustment */
+      * {
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+      }
+
+      /* Reset body for print */
       body {
-        print-color-adjust: exact;
-        -webkit-print-color-adjust: exact;
         background: white !important;
         color: black !important;
-        font-size: 12px !important;
+        font-size: 10px !important;
+        line-height: 1.2 !important;
+        font-family: 'Inter', sans-serif !important;
+        margin: 0 !important;
+        padding: 10px !important;
+        width: 100% !important;
+        overflow: visible !important;
+        height: auto !important;
       }
 
-      .bg-indigo-600 {
-        background-color: #4f46e5 !important;
-        color: white !important;
+      /* Hide screen-specific elements */
+      header,
+      button,
+      input,
+      select,
+      .hover\:bg-white\/40,
+      .hover\:shadow-md,
+      .transition-all,
+      .backdrop-blur-sm,
+      .backdrop-blur-md,
+      .print\:hidden {
+        display: none !important;
       }
 
-      .bg-slate-900 {
-        background-color: #1e293b !important;
-        color: white !important;
+      /* Show print content */
+      .print-title,
+      .print-section,
+      .print-footer,
+      .print-container,
+      .print-container * {
+        display: block !important;
+        visibility: visible !important;
+        overflow: visible !important;
+        height: auto !important;
       }
 
-      .bg-white,
+      /* Override modern styles for print */
+      .bg-white\/95,
+      .bg-gradient-to-r,
+      .bg-gradient-to-b,
       .bg-slate-50 {
-        background-color: white !important;
-        border: 1px solid #e2e8f0 !important;
+        background: white !important;
       }
 
-      .shadow-2xl,
-      .shadow-xl,
+      .border-slate-200\/60,
+      .border-slate-100\/60,
+      .border-slate-200 {
+        border: 1px solid #d1d5db !important;
+      }
+
       .shadow-sm,
-      .shadow-md {
+      .shadow-lg,
+      .shadow-xl {
         box-shadow: none !important;
       }
 
-      [class*="rounded-["] {
-        border-radius: 0.5rem !important;
+      .rounded-2xl,
+      .rounded-3xl,
+      .rounded-\[2\.5rem\],
+      .rounded-\[3\.5rem\] {
+        border-radius: 4px !important;
       }
 
-      .p-8,
-      .p-12,
-      .p-10 {
-        padding: 1rem !important;
+      /* Remove all overflow and positioning constraints */
+      .overflow-y-auto,
+      .overflow-hidden,
+      .flex-1 {
+        overflow: visible !important;
+        height: auto !important;
+        max-height: none !important;
+        flex: none !important;
       }
 
-      .md\\:p-8,
-      .md\\:p-12,
-      .md\\:p-10 {
-        padding: 1rem !important;
+      /* Remove fixed positioning and constraints */
+      .h-screen,
+      .sticky,
+      .fixed {
+        position: static !important;
+        height: auto !important;
       }
 
-      .space-y-12> :not([hidden])~ :not([hidden]) {
-        margin-top: 1rem !important;
+      /* Remove padding and margin constraints */
+      .px-6,
+      .md\:px-10,
+      .lg\:px-16,
+      .pb-6,
+      .md\:pb-10,
+      .lg\:pb-16,
+      .pt-0 {
+        padding: 0 !important;
+        margin: 0 !important;
       }
 
-      .space-y-8> :not([hidden])~ :not([hidden]) {
-        margin-top: 0.75rem !important;
+      /* Remove max-width constraints */
+      .max-w-7xl {
+        max-width: none !important;
+        width: 100% !important;
       }
 
+      /* Remove space-y utilities that add unwanted margins */
+      .space-y-10 > :not([hidden]) ~ :not([hidden]),
+      .md\:space-y-14 > :not([hidden]) ~ :not([hidden]),
+      .space-y-8 > :not([hidden]) ~ :not([hidden]),
+      .md\:space-y-12 > :not([hidden]) ~ :not([hidden]) {
+        margin-top: 0.5rem !important;
+      }
+
+      /* Ensure content flows naturally */
+      .flex-col,
       .grid {
         display: block !important;
       }
 
-      .md\\:col-span-1,
-      .md\\:col-span-3,
-      .lg\\:col-span-4,
-      .lg\\:col-span-8 {
-        width: 100% !important;
-        margin-bottom: 1rem !important;
+      /* Remove any transform or scale effects */
+      * {
+        transform: none !important;
+        scale: 1 !important;
       }
 
-      .text-9xl,
-      .text-8xl,
-      .text-7xl,
-      .text-6xl,
-      .text-5xl {
-        font-size: 2rem !important;
-      }
-
-      .text-4xl,
-      .text-3xl {
-        font-size: 1.5rem !important;
-      }
-
-      h1,
-      h2,
-      h3,
-      h4,
-      h5,
-      h6 {
-        page-break-after: avoid;
-      }
-
-      .overflow-x-auto {
+      /* Show tables and table elements */
+      .print-section table,
+      .print-section table *,
+      .print-section thead,
+      .print-section tbody,
+      .print-section tr,
+      .print-section th,
+      .print-section td {
+        visibility: visible !important;
+        display: table-cell !important;
         overflow: visible !important;
+        page-break-inside: auto !important;
       }
 
-      table {
-        font-size: 10px !important;
+      .print-section table {
+        display: table !important;
+        width: 100% !important;
+        page-break-inside: auto !important;
+        margin: 0.5rem 0 !important;
+      }
+
+      .print-section thead {
+        display: table-header-group !important;
+      }
+
+      .print-section tbody {
+        display: table-row-group !important;
+      }
+
+      .print-section tr {
+        display: table-row !important;
+        page-break-inside: avoid !important;
+      }
+
+      /* Grid layouts for print */
+      .print-section > div[style*="grid"] {
+        display: grid !important;
+        visibility: visible !important;
+      }
+
+      .print-section > div[style*="grid"] > div {
+        display: block !important;
+        visibility: visible !important;
+      }
+
+      /* Basic styling for print elements */
+      .print-title {
+        font-size: 18px !important;
+        font-weight: bold !important;
+        text-align: center !important;
+        margin: 1rem 0 !important;
+        border-bottom: 2px solid black !important;
+        padding-bottom: 0.5rem !important;
+        page-break-after: avoid;
+        visibility: visible !important;
+        display: block !important;
+      }
+
+      .print-section {
+        margin: 1rem 0 !important;
+        padding: 0.5rem !important;
+        border: 1px solid #d1d5db !important;
+        page-break-inside: avoid;
+        visibility: visible !important;
+        display: block !important;
+        background: white !important;
+      }
+
+      .print-section h3 {
+        font-size: 14px !important;
+        font-weight: bold !important;
+        margin: 0.5rem 0 !important;
+        border-bottom: 1px solid #d1d5db !important;
+        padding-bottom: 0.25rem !important;
+        page-break-after: avoid;
+        color: black !important;
+        visibility: visible !important;
+        display: block !important;
+      }
+
+      /* Table styling */
+      .print-section table {
+        width: 100% !important;
         border-collapse: collapse !important;
+        font-size: 8px !important;
+        margin: 0.5rem 0 !important;
+        page-break-inside: auto;
+        visibility: visible !important;
+        display: table !important;
       }
 
-      th,
-      td {
-        padding: 0.25rem !important;
-        border: 1px solid #e2e8f0 !important;
+      .print-section th,
+      .print-section td {
+        border: 1px solid #d1d5db !important;
+        padding: 0.15rem !important;
+        text-align: left !important;
+        vertical-align: top !important;
+        color: black !important;
+        background: white !important;
+        visibility: visible !important;
+        display: table-cell !important;
       }
 
-      .custom-scrollbar::-webkit-scrollbar {
-        display: none !important;
+      .print-section th {
+        background: #f3f4f6 !important;
+        font-weight: bold !important;
+        font-size: 8px !important;
       }
 
-      .print\\:hidden {
-        display: none !important;
+      .print-section tbody tr:nth-child(even) {
+        background: #f9fafb !important;
+      }
+
+      /* Text styling */
+      .print-section div,
+      .print-section strong,
+      .print-section span {
+        color: black !important;
+        visibility: visible !important;
+        display: block !important;
+        font-size: 9px !important;
+      }
+
+      .print-section strong {
+        font-weight: bold !important;
+      }
+
+      .print-section div[style*="font-size"] {
+        display: block !important;
+        visibility: visible !important;
+      }
+
+      /* Footer */
+      .print-footer {
+        margin-top: 2rem !important;
+        padding-top: 1rem !important;
+        border-top: 1px solid #d1d5db !important;
+        text-align: center !important;
+        font-size: 8px !important;
+        color: black !important;
+        page-break-before: avoid;
+        visibility: visible !important;
+        display: block !important;
+      }
+
+      /* Ensure no page breaks inside important elements */
+      .print-title,
+      .print-section,
+      .print-section h3,
+      .print-footer {
+        page-break-inside: avoid !important;
       }
     }
   </style>
