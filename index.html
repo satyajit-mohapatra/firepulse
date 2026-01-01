@@ -167,7 +167,7 @@
       transform: scale(0.95);
     }
 
-    /* Print Styles - Simplified for Better Compatibility */
+    /* Print Styles - Professional White Background */
     @media print {
       @page {
         size: A4 portrait;
@@ -184,11 +184,11 @@
       body {
         background: white !important;
         color: black !important;
-        font-size: 10px !important;
-        line-height: 1.2 !important;
+        font-size: 12px !important;
+        line-height: 1.4 !important;
         font-family: 'Inter', sans-serif !important;
         margin: 0 !important;
-        padding: 10px !important;
+        padding: 15px !important;
         width: 100% !important;
         overflow: visible !important;
         height: auto !important;
@@ -204,11 +204,12 @@
       .transition-all,
       .backdrop-blur-sm,
       .backdrop-blur-md,
+      .backdrop-blur-xl,
       .print\:hidden {
         display: none !important;
       }
 
-      /* Show print content */
+      /* Show print content with proper styling */
       .print-title,
       .print-section,
       .print-footer,
@@ -218,33 +219,51 @@
         visibility: visible !important;
         overflow: visible !important;
         height: auto !important;
+        background: white !important;
+        color: black !important;
       }
 
-      /* Override modern styles for print */
-      .bg-white\/95,
-      .bg-gradient-to-r,
-      .bg-gradient-to-b,
-      .bg-slate-50 {
+      /* Print title styling */
+      .print-title {
+        font-size: 20px !important;
+        font-weight: bold !important;
+        text-align: center !important;
+        margin: 0 0 20px 0 !important;
+        padding: 10px 0 !important;
+        border-bottom: 2px solid black !important;
+        color: black !important;
         background: white !important;
       }
 
-      .border-slate-200\/60,
-      .border-slate-100\/60,
-      .border-slate-200 {
-        border: 1px solid #d1d5db !important;
+      /* Print section styling */
+      .print-section {
+        margin: 20px 0 !important;
+        padding: 15px !important;
+        border: 1px solid #333 !important;
+        page-break-inside: avoid !important;
+        background: white !important;
+        color: black !important;
       }
 
-      .shadow-sm,
-      .shadow-lg,
-      .shadow-xl {
-        box-shadow: none !important;
+      .print-section h3 {
+        font-size: 16px !important;
+        font-weight: bold !important;
+        color: black !important;
+        margin: 0 0 10px 0 !important;
+        padding-bottom: 5px !important;
+        border-bottom: 1px solid #ccc !important;
+        background: white !important;
       }
 
-      .rounded-2xl,
-      .rounded-3xl,
-      .rounded-\[2\.5rem\],
-      .rounded-\[3\.5rem\] {
-        border-radius: 4px !important;
+      /* Print footer styling */
+      .print-footer {
+        margin-top: 30px !important;
+        padding-top: 15px !important;
+        border-top: 1px solid #ccc !important;
+        text-align: center !important;
+        font-size: 10px !important;
+        color: #666 !important;
+        background: white !important;
       }
 
       /* Remove all overflow and positioning constraints */
@@ -278,7 +297,8 @@
       }
 
       /* Remove max-width constraints */
-      .max-w-7xl {
+      .max-w-7xl,
+      .max-w-\[1600px\] {
         max-width: none !important;
         width: 100% !important;
       }
@@ -286,9 +306,13 @@
       /* Remove space-y utilities that add unwanted margins */
       .space-y-10 > :not([hidden]) ~ :not([hidden]),
       .md\:space-y-14 > :not([hidden]) ~ :not([hidden]),
+      .space-y-12 > :not([hidden]) ~ :not([hidden]),
+      .md\:space-y-16 > :not([hidden]) ~ :not([hidden]),
       .space-y-8 > :not([hidden]) ~ :not([hidden]),
-      .md\:space-y-12 > :not([hidden]) ~ :not([hidden]) {
-        margin-top: 0.5rem !important;
+      .md\:space-y-10 > :not([hidden]) ~ :not([hidden]),
+      .space-y-6 > :not([hidden]) ~ :not([hidden]),
+      .md\:space-y-8 > :not([hidden]) ~ :not([hidden]) {
+        margin-top: 10px !important;
       }
 
       /* Ensure content flows naturally */
@@ -304,48 +328,79 @@
       }
 
       /* Show tables and table elements */
-      .print-section table,
-      .print-section table *,
-      .print-section thead,
-      .print-section tbody,
-      .print-section tr,
-      .print-section th,
-      .print-section td {
-        visibility: visible !important;
-        display: table-cell !important;
-        overflow: visible !important;
-        page-break-inside: auto !important;
-      }
-
       .print-section table {
         display: table !important;
         width: 100% !important;
         page-break-inside: auto !important;
-        margin: 0.5rem 0 !important;
+        margin: 10px 0 !important;
+        border-collapse: collapse !important;
+        background: white !important;
+        color: black !important;
       }
 
       .print-section thead {
         display: table-header-group !important;
+        background: white !important;
+        color: black !important;
       }
 
       .print-section tbody {
         display: table-row-group !important;
+        background: white !important;
+        color: black !important;
       }
 
       .print-section tr {
         display: table-row !important;
         page-break-inside: avoid !important;
+        background: white !important;
+        color: black !important;
+      }
+
+      .print-section th,
+      .print-section td {
+        display: table-cell !important;
+        overflow: visible !important;
+        page-break-inside: auto !important;
+        padding: 8px !important;
+        border: 1px solid #ccc !important;
+        background: white !important;
+        color: black !important;
+      }
+
+      .print-section th {
+        font-weight: bold !important;
+        text-align: left !important;
+        background: #f5f5f5 !important;
+        color: black !important;
       }
 
       /* Grid layouts for print */
       .print-section > div[style*="grid"] {
         display: grid !important;
         visibility: visible !important;
+        background: white !important;
+        color: black !important;
       }
 
       .print-section > div[style*="grid"] > div {
         display: block !important;
         visibility: visible !important;
+        background: white !important;
+        color: black !important;
+      }
+
+      /* Strong and emphasis elements */
+      .print-section strong {
+        font-weight: bold !important;
+        color: black !important;
+        background: white !important;
+      }
+
+      /* Span elements */
+      .print-section span {
+        color: black !important;
+        background: white !important;
       }
 
       /* Basic styling for print elements */
