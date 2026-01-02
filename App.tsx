@@ -305,36 +305,36 @@ const App: React.FC = () => {
     <div className="h-screen bg-slate-50 text-slate-900 flex flex-col overflow-hidden transition-colors duration-500">
       {/* FIXED TOP SECTION */}
       <div className="flex-none bg-gradient-to-r from-indigo-600 via-purple-600 to-indigo-700 z-50 border-b border-white/20 shadow-[0_8px_32px_-16px_rgba(0,0,0,0.3)] backdrop-blur-xl">
-        <div className="w-full max-w-[1600px] mx-auto px-6 md:px-10 lg:px-16 pt-4 md:pt-6 lg:pt-8 pb-4 space-y-3 md:space-y-4">
+        <div className="w-full max-w-[1600px] mx-auto px-3 sm:px-4 md:px-6 lg:px-10 pt-2 sm:pt-3 md:pt-4 lg:pt-6 pb-2 sm:pb-3 md:pb-4 space-y-2 sm:space-y-3 md:space-y-4">
           {/* HEADER */}
-          <header className="flex flex-col lg:flex-row justify-between items-center gap-4 lg:gap-8 print:hidden">
-            <div className="flex items-center gap-4 lg:gap-6 lg:gap-8">
-              <div className="w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 lg:w-20 lg:h-20 bg-gradient-to-br from-white/20 to-white/10 rounded-xl md:rounded-2xl lg:rounded-3xl flex items-center justify-center shadow-2xl shadow-black/20 ring-2 ring-white/30 backdrop-blur-sm border border-white/20">
-                <svg className="w-6 h-6 sm:w-7 sm:h-7 md:w-9 md:h-9 lg:w-12 lg:h-12 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" /></svg>
+          <header className="flex flex-col lg:flex-row justify-between items-center gap-2 sm:gap-3 lg:gap-8 print:hidden">
+            <div className="flex items-center gap-2 sm:gap-3 lg:gap-6 lg:gap-8">
+              <div className="w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-14 lg:w-16 lg:h-20 bg-gradient-to-br from-white/20 to-white/10 rounded-lg sm:rounded-xl md:rounded-2xl lg:rounded-3xl flex items-center justify-center shadow-2xl shadow-black/20 ring-2 ring-white/30 backdrop-blur-sm border border-white/20">
+                <svg className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:w-8 lg:w-10 lg:h-12 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" /></svg>
               </div>
               <div className="text-center lg:text-left">
-                <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-black tracking-tighter text-white leading-none italic uppercase bg-gradient-to-r from-white to-white/80 bg-clip-text text-transparent drop-shadow-lg">FirePulse</h1>
-                <p className="text-[9px] sm:text-[10px] md:text-[11px] md:text-[13px] font-black text-white/80 uppercase tracking-[0.2em] sm:tracking-[0.25em] md:tracking-[0.3em] mt-2 sm:mt-2.5 md:mt-3 bg-gradient-to-r from-white/60 to-white/40 bg-clip-text text-transparent">Longevity Strategy Engine</p>
+                <h1 className="text-lg sm:text-xl md:text-2xl lg:text-4xl font-black tracking-tighter text-white leading-none italic uppercase bg-gradient-to-r from-white to-white/80 bg-clip-text text-transparent drop-shadow-lg">FirePulse</h1>
+                <p className="text-[7px] sm:text-[8px] md:text-[9px] lg:text-[11px] font-black text-white/80 uppercase tracking-[0.15em] sm:tracking-[0.2em] md:tracking-[0.25em] mt-1 sm:mt-1.5 md:mt-2 bg-gradient-to-r from-white/60 to-white/40 bg-clip-text text-transparent">Longevity Strategy Engine</p>
               </div>
             </div>
-            <div className="flex flex-col sm:flex-row items-center gap-2 sm:gap-3 lg:gap-4 w-full lg:w-auto">
-              <select value={currency} onChange={(e) => setCurrency(e.target.value as CurrencyCode)} className="w-full sm:w-auto px-3 sm:px-4 py-2 sm:py-2.5 lg:px-5 lg:py-3 bg-white/20 backdrop-blur-md border border-white/30 rounded-xl lg:rounded-2xl text-xs sm:text-sm font-bold outline-none cursor-pointer shadow-lg hover:shadow-xl hover:bg-white/30 transition-all duration-300 text-white">
+            <div className="flex flex-col sm:flex-row items-center gap-1.5 sm:gap-2 lg:gap-4 w-full lg:w-auto">
+              <select value={currency} onChange={(e) => setCurrency(e.target.value as CurrencyCode)} className="w-full sm:w-auto px-2 sm:px-3 py-1.5 sm:py-2 lg:px-5 lg:py-3 bg-white/20 backdrop-blur-md border border-white/30 rounded-lg sm:rounded-xl lg:rounded-2xl text-[10px] sm:text-xs font-bold outline-none cursor-pointer shadow-lg hover:shadow-xl hover:bg-white/30 transition-all duration-300 text-white">
                 {currencies.map(c => <option key={c.code} value={c.code} className="text-gray-900">{c.name}</option>)}
               </select>
-              <div className="flex flex-wrap justify-center sm:justify-start gap-2 sm:gap-3 lg:gap-4 w-full sm:w-auto">
+              <div className="flex flex-wrap justify-center sm:justify-start gap-1.5 sm:gap-2 lg:gap-4 w-full sm:w-auto">
                 <button
                   onClick={exportToCSV}
-                  className="flex-1 sm:flex-none px-3 sm:px-4 py-2 sm:py-2.5 lg:px-5 lg:py-3 bg-gradient-to-r from-emerald-500 to-emerald-600 border border-emerald-400/50 rounded-xl lg:rounded-2xl text-xs sm:text-sm font-bold text-white hover:from-emerald-600 hover:to-emerald-700 transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105 flex items-center justify-center gap-1.5 sm:gap-2 print:hidden"
+                  className="flex-1 sm:flex-none px-2 sm:px-3 py-1.5 sm:py-2 lg:px-5 lg:py-3 bg-gradient-to-r from-emerald-500 to-emerald-600 border border-emerald-400/50 rounded-lg sm:rounded-xl lg:rounded-2xl text-[10px] sm:text-xs font-bold text-white hover:from-emerald-600 hover:to-emerald-700 transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105 flex items-center justify-center gap-1 sm:gap-2 print:hidden"
                   title="Export inputs as CSV"
                 >
-                  <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-3 h-3 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                   </svg>
                   <span className="hidden sm:inline">Export</span>
                   <span className="sm:hidden">📥</span>
                 </button>
-                <label className="flex-1 sm:flex-none px-3 sm:px-4 py-2 sm:py-2.5 lg:px-5 lg:py-3 bg-gradient-to-r from-white/20 to-white/10 border border-white/30 rounded-xl lg:rounded-2xl text-xs sm:text-sm font-bold text-white hover:from-white/30 hover:to-white/20 transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105 flex items-center justify-center gap-1.5 sm:gap-2 cursor-pointer print:hidden backdrop-blur-md">
-                  <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <label className="flex-1 sm:flex-none px-2 sm:px-3 py-1.5 sm:py-2 lg:px-5 lg:py-3 bg-gradient-to-r from-white/20 to-white/10 border border-white/30 rounded-lg sm:rounded-xl lg:rounded-2xl text-[10px] sm:text-xs font-bold text-white hover:from-white/30 hover:to-white/20 transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105 flex items-center justify-center gap-1 sm:gap-2 cursor-pointer print:hidden backdrop-blur-md">
+                  <svg className="w-3 h-3 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
                   </svg>
                   <span className="hidden sm:inline">Import</span>
@@ -348,10 +348,10 @@ const App: React.FC = () => {
                 </label>
                 <button
                   onClick={() => window.print()}
-                  className="flex-1 sm:flex-none px-3 sm:px-4 py-2 sm:py-2.5 lg:px-5 lg:py-3 bg-white/20 backdrop-blur-md border border-white/30 rounded-xl lg:rounded-2xl text-xs sm:text-sm font-bold text-white hover:bg-white/30 transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105 flex items-center justify-center gap-1.5 sm:gap-2 print:hidden"
+                  className="flex-1 sm:flex-none px-2 sm:px-3 py-1.5 sm:py-2 lg:px-5 lg:py-3 bg-white/20 backdrop-blur-md border border-white/30 rounded-lg sm:rounded-xl lg:rounded-2xl text-[10px] sm:text-xs font-bold text-white hover:bg-white/30 transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105 flex items-center justify-center gap-1 sm:gap-2 print:hidden"
                   title="Print or Save as PDF"
                 >
-                  <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-3 h-3 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
                   </svg>
                   <span className="hidden sm:inline">Print</span>
