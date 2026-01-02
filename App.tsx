@@ -603,40 +603,34 @@ const App: React.FC = () => {
                         min={data.currentAge + 1}
                         max={data.liveUntilAge - 1}
                       />
-                      <div className="col-span-1 sm:col-span-2">
-                        <SliderInput
-                          label="Live Until Age"
-                          value={data.liveUntilAge}
-                          onChange={(v) => updateData('liveUntilAge', v)}
-                          min={data.retirementAge + 1}
-                          max={110}
-                          tooltip={longevityTooltip}
-                        />
-                      </div>
-                      <div className="col-span-1 sm:col-span-2">
-                        <SliderInput
-                          label="Liquid Assets"
-                          value={data.currentNetWorth}
-                          onChange={(v) => updateData('currentNetWorth', v)}
-                          min={0}
-                          max={100000000}
-                          step={10000}
-                          prefix={currencySymbol}
-                          tooltip="Cash, stocks, bonds, mutual funds - easily convertible to cash"
-                        />
-                      </div>
-                      <div className="col-span-1 sm:col-span-2">
-                        <SliderInput
-                          label="Non-Liquid Assets"
-                          value={data.nonLiquidAssets}
-                          onChange={(v) => updateData('nonLiquidAssets', v)}
-                          min={0}
-                          max={100000000}
-                          step={10000}
-                          prefix={currencySymbol}
-                          tooltip="Real estate, business equity, retirement accounts - harder to convert to cash"
-                        />
-                      </div>
+                      <SliderInput
+                        label="Live Until Age"
+                        value={data.liveUntilAge}
+                        onChange={(v) => updateData('liveUntilAge', v)}
+                        min={data.retirementAge + 1}
+                        max={110}
+                        tooltip={longevityTooltip}
+                      />
+                      <SliderInput
+                        label="Liquid Assets"
+                        value={data.currentNetWorth}
+                        onChange={(v) => updateData('currentNetWorth', v)}
+                        min={0}
+                        max={100000000}
+                        step={10000}
+                        prefix={currencySymbol}
+                        tooltip="Cash, stocks, bonds, mutual funds - easily convertible to cash"
+                      />
+                      <SliderInput
+                        label="Non-Liquid Assets"
+                        value={data.nonLiquidAssets}
+                        onChange={(v) => updateData('nonLiquidAssets', v)}
+                        min={0}
+                        max={100000000}
+                        step={10000}
+                        prefix={currencySymbol}
+                        tooltip="Real estate, business equity, retirement accounts - harder to convert to cash"
+                      />
                     </div>
                   </section>
 
@@ -645,18 +639,16 @@ const App: React.FC = () => {
                     <h3 className="text-[10px] md:text-xs font-black text-emerald-700 uppercase tracking-[0.5em] flex items-center gap-3">
                       <span className="w-2 h-2 bg-gradient-to-r from-emerald-600 to-teal-600 rounded-full shadow-lg shadow-emerald-600/40"></span> Income
                     </h3>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 input-grid">
-                      <div className="col-span-2">
-                        <SliderInput
-                          label="Monthly Income"
-                          value={data.monthlyIncome}
-                          onChange={(v) => updateData('monthlyIncome', v)}
-                          min={0}
-                          max={2000000}
-                          step={500}
-                          prefix={currencySymbol}
-                        />
-                      </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 md:gap-6 input-grid">
+                      <SliderInput
+                        label="Monthly Income"
+                        value={data.monthlyIncome}
+                        onChange={(v) => updateData('monthlyIncome', v)}
+                        min={0}
+                        max={2000000}
+                        step={500}
+                        prefix={currencySymbol}
+                      />
                       <SliderInput
                         label="Monthly Living"
                         value={data.monthlyExpenses}
@@ -675,17 +667,15 @@ const App: React.FC = () => {
                         step={100}
                         prefix={currencySymbol}
                       />
-                      <div className="col-span-2">
-                        <SliderInput
-                          label="Monthly Surplus"
-                          value={data.monthlySavings}
-                          onChange={(v) => updateData('monthlySavings', v)}
-                          min={0}
-                          max={data.monthlyIncome}
-                          step={100}
-                          prefix={currencySymbol}
-                        />
-                      </div>
+                      <SliderInput
+                        label="Monthly Surplus"
+                        value={data.monthlySavings}
+                        onChange={(v) => updateData('monthlySavings', v)}
+                        min={0}
+                        max={data.monthlyIncome}
+                        step={100}
+                        prefix={currencySymbol}
+                      />
                     </div>
                   </section>
 
