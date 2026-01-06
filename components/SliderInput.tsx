@@ -35,24 +35,26 @@ const SliderInput: React.FC<SliderInputProps> = ({
   };
 
   return (
-    <div className="flex flex-col space-y-2 sm:space-y-3 group w-full slider-input-container">
-      <div className="flex justify-between items-end gap-2 sm:gap-3">
-        <label className="text-[9px] sm:text-[10px] md:text-[11px] font-black text-slate-500 group-hover:text-indigo-600 transition-colors duration-200 uppercase tracking-[0.15em] sm:tracking-[0.2em] leading-tight flex-1 min-w-0 slider-input-label">
+    <div className="flex flex-col space-y-2 group w-full slider-input-container">
+      <div className="flex flex-col space-y-1">
+        <label className="text-[9px] sm:text-[10px] md:text-[11px] font-black text-slate-500 group-hover:text-indigo-600 transition-colors duration-200 uppercase tracking-[0.2em] leading-tight slider-input-label">
           {label}
         </label>
-        <div className="flex items-center gap-1 sm:gap-1.5 shrink-0 min-w-0 slider-input-value">
-          {prefix && <span className="text-[10px] sm:text-xs font-bold text-slate-400 self-center mb-1">{prefix}</span>}
-          <input
-            type="number"
-            value={value}
-            onChange={(e) => onChange(Number(e.target.value))}
-            min={min}
-            max={max}
-            step={step}
-            className="w-16 sm:w-20 md:w-28 bg-transparent text-right text-base sm:text-lg md:text-xl font-black text-slate-900 outline-none border-b-2 border-slate-200/60 focus:border-indigo-500 transition-all duration-200 mono py-1 hover:border-slate-300"
-          />
-          {suffix && <span className="text-[10px] sm:text-xs font-bold text-slate-400 self-center mb-1">{suffix}</span>}
-          <div className="flex flex-col gap-1 ml-1">
+        <div className="flex items-center justify-between gap-2 slider-input-value pt-1">
+          <div className="flex items-center gap-1 sm:gap-1.5 flex-1">
+            {prefix && <span className="text-[10px] sm:text-xs font-bold text-slate-400 self-center">{prefix}</span>}
+            <input
+              type="number"
+              value={value}
+              onChange={(e) => onChange(Number(e.target.value))}
+              min={min}
+              max={max}
+              step={step}
+              className="w-full bg-transparent text-left text-base sm:text-lg md:text-xl font-black text-slate-900 outline-none border-b-2 border-slate-200/60 focus:border-indigo-500 transition-all duration-200 mono py-1 hover:border-slate-300"
+            />
+            {suffix && <span className="text-[10px] sm:text-xs font-bold text-slate-400 self-center">{suffix}</span>}
+          </div>
+          <div className="flex flex-col gap-0.5 shrink-0">
             <button
               onClick={incrementValue}
               disabled={value >= max}

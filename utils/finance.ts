@@ -1,5 +1,16 @@
 import { FinancialData, CalculationResults, YearProjection, CurrencyCode, Milestone } from '../types';
 
+export const currencies: { code: CurrencyCode; name: string }[] = [
+  { code: 'USD', name: 'USD ($)' },
+  { code: 'EUR', name: 'EUR (€)' },
+  { code: 'GBP', name: 'GBP (£)' },
+  { code: 'JPY', name: 'JPY (¥)' },
+  { code: 'CAD', name: 'CAD (C$)' },
+  { code: 'AUD', name: 'AUD (A$)' },
+  { code: 'INR', name: 'INR (₹)' },
+  { code: 'BRL', name: 'BRL (R$)' },
+];
+
 /**
  * Calculates age-based asset allocation for liquid assets
  * Returns object with equity, debt, and cash percentages
