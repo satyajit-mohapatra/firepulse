@@ -27,7 +27,7 @@ const CustomTooltip = ({ active, payload, label, currency }: any) => {
         <p className="text-[8px] sm:text-[9px] md:text-[10px] font-black text-slate-500 uppercase tracking-[0.15em] sm:tracking-[0.2em] mb-2 sm:mb-3 md:mb-4 border-b border-white/5 pb-2 sm:pb-3">
           Age {label} • Year {data.year}
         </p>
-        
+
         <div className="space-y-3 sm:space-y-4 md:space-y-5">
           <div className="flex justify-between items-center">
             <span className="text-[8px] sm:text-[9px] md:text-[10px] font-bold text-slate-400 uppercase">Portfolio:</span>
@@ -44,6 +44,9 @@ const CustomTooltip = ({ active, payload, label, currency }: any) => {
               <span className="text-[7px] sm:text-[8px] md:text-[9px] font-black text-rose-400 uppercase tracking-wider">Outflow</span>
               <p className="text-[8px] sm:text-[9px] md:text-[10px] font-black text-rose-300">Reg: {formatCompactNumber(data.livingExpenses, currency)}</p>
               <p className="text-[8px] sm:text-[9px] md:text-[10px] font-black text-rose-400">Med: {formatCompactNumber(data.medicalExpenses, currency)}</p>
+              {data.kidsEducationExpenses > 0 && (
+                <p className="text-[8px] sm:text-[9px] md:text-[10px] font-black text-rose-500">Edu: {formatCompactNumber(data.kidsEducationExpenses, currency)}</p>
+              )}
             </div>
           </div>
 
@@ -58,8 +61,8 @@ const CustomTooltip = ({ active, payload, label, currency }: any) => {
               <span className="text-[7px] sm:text-[8px] md:text-[9px] font-black text-slate-400 uppercase tracking-wider">FI Goal</span>
               <p className="text-[8px] sm:text-[9px] md:text-[10px] font-bold text-slate-300">{formatCompactNumber(data.fiNumber, currency)}</p>
               <div className="w-full h-1 bg-white/10 rounded-full mt-1 overflow-hidden">
-                <div 
-                  className="h-full bg-indigo-500 rounded-full transition-all duration-500" 
+                <div
+                  className="h-full bg-indigo-500 rounded-full transition-all duration-500"
                   style={{ width: `${Math.min(100, (data.netWorth / data.fiNumber) * 100)}%` }}
                 />
               </div>
@@ -88,53 +91,53 @@ const ProjectionChart: React.FC<ProjectionChartProps> = ({ data, fiAge, currency
         <AreaChart data={data} margin={{ top: 10, right: 20, left: 5, bottom: 15 }}>
           <defs>
             <linearGradient id="colorNetWorth" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="5%" stopColor="#6366f1" stopOpacity={0.2}/>
-              <stop offset="95%" stopColor="#6366f1" stopOpacity={0}/>
+              <stop offset="5%" stopColor="#6366f1" stopOpacity={0.2} />
+              <stop offset="95%" stopColor="#6366f1" stopOpacity={0} />
             </linearGradient>
           </defs>
           <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
-          <XAxis 
-            dataKey="age" 
-            axisLine={false} 
-            tickLine={false} 
-            tick={{ fontSize: 10, fill: '#64748b', fontWeight: 700 }} 
+          <XAxis
+            dataKey="age"
+            axisLine={false}
+            tickLine={false}
+            tick={{ fontSize: 10, fill: '#64748b', fontWeight: 700 }}
             dy={10}
           />
-          <YAxis 
-            axisLine={false} 
-            tickLine={false} 
+          <YAxis
+            axisLine={false}
+            tickLine={false}
             tick={{ fontSize: 10, fill: '#64748b', fontWeight: 700 }}
             tickFormatter={(value) => formatCompactNumber(value, currency)}
             width={60}
           />
-          <Tooltip 
-            content={<CustomTooltip currency={currency} />} 
+          <Tooltip
+            content={<CustomTooltip currency={currency} />}
             cursor={{ stroke: '#6366f1', strokeWidth: 1.5, strokeDasharray: '4 4' }}
           />
-          <Area 
-            type="monotone" 
-            dataKey="netWorth" 
-            stroke="#4f46e5" 
-            fillOpacity={1} 
-            fill="url(#colorNetWorth)" 
+          <Area
+            type="monotone"
+            dataKey="netWorth"
+            stroke="#4f46e5"
+            fillOpacity={1}
+            fill="url(#colorNetWorth)"
             strokeWidth={2}
             isAnimationActive={true}
           />
           {fiAge && (
-            <ReferenceLine 
-              x={fiAge} 
-              stroke="#0d9488" 
+            <ReferenceLine
+              x={fiAge}
+              stroke="#0d9488"
               strokeDasharray="6 3"
               strokeWidth={2}
-              label={{ 
-                value: 'FIRE', 
-                position: 'top', 
-                fill: '#0d9488', 
-                fontSize: 10, 
-                fontWeight: 900, 
+              label={{
+                value: 'FIRE',
+                position: 'top',
+                fill: '#0d9488',
+                fontSize: 10,
+                fontWeight: 900,
                 letterSpacing: '0.1em',
-                dy: -10 
-              }} 
+                dy: -10
+              }}
             />
           )}
         </AreaChart>

@@ -32,6 +32,7 @@ const App: React.FC = () => {
     retirementExpenseMultiplier: 85,
     monthlyExpenses: 3100,
     monthlyMedical: 500,
+    monthlyKidsEducation: 0,
     medicalInflation: 15,
     annualExpenses: 60000,
     swpAmount: 5000,
@@ -76,10 +77,10 @@ const App: React.FC = () => {
   const updateData = (key: keyof FinancialData, value: any) => {
     setData(prev => {
       const newData = { ...prev, [key]: value };
-      if (key === 'monthlyIncome' || key === 'monthlyExpenses' || key === 'monthlyMedical') {
-        newData.monthlySavings = Math.max(0, newData.monthlyIncome - (newData.monthlyExpenses + newData.monthlyMedical));
+      if (key === 'monthlyIncome' || key === 'monthlyExpenses' || key === 'monthlyMedical' || key === 'monthlyKidsEducation') {
+        newData.monthlySavings = Math.max(0, newData.monthlyIncome - (newData.monthlyExpenses + newData.monthlyMedical + newData.monthlyKidsEducation));
       } else if (key === 'monthlySavings') {
-        newData.monthlyIncome = newData.monthlySavings + newData.monthlyExpenses + newData.monthlyMedical;
+        newData.monthlyIncome = newData.monthlySavings + newData.monthlyExpenses + newData.monthlyMedical + newData.monthlyKidsEducation;
       }
       return newData;
     });
@@ -97,6 +98,7 @@ const App: React.FC = () => {
       ['Monthly Income', data.monthlyIncome.toString(), 'Income'],
       ['Monthly Expenses', data.monthlyExpenses.toString(), 'Income'],
       ['Monthly Medical', data.monthlyMedical.toString(), 'Income'],
+      ['Monthly Kids Education', data.monthlyKidsEducation.toString(), 'Income'],
       ['Monthly Savings', data.monthlySavings.toString(), 'Income'],
       ['Annual Bonus', data.annualBonus.toString(), 'Income'],
       ['Income Increase Rate', data.incomeIncreaseRate.toString(), 'Estimates'],
@@ -172,6 +174,9 @@ const App: React.FC = () => {
             break;
           case 'Monthly Medical':
             newData.monthlyMedical = parseFloat(value) || data.monthlyMedical;
+            break;
+          case 'Monthly Kids Education':
+            newData.monthlyKidsEducation = parseFloat(value) || data.monthlyKidsEducation;
             break;
           case 'Monthly Savings':
             newData.monthlySavings = parseFloat(value) || data.monthlySavings;
@@ -472,9 +477,10 @@ const App: React.FC = () => {
                 <div><strong>Monthly Income:</strong> {formatCurrency(data.monthlyIncome, currency)}</div>
                 <div><strong>Monthly Living:</strong> {formatCurrency(data.monthlyExpenses, currency)}</div>
                 <div><strong>Monthly Medical:</strong> {formatCurrency(data.monthlyMedical, currency)}</div>
+                <div><strong>Monthly Kids Education:</strong> {formatCurrency(data.monthlyKidsEducation, currency)}</div>
                 <div><strong>Monthly Surplus:</strong> {formatCurrency(data.monthlySavings, currency)}</div>
                 <div><strong>Annual Income:</strong> {formatCurrency(data.monthlyIncome * 12, currency)}</div>
-                <div><strong>Annual Expenses:</strong> {formatCurrency((data.monthlyExpenses + data.monthlyMedical) * 12, currency)}</div>
+                <div><strong>Annual Expenses:</strong> {formatCurrency((data.monthlyExpenses + data.monthlyMedical + data.monthlyKidsEducation) * 12, currency)}</div>
               </div>
             </div>
 
@@ -651,6 +657,17 @@ const App: React.FC = () => {
                         max={50000}
                         step={100}
                         prefix={currencySymbol}
+                        tooltip="Health insurance, doctor visits, prescriptions"
+                      />
+                      <SliderInput
+                        label="Kids Education"
+                        value={data.monthlyKidsEducation}
+                        onChange={(v) => updateData('monthlyKidsEducation', v)}
+                        min={0}
+                        max={100000}
+                        step={100}
+                        prefix={currencySymbol}
+                        tooltip="School fees, tuition, tutoring, education expenses"
                       />
                       <SliderInput
                         label="Monthly Surplus"
@@ -940,6 +957,9 @@ const App: React.FC = () => {
                                     <div className="relative group/outflow flex flex-col text-[8px] sm:text-[9px] font-bold border-l border-slate-100 pl-2 gap-0.5 cursor-help">
                                       <div className="text-rose-500/80 leading-none">Reg: -{formatCompactNumber(p.livingExpenses, currency)}</div>
                                       <div className="text-rose-400 leading-none">Med: -{formatCompactNumber(p.medicalExpenses, currency)}</div>
+                                      {p.kidsEducationExpenses > 0 && (
+                                        <div className="text-rose-600 leading-none">Edu: -{formatCompactNumber(p.kidsEducationExpenses, currency)}</div>
+                                      )}
 
                                       <div className="absolute left-0 top-full mt-2 hidden group-hover/outflow:block bg-slate-900 text-white text-[8px] sm:text-[9px] p-2 sm:p-3 rounded-xl shadow-2xl z-50 min-w-[180px] sm:min-w-[200px] pointer-events-none animate-in fade-in zoom-in-95">
                                         <p className="font-black uppercase tracking-widest text-rose-400 mb-2">Expense Breakdown</p>
@@ -955,6 +975,13 @@ const App: React.FC = () => {
                                             <p className="opacity-70 text-xs">Base: {formatCurrency(data.monthlyMedical * 12, currency)}</p>
                                             <p className="opacity-70 text-xs">Infl: (1 + {data.medicalInflation}%)^{yearsElapsed} yrs</p>
                                           </div>
+                                          {data.monthlyKidsEducation > 0 && (
+                                            <div className="border-t border-white/10 pt-2">
+                                              <p className="font-bold text-amber-300 text-xs">Kids Education:</p>
+                                              <p className="opacity-70 text-xs">Base: {formatCurrency(data.monthlyKidsEducation * 12, currency)}</p>
+                                              <p className="opacity-70 text-xs">Infl: (1 + {data.inflationRate}%)^{yearsElapsed} yrs</p>
+                                            </div>
+                                          )}
                                         </div>
                                       </div>
                                     </div>

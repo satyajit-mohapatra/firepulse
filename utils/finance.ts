@@ -58,6 +58,7 @@ const checkSolvency = (data: FinancialData, testRetirementAge: number): boolean 
     retirementExpenseMultiplier,
     monthlyExpenses,
     monthlyMedical,
+    monthlyKidsEducation,
     medicalInflation,
     retirementTaxRate,
     liquidAssetReturn,
@@ -74,6 +75,7 @@ const checkSolvency = (data: FinancialData, testRetirementAge: number): boolean 
   let nonLiquidBalance = nonLiquidAssets; // Real estate - illiquid but appreciates
   let annualLiving = monthlyExpenses * 12;
   let annualMedical = monthlyMedical * 12;
+  let annualKidsEducation = monthlyKidsEducation * 12;
   let currentSavings = monthlySavings;
   let currentBonus = annualBonus;
   const taxRate = retirementTaxRate / 100;
@@ -128,7 +130,8 @@ const checkSolvency = (data: FinancialData, testRetirementAge: number): boolean 
       }
 
       const retirementLiving = annualLiving * (retirementExpenseMultiplier / 100);
-      const grossWithdrawal = (retirementLiving + annualMedical) / (1 - taxRate);
+      // Kids education continues during retirement if still applicable (can be adjusted per needs)
+      const grossWithdrawal = (retirementLiving + annualMedical + annualKidsEducation) / (1 - taxRate);
       const pension = age >= futureIncomeStartAge ? (futureIncome * 12 * (1 - taxRate)) : 0;
 
       // Withdraw from liquid assets (now includes retirement assets)
@@ -141,6 +144,7 @@ const checkSolvency = (data: FinancialData, testRetirementAge: number): boolean 
 
     annualLiving *= (1 + inflationRate / 100);
     annualMedical *= (1 + medicalInflation / 100);
+    annualKidsEducation *= (1 + inflationRate / 100); // Education follows general inflation
   }
   return (liquidBalance + retirementBalance + nonLiquidBalance) >= 0;
 };
@@ -160,6 +164,7 @@ export const calculateFIRE = (data: FinancialData): CalculationResults => {
     retirementExpenseMultiplier,
     monthlyExpenses: initialMonthlyLiving,
     monthlyMedical: initialMonthlyMedical,
+    monthlyKidsEducation: initialMonthlyKidsEducation,
     medicalInflation,
     swpAmount: initialSwpAmount,
     retirementTaxRate,
@@ -189,6 +194,7 @@ export const calculateFIRE = (data: FinancialData): CalculationResults => {
   let nonLiquidBalance = nonLiquidAssets; // Real estate - illiquid
   let currentAnnualLiving = initialMonthlyLiving * 12;
   let currentAnnualMedical = initialMonthlyMedical * 12;
+  let currentAnnualKidsEducation = initialMonthlyKidsEducation * 12;
   let currentMonthlyIncome = monthlyIncome;
   let currentMonthlySavings = initialMonthlySavings;
   let currentAnnualBonus = initialAnnualBonus;
@@ -237,7 +243,7 @@ export const calculateFIRE = (data: FinancialData): CalculationResults => {
     const nonLiquidReturns = nonLiquidBalance * (effectiveNonLiquidReturn / 100);
 
     const retirementLiving = currentAnnualLiving * (retirementExpenseMultiplier / 100);
-    const totalOutflowNet = isRetired ? (retirementLiving + currentAnnualMedical) : 0;
+    const totalOutflowNet = isRetired ? (retirementLiving + currentAnnualMedical + currentAnnualKidsEducation) : 0;
     const grossNeeded = totalOutflowNet / (1 - taxRateDecimal);
     const hasFutureIncome = age >= futureIncomeStartAge;
     const yearlyFutureIncomeNet = hasFutureIncome ? (futureIncome * 12 * (1 - taxRateDecimal)) : 0;
@@ -266,7 +272,7 @@ export const calculateFIRE = (data: FinancialData): CalculationResults => {
     }
 
     const totalBalance = liquidBalance + retirementBalance + nonLiquidBalance;
-    const dynamicFiNumber = ((retirementLiving + currentAnnualMedical) / (1 - taxRateDecimal)) / (withdrawalRate / 100);
+    const dynamicFiNumber = ((retirementLiving + currentAnnualMedical + currentAnnualKidsEducation) / (1 - taxRateDecimal)) / (withdrawalRate / 100);
 
     projections.push({
       year,
@@ -278,7 +284,8 @@ export const calculateFIRE = (data: FinancialData): CalculationResults => {
       income: Math.round(yearlyIncome),
       livingExpenses: Math.round(isRetired ? retirementLiving : currentAnnualLiving),
       medicalExpenses: Math.round(currentAnnualMedical),
-      totalOutflow: Math.round(isRetired ? grossNeeded : (currentAnnualLiving + currentAnnualMedical)),
+      kidsEducationExpenses: Math.round(currentAnnualKidsEducation),
+      totalOutflow: Math.round(isRetired ? grossNeeded : (currentAnnualLiving + currentAnnualMedical + currentAnnualKidsEducation)),
       fiNumber: Math.round(dynamicFiNumber),
       passiveIncome: Math.round(isRetired ? (grossNeeded * (1 - taxRateDecimal) + yearlyFutureIncomeNet) : 0),
       goalSpending: totalGoalCost,
@@ -287,11 +294,12 @@ export const calculateFIRE = (data: FinancialData): CalculationResults => {
 
     currentAnnualLiving *= (1 + inflationRate / 100);
     currentAnnualMedical *= (1 + medicalInflation / 100);
+    currentAnnualKidsEducation *= (1 + inflationRate / 100); // Education follows general inflation
 
     if (totalBalance < -1000000000) break;
   }
 
-  const baseFiNumber = ((initialMonthlyLiving * 12 * (retirementExpenseMultiplier / 100) + initialMonthlyMedical * 12) / (1 - taxRateDecimal)) / (withdrawalRate / 100);
+  const baseFiNumber = ((initialMonthlyLiving * 12 * (retirementExpenseMultiplier / 100) + initialMonthlyMedical * 12 + initialMonthlyKidsEducation * 12) / (1 - taxRateDecimal)) / (withdrawalRate / 100);
 
   let milestones: Milestone[] = [
     { name: 'Lean FI', age: null, target: baseFiNumber * 0.75, reached: false, description: 'Basic expenses covered.' },
@@ -312,7 +320,7 @@ export const calculateFIRE = (data: FinancialData): CalculationResults => {
     fiAge,
     fiYear: fiAge ? currentYear + (fiAge - currentAge) : null,
     fiNumber: baseFiNumber,
-    fiExpenses: (initialMonthlyLiving * 12 * (retirementExpenseMultiplier / 100)) + initialMonthlyMedical * 12,
+    fiExpenses: (initialMonthlyLiving * 12 * (retirementExpenseMultiplier / 100)) + initialMonthlyMedical * 12 + initialMonthlyKidsEducation * 12,
     timeToFI: fiAge !== null ? fiAge - currentAge : null,
     milestones,
     safeWithdrawalAmount: initialSwpAmount,

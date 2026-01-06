@@ -32,6 +32,7 @@ export interface FinancialData {
   retirementExpenseMultiplier: number;
   monthlyExpenses: number;
   monthlyMedical: number;
+  monthlyKidsEducation: number;
   medicalInflation: number;
   annualExpenses: number;
   swpAmount: number;
@@ -58,6 +59,7 @@ export interface YearProjection {
   income: number;
   livingExpenses: number;
   medicalExpenses: number;
+  kidsEducationExpenses: number;
   totalOutflow: number;
   fiNumber: number;
   passiveIncome: number;
