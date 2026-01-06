@@ -578,18 +578,6 @@ const App: React.FC = () => {
                     />
                   </label>
 
-                  {/* Print Button */}
-                  <button
-                    onClick={() => window.print()}
-                    className="flex-1 sm:flex-none px-2 sm:px-3 py-1.5 sm:py-2 lg:px-5 lg:py-3 bg-white/20 backdrop-blur-md border border-white/30 rounded-lg sm:rounded-xl lg:rounded-2xl text-[10px] sm:text-xs font-bold text-white hover:bg-white/30 transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105 flex items-center justify-center gap-1 sm:gap-2 print:hidden"
-                    title="Print or Save as PDF"
-                  >
-                    <svg className="w-3 h-3 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
-                    </svg>
-                    <span className="hidden sm:inline">Print</span>
-                    <span className="sm:hidden">🖨️</span>
-                  </button>
                 </div>
               </div>
             </header>

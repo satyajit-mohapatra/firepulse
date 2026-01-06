@@ -43,15 +43,23 @@ const SCENARIO_TYPES: { id: ScenarioType; label: string; description: string; ic
 
 const countryOptions = getCountryOptions();
 
+const COUNTRY_FLAGS: Record<string, string> = {
+    US: '🇺🇸', IN: '🇮🇳', UK: '🇬🇧', CA: '🇨🇦', AU: '🇦🇺',
+    DE: '🇩🇪', SG: '🇸🇬', AE: '🇦🇪', PT: '🇵🇹', MX: '🇲🇽',
+    TH: '🇹🇭', JP: '🇯🇵',
+};
+
 // Phase Editor Component
 const PhaseEditor: React.FC<{
     phase: LifePhase;
     onChange: (phase: LifePhase) => void;
     onDelete?: () => void;
+    onMoveUp?: () => void;
+    onMoveDown?: () => void;
     isFirst: boolean;
     isLast: boolean;
     onMatchLifestyle?: () => void;
-}> = ({ phase, onChange, onDelete, isFirst, isLast, onMatchLifestyle }) => {
+}> = ({ phase, onChange, onDelete, onMoveUp, onMoveDown, isFirst, isLast, onMatchLifestyle }) => {
     const countryData = COUNTRIES[phase.country];
 
     const phaseColors = {
@@ -82,16 +90,42 @@ const PhaseEditor: React.FC<{
                             <p className="text-xs text-slate-500">Ages {phase.startAge} - {phase.endAge}</p>
                         </div>
                     </div>
-                    {!isFirst && onDelete && (
-                        <button
-                            onClick={onDelete}
-                            className="p-1.5 text-slate-300 hover:text-rose-500 transition-colors rounded-full hover:bg-rose-50"
-                        >
-                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                            </svg>
-                        </button>
-                    )}
+
+                    <div className="flex items-center gap-1">
+                        {onMoveUp && !isFirst && (
+                            <button
+                                onClick={onMoveUp}
+                                className="p-1.5 text-slate-300 hover:text-indigo-500 transition-colors rounded-lg hover:bg-slate-100"
+                                title="Move up"
+                            >
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
+                                </svg>
+                            </button>
+                        )}
+                        {onMoveDown && !isLast && (
+                            <button
+                                onClick={onMoveDown}
+                                className="p-1.5 text-slate-300 hover:text-indigo-500 transition-colors rounded-lg hover:bg-slate-100"
+                                title="Move down"
+                            >
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                                </svg>
+                            </button>
+                        )}
+                        {!isFirst && onDelete && (
+                            <button
+                                onClick={onDelete}
+                                className="p-1.5 text-slate-300 hover:text-rose-500 transition-colors rounded-lg hover:bg-rose-50 ml-1"
+                                title="Delete phase"
+                            >
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                            </button>
+                        )}
+                    </div>
                 </div>
 
                 {/* Country Selection */}
@@ -209,7 +243,8 @@ const TimelineVisualization: React.FC<{
     currentAge: number;
     lifeExpectancy: number;
 }> = ({ phases, currentAge, lifeExpectancy }) => {
-    const totalYears = lifeExpectancy - currentAge;
+    const maxAge = Math.max(lifeExpectancy, ...phases.map(p => p.endAge));
+    const totalYears = Math.max(1, maxAge - currentAge);
 
     const getPhaseColor = (type: string) => {
         switch (type) {
@@ -223,15 +258,16 @@ const TimelineVisualization: React.FC<{
     return (
         <div className="relative">
             {/* Timeline Bar */}
-            <div className="h-12 bg-slate-100 rounded-full overflow-hidden flex shadow-inner">
+            <div className="h-12 bg-slate-100 rounded-full flex shadow-inner relative">
                 {phases.map((phase, idx) => {
-                    const duration = phase.endAge - phase.startAge + 1;
+                    const duration = Math.max(0, phase.endAge - phase.startAge + 1);
                     const width = (duration / totalYears) * 100;
 
                     return (
                         <div
                             key={phase.id}
-                            className={`${getPhaseColor(phase.type)} flex items-center justify-center relative group transition-all duration-300 hover:brightness-110`}
+                            className={`${getPhaseColor(phase.type)} flex items-center justify-center relative group transition-all duration-300 hover:brightness-110 ${idx === 0 ? 'rounded-l-full' : ''
+                                } ${idx === phases.length - 1 ? 'rounded-r-full' : ''}`}
                             style={{ width: `${width}%` }}
                         >
                             <span className="text-white text-[10px] font-black uppercase tracking-wider truncate px-2">
@@ -239,11 +275,43 @@ const TimelineVisualization: React.FC<{
                             </span>
 
                             {/* Tooltip */}
-                            <div className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 hidden group-hover:block z-10">
-                                <div className="bg-slate-900 text-white text-xs p-2 rounded-lg shadow-xl whitespace-nowrap">
-                                    <div className="font-bold">{phase.type.charAt(0).toUpperCase() + phase.type.slice(1)} Phase</div>
-                                    <div className="text-slate-400">Ages {phase.startAge} - {phase.endAge}</div>
+                            <div className="absolute bottom-full mb-3 left-1/2 -translate-x-1/2 hidden group-hover:block z-50">
+                                <div className="bg-slate-900/95 text-white text-[11px] p-3 rounded-xl shadow-[0_20px_50px_rgba(0,0,0,0.5)] whitespace-nowrap border border-white/10 backdrop-blur-xl ring-1 ring-white/20">
+                                    <div className="flex items-center gap-2 mb-1.5 border-b border-white/10 pb-1.5">
+                                        <span className="text-base">{COUNTRY_FLAGS[phase.country] || '🌍'}</span>
+                                        <div>
+                                            <div className="font-black text-white uppercase tracking-wider">
+                                                {COUNTRIES[phase.country]?.name || phase.country}
+                                            </div>
+                                            <div className="text-[9px] text-slate-400 font-bold uppercase tracking-tight">
+                                                {phase.type} phase • {phase.endAge - phase.startAge + 1} years
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div className="space-y-1">
+                                        <div className="flex justify-between gap-4">
+                                            <span className="text-slate-400">Age Span:</span>
+                                            <span className="font-bold text-indigo-300">{phase.startAge} — {phase.endAge}</span>
+                                        </div>
+                                        <div className="flex justify-between gap-4">
+                                            <span className="text-slate-400">Expenses:</span>
+                                            <span className="font-bold text-rose-300">
+                                                {COUNTRIES[phase.country]?.currencySymbol}{phase.monthlyExpenses.toLocaleString()}/mo
+                                            </span>
+                                        </div>
+                                        {phase.type === 'work' && phase.annualIncome && (
+                                            <div className="flex justify-between gap-4">
+                                                <span className="text-slate-400">Income:</span>
+                                                <span className="font-bold text-emerald-300">
+                                                    {COUNTRIES[phase.country]?.currencySymbol}{phase.annualIncome.toLocaleString()}/yr
+                                                </span>
+                                            </div>
+                                        )}
+                                    </div>
                                 </div>
+                                {/* Tooltip Arrow */}
+                                <div className="absolute top-full left-1/2 -translate-x-1/2 -mt-1 border-8 border-transparent border-t-slate-900/95" />
                             </div>
                         </div>
                     );
@@ -251,11 +319,20 @@ const TimelineVisualization: React.FC<{
             </div>
 
             {/* Age Markers */}
-            <div className="flex justify-between mt-2 text-xs text-slate-400 font-medium px-1">
-                <span>{currentAge}</span>
-                {phases.map((phase, idx) => (
-                    <span key={idx} className="hidden sm:block">{phase.endAge}</span>
-                ))}
+            <div className="relative h-6 mt-2 text-[10px] text-slate-400 font-bold uppercase tracking-tight">
+                <span className="absolute left-0 transform -translate-x-1/2">{currentAge}</span>
+                {phases.map((phase, idx) => {
+                    const offset = ((phase.endAge - currentAge) / totalYears) * 100;
+                    return (
+                        <span
+                            key={idx}
+                            className="absolute transform -translate-x-1/2 hidden sm:block whitespace-nowrap"
+                            style={{ left: `${offset}%` }}
+                        >
+                            {phase.endAge}
+                        </span>
+                    );
+                })}
             </div>
         </div>
     );
@@ -487,11 +564,11 @@ const InternationalPlanner: React.FC<{ data: FinancialData; currency: string }> 
     const [scenarioType, setScenarioType] = useState<ScenarioType>('work-retire');
 
     const tabs = [
-        { id: 'scenario', label: 'Scenario', icon: '📋' },
-        { id: 'phases', label: 'Life Phases', icon: '🗓️' },
-        { id: 'assets', label: 'Assets', icon: '💰' },
-        { id: 'settings', label: 'Country Params', icon: '⚙️' },
-        { id: 'results', label: 'Results', icon: '📊' },
+        { id: 'scenario', label: 'Scenario', icon: '📋', description: 'Choose your journey' },
+        { id: 'phases', label: 'Life Phases', icon: '🗓️', description: 'Plan your timeline' },
+        { id: 'assets', label: 'Assets', icon: '💰', description: 'Current net worth' },
+        { id: 'settings', label: 'Country Params', icon: '⚙️', description: 'Tax & inflation' },
+        { id: 'results', label: 'Results', icon: '📊', description: 'View projections' },
     ] as const;
 
     const currentTabIndex = tabs.findIndex(t => t.id === activeTab);
@@ -573,73 +650,168 @@ const InternationalPlanner: React.FC<{ data: FinancialData; currency: string }> 
 
     // Update a specific phase
     const updatePhase = useCallback((index: number, updatedPhase: LifePhase) => {
-        setScenario(prev => ({
-            ...prev,
-            phases: prev.phases.map((p, i) => i === index ? updatedPhase : p),
-        }));
+        setScenario(prev => {
+            const newPhases = [...prev.phases];
+            newPhases[index] = updatedPhase;
+
+            // Ensure continuity for subsequent phases
+            for (let i = index + 1; i < newPhases.length; i++) {
+                const prevPhase = newPhases[i - 1];
+                if (newPhases[i].startAge !== prevPhase.endAge + 1) {
+                    const duration = newPhases[i].endAge - newPhases[i].startAge;
+                    newPhases[i] = {
+                        ...newPhases[i],
+                        startAge: prevPhase.endAge + 1,
+                        endAge: prevPhase.endAge + 1 + Math.max(0, duration)
+                    };
+                }
+            }
+
+            // Ensure continuity for previous phases if start age changed
+            if (index > 0 && updatedPhase.startAge !== prev.phases[index - 1].endAge + 1) {
+                newPhases[index - 1] = {
+                    ...newPhases[index - 1],
+                    endAge: updatedPhase.startAge - 1
+                };
+            }
+
+            return {
+                ...prev,
+                phases: newPhases,
+            };
+        });
+    }, []);
+
+    // Move a phase
+    const movePhase = useCallback((index: number, direction: 'up' | 'down') => {
+        setScenario(prev => {
+            const newPhases = [...prev.phases];
+            const targetIndex = direction === 'up' ? index - 1 : index + 1;
+
+            if (targetIndex < 0 || targetIndex >= newPhases.length) return prev;
+
+            // Swap phases
+            const temp = newPhases[index];
+            newPhases[index] = newPhases[targetIndex];
+            newPhases[targetIndex] = temp;
+
+            // Re-calculate ages for continuity
+            let currentStartAge = prev.currentAge;
+            const updatedPhases = newPhases.map((phase) => {
+                const duration = Math.max(0, phase.endAge - phase.startAge);
+                const updated = {
+                    ...phase,
+                    startAge: currentStartAge,
+                    endAge: currentStartAge + duration
+                };
+                currentStartAge = updated.endAge + 1;
+                return updated;
+            });
+
+            return {
+                ...prev,
+                phases: updatedPhases,
+            };
+        });
     }, []);
 
     // Delete a phase
     const deletePhase = useCallback((index: number) => {
-        setScenario(prev => ({
-            ...prev,
-            phases: prev.phases.filter((_, i) => i !== index),
-        }));
+        setScenario(prev => {
+            const filteredPhases = prev.phases.filter((_, i) => i !== index);
+
+            // Recalculate continuity after deletion
+            let currentStartAge = prev.currentAge;
+            const updatedPhases = filteredPhases.map((phase) => {
+                const duration = Math.max(0, phase.endAge - phase.startAge);
+                const updated = {
+                    ...phase,
+                    startAge: currentStartAge,
+                    endAge: currentStartAge + duration
+                };
+                currentStartAge = updated.endAge + 1;
+                return updated;
+            });
+
+            return {
+                ...prev,
+                phases: updatedPhases,
+            };
+        });
     }, []);
 
     // Add a new phase
     const addPhase = useCallback((type: 'work' | 'transition' | 'retirement') => {
-        const lastPhase = scenario.phases[scenario.phases.length - 1];
-        const newPhase: LifePhase = {
-            id: `phase-${Date.now()}`,
-            type,
-            country: lastPhase?.country || 'US',
-            startAge: (lastPhase?.endAge || scenario.currentAge) + 1,
-            endAge: (lastPhase?.endAge || scenario.currentAge) + (type === 'transition' ? 1 : 10),
-            monthlyExpenses: lastPhase?.monthlyExpenses || 4000,
-            ...(type === 'work' ? { annualIncome: 100000, incomeGrowthRate: 3 } : {}),
-        };
+        setScenario(prev => {
+            const lastPhase = prev.phases[prev.phases.length - 1];
+            const startAge = (lastPhase?.endAge || prev.currentAge) + 1;
+            const duration = type === 'transition' ? 1 : 10;
 
-        setScenario(prev => ({
-            ...prev,
-            phases: [...prev.phases, newPhase],
-        }));
-    }, [scenario]);
+            const newPhase: LifePhase = {
+                id: `phase-${Date.now()}`,
+                type,
+                country: lastPhase?.country || 'US',
+                startAge,
+                endAge: startAge + duration,
+                monthlyExpenses: lastPhase?.monthlyExpenses || 4000,
+                ...(type === 'work' ? { annualIncome: 100000, incomeGrowthRate: 3 } : {}),
+            };
+
+            return {
+                ...prev,
+                phases: [...prev.phases, newPhase],
+            };
+        });
+    }, []);
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-slate-50 via-purple-50/30 to-slate-50">
-            {/* Header */}
-            <div className="bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 px-4 sm:px-6 lg:px-10 py-6 sm:py-8">
-                <div className="max-w-6xl mx-auto">
-                    <div className="flex items-center gap-4 mb-4">
-                        <div className="w-12 h-12 sm:w-14 sm:h-14 bg-white/20 rounded-2xl flex items-center justify-center">
-                            <span className="text-2xl sm:text-3xl">🌍</span>
-                        </div>
-                        <div>
-                            <h1 className="text-xl sm:text-2xl lg:text-3xl font-black text-white tracking-tight">
-                                International Financial Planner
-                            </h1>
-                            <p className="text-white/70 text-xs sm:text-sm font-medium mt-0.5">
-                                Model cross-border work and retirement scenarios
-                            </p>
-                        </div>
-                    </div>
+            {/* Wizard Progress */}
+            <div className="bg-white border-b border-slate-100">
+                <div className="max-w-4xl mx-auto py-8 px-4">
+                    <div className="relative flex items-center justify-between">
+                        {/* Progress Line */}
+                        <div className="absolute left-0 top-1/2 h-0.5 w-full -translate-y-1/2 bg-slate-100" />
+                        <div
+                            className="absolute left-0 top-1/2 h-0.5 -translate-y-1/2 bg-indigo-600 transition-all duration-500 ease-in-out"
+                            style={{ width: `${(currentTabIndex / (tabs.length - 1)) * 100}%` }}
+                        />
 
-                    {/* Tab Navigation */}
-                    <div className="flex gap-1 sm:gap-2 bg-white/10 p-1.5 rounded-xl backdrop-blur-sm">
-                        {tabs.map(tab => (
-                            <button
-                                key={tab.id}
-                                onClick={() => setActiveTab(tab.id as any)}
-                                className={`flex-1 px-3 py-2 sm:py-2.5 text-[10px] sm:text-xs font-black uppercase tracking-widest rounded-lg transition-all ${activeTab === tab.id
-                                    ? 'bg-white text-purple-700 shadow-lg'
-                                    : 'text-white/70 hover:text-white hover:bg-white/10'
-                                    }`}
-                            >
-                                <span className="hidden sm:inline">{tab.icon} </span>
-                                {tab.label}
-                            </button>
-                        ))}
+                        {/* Steps */}
+                        {tabs.map((tab, idx) => {
+                            const isCompleted = currentTabIndex > idx;
+                            const isActive = activeTab === tab.id;
+
+                            return (
+                                <div key={tab.id} className="relative z-10 flex flex-col items-center">
+                                    <button
+                                        onClick={() => setActiveTab(tab.id as any)}
+                                        className={`flex h-10 w-10 items-center justify-center rounded-full border-2 transition-all duration-300 ${isActive
+                                            ? 'border-indigo-600 bg-white text-indigo-600 shadow-[0_0_15px_rgba(79,70,229,0.4)]'
+                                            : isCompleted
+                                                ? 'border-indigo-600 bg-indigo-600 text-white'
+                                                : 'border-slate-200 bg-white text-slate-400'
+                                            }`}
+                                    >
+                                        {isCompleted ? (
+                                            <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                            </svg>
+                                        ) : (
+                                            <span className="text-sm font-bold">{idx + 1}</span>
+                                        )}
+                                    </button>
+                                    <div className="absolute top-12 flex flex-col items-center text-center">
+                                        <span className={`text-[10px] font-black uppercase tracking-wider whitespace-nowrap ${isActive ? 'text-indigo-600' : 'text-slate-500'}`}>
+                                            {tab.label}
+                                        </span>
+                                        <span className="hidden text-[9px] text-slate-400 sm:block font-bold uppercase tracking-tight">
+                                            {tab.description}
+                                        </span>
+                                    </div>
+                                </div>
+                            );
+                        })}
                     </div>
                 </div>
             </div>
@@ -647,8 +819,8 @@ const InternationalPlanner: React.FC<{ data: FinancialData; currency: string }> 
             {/* Content */}
             <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-10 py-6 sm:py-8">
                 {/* Timeline Preview */}
-                <div className="mb-6 bg-white p-4 sm:p-6 rounded-2xl border border-slate-100 shadow-sm">
-                    <h3 className="text-xs font-black text-slate-500 uppercase tracking-wider mb-4">
+                <div className="mt-6 mb-10 bg-white p-4 sm:p-6 rounded-2xl border border-slate-100 shadow-sm relative z-40">
+                    <h3 className="text-xs font-black text-slate-500 uppercase tracking-wider mb-8">
                         Lifetime Timeline
                     </h3>
                     <TimelineVisualization
@@ -744,6 +916,8 @@ const InternationalPlanner: React.FC<{ data: FinancialData; currency: string }> 
                                     phase={phase}
                                     onChange={(p) => updatePhase(idx, p)}
                                     onDelete={() => deletePhase(idx)}
+                                    onMoveUp={() => movePhase(idx, 'up')}
+                                    onMoveDown={() => movePhase(idx, 'down')}
                                     isFirst={idx === 0}
                                     isLast={idx === scenario.phases.length - 1}
                                     onMatchLifestyle={idx > 0 ? () => {
