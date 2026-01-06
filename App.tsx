@@ -21,8 +21,9 @@ const App: React.FC = () => {
     currentAge: 44,
     retirementAge: 55,
     liveUntilAge: 90,
-    currentNetWorth: 100000,
-    nonLiquidAssets: 200000,
+    currentNetWorth: 100000, // Liquid assets
+    retirementAssets: 200000, // 401k, IRA, retirement accounts
+    nonLiquidAssets: 100000, // Real estate, business equity
     monthlyIncome: 6000,
     monthlySavings: 2400,
     annualBonus: 0,
@@ -36,7 +37,8 @@ const App: React.FC = () => {
     swpAmount: 5000,
     retirementTaxRate: 24,
     liquidAssetReturn: 12,
-    nonLiquidAssetReturn: 6,
+    retirementAssetReturn: 10, // Higher returns, typically stock-heavy portfolios
+    nonLiquidAssetReturn: 5, // Real estate appreciation
     inflationRate: 8,
     withdrawalRate: 4,
     futureIncome: 0,
@@ -57,17 +59,19 @@ const App: React.FC = () => {
   // Calculate current asset allocation
   const currentAllocation = useMemo(() => {
     const allocation = getAgeBasedAllocation(data.currentAge, data.retirementAge);
-    const totalAssets = data.currentNetWorth + data.nonLiquidAssets;
+    const totalAssets = data.currentNetWorth + data.retirementAssets + data.nonLiquidAssets;
     const liquidPercentage = totalAssets > 0 ? (data.currentNetWorth / totalAssets) * 100 : 0;
+    const retirementPercentage = totalAssets > 0 ? (data.retirementAssets / totalAssets) * 100 : 0;
     const nonLiquidPercentage = totalAssets > 0 ? (data.nonLiquidAssets / totalAssets) * 100 : 0;
 
     return {
       ...allocation,
       liquidPercentage,
+      retirementPercentage,
       nonLiquidPercentage,
       totalAssets
     };
-  }, [data.currentAge, data.retirementAge, data.currentNetWorth, data.nonLiquidAssets]);
+  }, [data.currentAge, data.retirementAge, data.currentNetWorth, data.retirementAssets, data.nonLiquidAssets]);
 
   const updateData = (key: keyof FinancialData, value: any) => {
     setData(prev => {
@@ -87,8 +91,9 @@ const App: React.FC = () => {
       ['Current Age', data.currentAge.toString(), 'Core Stats'],
       ['Retirement Age', data.retirementAge.toString(), 'Core Stats'],
       ['Live Until Age', data.liveUntilAge.toString(), 'Core Stats'],
-      ['Current Net Worth', data.currentNetWorth.toString(), 'Core Stats'],
-      ['Non-Liquid Assets', data.nonLiquidAssets.toString(), 'Core Stats'],
+      ['Current Net Worth', data.currentNetWorth.toString(), 'Assets - Liquid'],
+      ['Retirement Assets', data.retirementAssets.toString(), 'Assets - Retirement'],
+      ['Non-Liquid Assets', data.nonLiquidAssets.toString(), 'Assets - Non-Liquid'],
       ['Monthly Income', data.monthlyIncome.toString(), 'Income'],
       ['Monthly Expenses', data.monthlyExpenses.toString(), 'Income'],
       ['Monthly Medical', data.monthlyMedical.toString(), 'Income'],
@@ -100,8 +105,9 @@ const App: React.FC = () => {
       ['Annual Expenses', data.annualExpenses.toString(), 'Estimates'],
       ['SWP Amount', data.swpAmount.toString(), 'Estimates'],
       ['Retirement Tax Rate', data.retirementTaxRate.toString(), 'Estimates'],
-      ['Liquid Asset Return', data.liquidAssetReturn.toString(), 'Estimates'],
-      ['Non-Liquid Asset Return', data.nonLiquidAssetReturn.toString(), 'Estimates'],
+      ['Liquid Asset Return', data.liquidAssetReturn.toString(), 'Returns'],
+      ['Retirement Asset Return', data.retirementAssetReturn.toString(), 'Returns'],
+      ['Non-Liquid Asset Return', data.nonLiquidAssetReturn.toString(), 'Returns'],
       ['Inflation Rate', data.inflationRate.toString(), 'Estimates'],
       ['Withdrawal Rate', data.withdrawalRate.toString(), 'Estimates'],
       ['Medical Inflation', data.medicalInflation.toString(), 'Estimates'],
@@ -136,9 +142,9 @@ const App: React.FC = () => {
 
       lines.forEach((line, index) => {
         if (index === 0 || !line.trim()) return; // Skip header or empty lines
-        
+
         const [parameter, value] = line.split(',').map(cell => cell.replace(/"/g, '').trim());
-        
+
         switch (parameter) {
           case 'Current Age':
             newData.currentAge = parseInt(value) || data.currentAge;
@@ -151,6 +157,9 @@ const App: React.FC = () => {
             break;
           case 'Current Net Worth':
             newData.currentNetWorth = parseFloat(value) || data.currentNetWorth;
+            break;
+          case 'Retirement Assets':
+            newData.retirementAssets = parseFloat(value) || data.retirementAssets;
             break;
           case 'Non-Liquid Assets':
             newData.nonLiquidAssets = parseFloat(value) || data.nonLiquidAssets;
@@ -191,6 +200,9 @@ const App: React.FC = () => {
           case 'Liquid Asset Return':
             newData.liquidAssetReturn = parseFloat(value) || data.liquidAssetReturn;
             break;
+          case 'Retirement Asset Return':
+            newData.retirementAssetReturn = parseFloat(value) || data.retirementAssetReturn;
+            break;
           case 'Non-Liquid Asset Return':
             newData.nonLiquidAssetReturn = parseFloat(value) || data.nonLiquidAssetReturn;
             break;
@@ -224,7 +236,7 @@ const App: React.FC = () => {
       setData(newData);
     };
     reader.readAsText(file);
-    
+
     // Reset the input
     event.target.value = '';
   };
@@ -361,42 +373,6 @@ const App: React.FC = () => {
             </div>
           </header>
 
-          {/* PRIMARY DISPLAY - Always Visible */}
-          <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 md:gap-6 print:hidden">
-            <div className="sm:col-span-1 bg-gradient-to-br from-purple-600 via-pink-600 to-purple-700 p-3 sm:p-4 md:p-6 rounded-2xl sm:rounded-3xl md:rounded-4xl text-white shadow-2xl shadow-purple-600/40 relative overflow-hidden group border border-white/20 backdrop-blur-xl hover:shadow-3xl hover:shadow-purple-600/50 transition-all duration-500 hover:scale-105">
-              <div className="absolute top-0 right-0 w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 bg-white/10 rounded-full -mr-8 -mt-8 sm:-mr-10 sm:-mt-10 md:-mr-12 md:-mt-12 group-hover:scale-110 transition-transform duration-500"></div>
-              <div className="absolute bottom-0 left-0 w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 bg-white/5 rounded-full -ml-6 -mb-6 sm:-ml-7 sm:-mb-7 md:-ml-8 md:-mb-8 group-hover:scale-110 transition-transform duration-500 delay-100"></div>
-              <div className="absolute top-1/2 left-1/2 w-20 h-20 sm:w-24 sm:h-24 md:w-28 md:h-28 bg-gradient-to-br from-white/5 to-transparent rounded-full -translate-x-1/2 -translate-y-1/2 group-hover:scale-125 transition-transform duration-700"></div>
-              <div className="relative z-10">
-                <p className="text-[9px] sm:text-[10px] md:text-[11px] font-black uppercase tracking-[0.2em] sm:tracking-[0.25em] md:tracking-[0.3em] mb-1.5 sm:mb-2 text-white/90">Solvency FIRE Age</p>
-                <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl lg:text-5xl font-black tracking-tighter italic leading-none drop-shadow-2xl">{results.fiAge || '—'}</h2>
-                <p className="text-[9px] sm:text-[10px] md:text-[11px] font-bold uppercase mt-1.5 sm:mt-2 text-white/80 tracking-widest">{results.fiYear ? `Safe Retirement Year: ${results.fiYear}` : 'Capital Exhaustion Risk'}</p>
-              </div>
-            </div>
-
-            <div className="sm:col-span-1 bg-gradient-to-br from-emerald-500 via-teal-600 to-emerald-700 p-3 sm:p-4 md:p-6 rounded-2xl sm:rounded-3xl md:rounded-4xl text-white shadow-2xl shadow-emerald-600/40 relative overflow-hidden group border border-white/20 backdrop-blur-xl hover:shadow-3xl hover:shadow-emerald-600/50 transition-all duration-500 hover:scale-105">
-              <div className="absolute top-0 right-0 w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 bg-white/10 rounded-full -mr-8 -mt-8 sm:-mr-10 sm:-mt-10 md:-mr-12 md:-mt-12 group-hover:scale-110 transition-transform duration-500"></div>
-              <div className="absolute bottom-0 left-0 w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 bg-white/5 rounded-full -ml-6 -mb-6 sm:-ml-7 sm:-mb-7 md:-ml-8 md:-mb-8 group-hover:scale-110 transition-transform duration-500 delay-100"></div>
-              <div className="relative z-10">
-                <p className="text-[9px] sm:text-[10px] md:text-[11px] font-black uppercase tracking-[0.2em] sm:tracking-[0.25em] md:tracking-[0.3em] mb-1.5 sm:mb-2 text-white/90">Longevity Limit</p>
-                <h2 className="text-lg sm:text-xl md:text-2xl lg:text-3xl lg:text-4xl font-black tracking-tighter italic mono drop-shadow-2xl">Age {data.liveUntilAge}</h2>
-                <p className={`text-[9px] sm:text-[10px] md:text-[11px] font-bold uppercase mt-1.5 sm:mt-2 tracking-widest ${results.isSolventAtEnd ? 'text-emerald-200' : 'text-pink-200 animate-pulse'}`}>
-                  {results.isSolventAtEnd ? 'Portfolio remains solvent' : 'Warning: Portfolio exhausts'}
-                </p>
-              </div>
-            </div>
-
-            <div className="sm:col-span-2 lg:col-span-1 bg-gradient-to-br from-amber-500 via-orange-600 to-amber-700 p-3 sm:p-4 md:p-6 rounded-2xl sm:rounded-3xl md:rounded-4xl text-white shadow-2xl shadow-amber-600/40 relative overflow-hidden group border border-white/20 backdrop-blur-xl hover:shadow-3xl hover:shadow-amber-600/50 transition-all duration-500 hover:scale-105">
-              <div className="absolute top-0 right-0 w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 bg-white/10 rounded-full -mr-8 -mt-8 sm:-mr-10 sm:-mt-10 md:-mr-12 md:-mt-12 group-hover:scale-110 transition-transform duration-500"></div>
-              <div className="absolute bottom-0 left-0 w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 bg-white/5 rounded-full -ml-6 -mb-6 sm:-ml-7 sm:-mb-7 md:-ml-8 md:-mb-8 group-hover:scale-110 transition-transform duration-500 delay-100"></div>
-              <div className="relative z-10">
-                <p className="text-[9px] sm:text-[10px] md:text-[11px] font-black uppercase tracking-[0.2em] sm:tracking-[0.25em] md:tracking-[0.3em] mb-1.5 sm:mb-2 text-white/90">Savings Velocity</p>
-                <h2 className="text-lg sm:text-xl md:text-2xl lg:text-3xl lg:text-4xl font-black tracking-tighter italic mono drop-shadow-2xl">{savingsRate.toFixed(1)}%</h2>
-                <p className="text-[9px] sm:text-[10px] md:text-[11px] font-bold text-amber-100 uppercase mt-1.5 sm:mt-2 tracking-widest">Surplus: {formatCurrencyCompact(data.monthlySavings, currency)}/mo</p>
-              </div>
-            </div>
-          </section>
-
           <div className="print:hidden">
             <div className="flex gap-1 sm:gap-2 bg-white/10 backdrop-blur-md p-1.5 sm:p-2 rounded-xl sm:rounded-2xl -mb-[1px] border border-white/20 shadow-inner">
               <button
@@ -431,8 +407,8 @@ const App: React.FC = () => {
           <div className="hidden print:block print-container">
             <div className="print-title">
               FirePulse - Financial Independence Report
-              <br/>
-              <span style={{fontSize: '12px', fontWeight: 'normal'}}>
+              <br />
+              <span style={{ fontSize: '12px', fontWeight: 'normal' }}>
                 Generated on {new Date().toLocaleDateString()} at {new Date().toLocaleTimeString()}
               </span>
             </div>
@@ -440,25 +416,25 @@ const App: React.FC = () => {
             {/* Summary Section */}
             <div className="print-section">
               <h3>Key Results</h3>
-              <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '1rem'}}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '1rem' }}>
                 <div>
                   <strong>FIRE Age:</strong> {results.fiAge || 'Not reached'}
-                  <br/>
-                  <span style={{fontSize: '10px', color: '#666'}}>
+                  <br />
+                  <span style={{ fontSize: '10px', color: '#666' }}>
                     {results.fiYear ? `Year: ${results.fiYear}` : 'No solution'}
                   </span>
                 </div>
                 <div>
                   <strong>Longevity Limit:</strong> Age {data.liveUntilAge}
-                  <br/>
-                  <span style={{fontSize: '10px', color: '#666'}}>
+                  <br />
+                  <span style={{ fontSize: '10px', color: '#666' }}>
                     {results.isSolventAtEnd ? 'Portfolio solvent' : 'Portfolio exhausted'}
                   </span>
                 </div>
                 <div>
                   <strong>Savings Rate:</strong> {savingsRate.toFixed(1)}%
-                  <br/>
-                  <span style={{fontSize: '10px', color: '#666'}}>
+                  <br />
+                  <span style={{ fontSize: '10px', color: '#666' }}>
                     {formatCurrency(data.monthlySavings, currency)}/month
                   </span>
                 </div>
@@ -468,33 +444,31 @@ const App: React.FC = () => {
             {/* Asset Allocation */}
             <div className="print-section">
               <h3>Asset Allocation</h3>
-              <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '0.5rem', fontSize: '10px'}}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem', fontSize: '10px' }}>
                 <div><strong>Total Assets:</strong> {formatCurrency(currentAllocation.totalAssets, currency)}</div>
                 <div><strong>Liquid Assets:</strong> {formatCurrency(data.currentNetWorth, currency)} ({currentAllocation.liquidPercentage.toFixed(1)}%)</div>
-                <div><strong>Non-Liquid Assets:</strong> {formatCurrency(data.nonLiquidAssets, currency)} ({currentAllocation.nonLiquidPercentage.toFixed(1)}%)</div>
-                <div><strong>Equity:</strong> {currentAllocation.equity}%</div>
-                <div><strong>Debt:</strong> {currentAllocation.debt}%</div>
-                <div><strong>Cash:</strong> {currentAllocation.cash}%</div>
+                <div><strong>Retirement (401k/IRA):</strong> {formatCurrency(data.retirementAssets, currency)} ({currentAllocation.retirementPercentage.toFixed(1)}%)</div>
+                <div><strong>Real Estate:</strong> {formatCurrency(data.nonLiquidAssets, currency)} ({currentAllocation.nonLiquidPercentage.toFixed(1)}%)</div>
               </div>
             </div>
 
             {/* Core Parameters */}
             <div className="print-section">
               <h3>Core Parameters</h3>
-              <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem', fontSize: '10px'}}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem', fontSize: '10px' }}>
                 <div><strong>Current Age:</strong> {data.currentAge}</div>
                 <div><strong>Retirement Age:</strong> {data.retirementAge}</div>
                 <div><strong>Live Until Age:</strong> {data.liveUntilAge}</div>
-                <div><strong>Net Worth:</strong> {formatCurrency(data.currentNetWorth, currency)}</div>
                 <div><strong>Liquid Assets:</strong> {formatCurrency(data.currentNetWorth, currency)}</div>
-                <div><strong>Non-Liquid Assets:</strong> {formatCurrency(data.nonLiquidAssets, currency)}</div>
+                <div><strong>Retirement Assets:</strong> {formatCurrency(data.retirementAssets, currency)}</div>
+                <div><strong>Real Estate:</strong> {formatCurrency(data.nonLiquidAssets, currency)}</div>
               </div>
             </div>
 
             {/* Cash Flow Analysis */}
             <div className="print-section">
               <h3>Cash Flow Analysis</h3>
-              <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem', fontSize: '10px'}}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem', fontSize: '10px' }}>
                 <div><strong>Monthly Income:</strong> {formatCurrency(data.monthlyIncome, currency)}</div>
                 <div><strong>Monthly Living:</strong> {formatCurrency(data.monthlyExpenses, currency)}</div>
                 <div><strong>Monthly Medical:</strong> {formatCurrency(data.monthlyMedical, currency)}</div>
@@ -507,13 +481,14 @@ const App: React.FC = () => {
             {/* Investment Assumptions */}
             <div className="print-section">
               <h3>Investment Assumptions</h3>
-              <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem', fontSize: '10px'}}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem', fontSize: '10px' }}>
                 <div><strong>Simulation Mode:</strong> {data.simulationMode}</div>
                 <div><strong>Income Growth:</strong> {data.incomeIncreaseRate}%</div>
                 <div><strong>Global Inflation:</strong> {data.inflationRate}%</div>
                 <div><strong>Medical Inflation:</strong> {data.medicalInflation}%</div>
                 <div><strong>Liquid Asset Return:</strong> {data.liquidAssetReturn}%</div>
-                <div><strong>Non-Liquid Return:</strong> {data.nonLiquidAssetReturn}%</div>
+                <div><strong>Retirement Return:</strong> {data.retirementAssetReturn}%</div>
+                <div><strong>Real Estate Return:</strong> {data.nonLiquidAssetReturn}%</div>
                 <div><strong>Retirement Expenses:</strong> {data.retirementExpenseMultiplier}%</div>
                 <div><strong>Post-Retire Tax:</strong> {data.retirementTaxRate}%</div>
               </div>
@@ -522,7 +497,7 @@ const App: React.FC = () => {
             {/* Projection Table */}
             <div className="print-section">
               <h3>Year-by-Year Financial Projection</h3>
-              <div style={{fontSize: '9px', marginBottom: '0.5rem', fontStyle: 'italic'}}>
+              <div style={{ fontSize: '9px', marginBottom: '0.5rem', fontStyle: 'italic' }}>
                 Complete financial trajectory showing FIRE achievement and portfolio sustainability
               </div>
               <table>
@@ -551,7 +526,7 @@ const App: React.FC = () => {
                   ))}
                 </tbody>
               </table>
-              <div style={{fontSize: '9px', marginTop: '0.5rem', borderTop: '1px solid #d1d5db', paddingTop: '0.25rem'}}>
+              <div style={{ fontSize: '9px', marginTop: '0.5rem', borderTop: '1px solid #d1d5db', paddingTop: '0.25rem' }}>
                 <strong>Summary:</strong> FIRE achieved at age {results.fiAge || 'Not reached'} • Portfolio {results.isSolventAtEnd ? 'remains solvent' : 'exhausts'} by age {data.liveUntilAge}
               </div>
             </div>
@@ -561,7 +536,7 @@ const App: React.FC = () => {
               <div className="print-section">
                 <h3>Financial Goals Timeline</h3>
                 {data.goals.map(goal => (
-                  <div key={goal.id} style={{display: 'flex', justifyContent: 'space-between', padding: '0.25rem', borderBottom: '1px solid #e5e7eb', fontSize: '10px'}}>
+                  <div key={goal.id} style={{ display: 'flex', justifyContent: 'space-between', padding: '0.25rem', borderBottom: '1px solid #e5e7eb', fontSize: '10px' }}>
                     <span><strong>{goal.name}</strong></span>
                     <span>Target Age: {goal.targetAge}</span>
                   </div>
@@ -619,17 +594,27 @@ const App: React.FC = () => {
                         max={100000000}
                         step={10000}
                         prefix={currencySymbol}
-                        tooltip="Cash, stocks, bonds, mutual funds - easily convertible to cash"
+                        tooltip="Cash, stocks, bonds, brokerage accounts - fully accessible anytime"
                       />
                       <SliderInput
-                        label="Non-Liquid Assets"
+                        label="Retirement Assets"
+                        value={data.retirementAssets}
+                        onChange={(v) => updateData('retirementAssets', v)}
+                        min={0}
+                        max={100000000}
+                        step={10000}
+                        prefix={currencySymbol}
+                        tooltip="401k, IRA, retirement accounts - locked until retirement but higher returns"
+                      />
+                      <SliderInput
+                        label="Real Estate / Non-Liquid"
                         value={data.nonLiquidAssets}
                         onChange={(v) => updateData('nonLiquidAssets', v)}
                         min={0}
                         max={100000000}
                         step={10000}
                         prefix={currencySymbol}
-                        tooltip="Real estate, business equity, retirement accounts - harder to convert to cash"
+                        tooltip="Real estate, business equity - hard to liquidate, lower but stable returns"
                       />
                     </div>
                   </section>
@@ -689,8 +674,6 @@ const App: React.FC = () => {
                       <SliderInput label="Income Growth %" value={data.incomeIncreaseRate} onChange={(v) => updateData('incomeIncreaseRate', v)} min={0} max={25} step={0.5} suffix="%" />
                       <SliderInput label="Global Inflation" value={data.inflationRate} onChange={(v) => updateData('inflationRate', v)} min={0} max={15} step={0.1} suffix="%" />
                       <SliderInput label="Medical Inflation" value={data.medicalInflation} onChange={(v) => updateData('medicalInflation', v)} min={0} max={20} step={0.1} suffix="%" />
-                      <SliderInput label="Liquid Asset Return" value={data.liquidAssetReturn} onChange={(v) => updateData('liquidAssetReturn', v)} min={1} max={20} step={0.5} suffix="%" tooltip="Expected return on liquid assets (stocks, bonds, cash)" />
-                      <SliderInput label="Non-Liquid Asset Return" value={data.nonLiquidAssetReturn} onChange={(v) => updateData('nonLiquidAssetReturn', v)} min={1} max={15} step={0.5} suffix="%" tooltip="Expected return on non-liquid assets (real estate, business)" />
                       <SliderInput label="Retirement Expense %" value={data.retirementExpenseMultiplier} onChange={(v) => updateData('retirementExpenseMultiplier', v)} min={50} max={120} step={1} suffix="%" tooltip="Retirement spending as % of current expenses (adjusted for inflation)" />
                       <div className="col-span-1 sm:col-span-2">
                         <SliderInput label="Post-Retire Tax" value={data.retirementTaxRate} onChange={(v) => updateData('retirementTaxRate', v)} min={0} max={50} step={1} suffix="%" />
@@ -702,6 +685,42 @@ const App: React.FC = () => {
             ) : (
               <div className="lg:col-span-12 space-y-6 md:space-y-8">
 
+                {/* FIRE STATUS CARDS */}
+                <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 md:gap-6">
+                  <div className="sm:col-span-1 bg-gradient-to-br from-purple-600 via-pink-600 to-purple-700 p-3 sm:p-4 md:p-6 rounded-2xl sm:rounded-3xl md:rounded-4xl text-white shadow-2xl shadow-purple-600/40 relative overflow-hidden group border border-white/20 backdrop-blur-xl hover:shadow-3xl hover:shadow-purple-600/50 transition-all duration-500 hover:scale-105">
+                    <div className="absolute top-0 right-0 w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 bg-white/10 rounded-full -mr-8 -mt-8 sm:-mr-10 sm:-mt-10 md:-mr-12 md:-mt-12 group-hover:scale-110 transition-transform duration-500"></div>
+                    <div className="absolute bottom-0 left-0 w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 bg-white/5 rounded-full -ml-6 -mb-6 sm:-ml-7 sm:-mb-7 md:-ml-8 md:-mb-8 group-hover:scale-110 transition-transform duration-500 delay-100"></div>
+                    <div className="absolute top-1/2 left-1/2 w-20 h-20 sm:w-24 sm:h-24 md:w-28 md:h-28 bg-gradient-to-br from-white/5 to-transparent rounded-full -translate-x-1/2 -translate-y-1/2 group-hover:scale-125 transition-transform duration-700"></div>
+                    <div className="relative z-10">
+                      <p className="text-[9px] sm:text-[10px] md:text-[11px] font-black uppercase tracking-[0.2em] sm:tracking-[0.25em] md:tracking-[0.3em] mb-1.5 sm:mb-2 text-white/90">Solvency FIRE Age</p>
+                      <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl lg:text-5xl font-black tracking-tighter italic leading-none drop-shadow-2xl">{results.fiAge || '—'}</h2>
+                      <p className="text-[9px] sm:text-[10px] md:text-[11px] font-bold uppercase mt-1.5 sm:mt-2 text-white/80 tracking-widest">{results.fiYear ? `Safe Retirement Year: ${results.fiYear}` : 'Capital Exhaustion Risk'}</p>
+                    </div>
+                  </div>
+
+                  <div className="sm:col-span-1 bg-gradient-to-br from-emerald-500 via-teal-600 to-emerald-700 p-3 sm:p-4 md:p-6 rounded-2xl sm:rounded-3xl md:rounded-4xl text-white shadow-2xl shadow-emerald-600/40 relative overflow-hidden group border border-white/20 backdrop-blur-xl hover:shadow-3xl hover:shadow-emerald-600/50 transition-all duration-500 hover:scale-105">
+                    <div className="absolute top-0 right-0 w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 bg-white/10 rounded-full -mr-8 -mt-8 sm:-mr-10 sm:-mt-10 md:-mr-12 md:-mt-12 group-hover:scale-110 transition-transform duration-500"></div>
+                    <div className="absolute bottom-0 left-0 w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 bg-white/5 rounded-full -ml-6 -mb-6 sm:-ml-7 sm:-mb-7 md:-ml-8 md:-mb-8 group-hover:scale-110 transition-transform duration-500 delay-100"></div>
+                    <div className="relative z-10">
+                      <p className="text-[9px] sm:text-[10px] md:text-[11px] font-black uppercase tracking-[0.2em] sm:tracking-[0.25em] md:tracking-[0.3em] mb-1.5 sm:mb-2 text-white/90">Longevity Limit</p>
+                      <h2 className="text-lg sm:text-xl md:text-2xl lg:text-3xl lg:text-4xl font-black tracking-tighter italic mono drop-shadow-2xl">Age {data.liveUntilAge}</h2>
+                      <p className={`text-[9px] sm:text-[10px] md:text-[11px] font-bold uppercase mt-1.5 sm:mt-2 tracking-widest ${results.isSolventAtEnd ? 'text-emerald-200' : 'text-pink-200 animate-pulse'}`}>
+                        {results.isSolventAtEnd ? 'Portfolio remains solvent' : 'Warning: Portfolio exhausts'}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="sm:col-span-2 lg:col-span-1 bg-gradient-to-br from-amber-500 via-orange-600 to-amber-700 p-3 sm:p-4 md:p-6 rounded-2xl sm:rounded-3xl md:rounded-4xl text-white shadow-2xl shadow-amber-600/40 relative overflow-hidden group border border-white/20 backdrop-blur-xl hover:shadow-3xl hover:shadow-amber-600/50 transition-all duration-500 hover:scale-105">
+                    <div className="absolute top-0 right-0 w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 bg-white/10 rounded-full -mr-8 -mt-8 sm:-mr-10 sm:-mt-10 md:-mr-12 md:-mt-12 group-hover:scale-110 transition-transform duration-500"></div>
+                    <div className="absolute bottom-0 left-0 w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 bg-white/5 rounded-full -ml-6 -mb-6 sm:-ml-7 sm:-mb-7 md:-ml-8 md:-mb-8 group-hover:scale-110 transition-transform duration-500 delay-100"></div>
+                    <div className="relative z-10">
+                      <p className="text-[9px] sm:text-[10px] md:text-[11px] font-black uppercase tracking-[0.2em] sm:tracking-[0.25em] md:tracking-[0.3em] mb-1.5 sm:mb-2 text-white/90">Savings Velocity</p>
+                      <h2 className="text-lg sm:text-xl md:text-2xl lg:text-3xl lg:text-4xl font-black tracking-tighter italic mono drop-shadow-2xl">{savingsRate.toFixed(1)}%</h2>
+                      <p className="text-[9px] sm:text-[10px] md:text-[11px] font-bold text-amber-100 uppercase mt-1.5 sm:mt-2 tracking-widest">Surplus: {formatCurrencyCompact(data.monthlySavings, currency)}/mo</p>
+                    </div>
+                  </div>
+                </section>
+
                 {/* TOP ROW: ALLOCATION & VISUAL */}
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-8">
 
@@ -711,20 +730,59 @@ const App: React.FC = () => {
                     <h2 className="text-[10px] md:text-xs font-black text-purple-700 uppercase tracking-[0.4em] italic mb-8 md:mb-10 relative z-10">Asset Allocation</h2>
 
                     {/* Total Assets Summary */}
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 mb-8 md:mb-10 relative z-10">
-                      <div className="bg-gradient-to-br from-purple-100/90 to-pink-100/70 p-4 md:p-6 rounded-[1.5rem] md:rounded-[2rem] border border-purple-200/50 shadow-lg">
-                        <p className="text-[9px] md:text-xs font-black text-purple-700 uppercase tracking-[0.2em] mb-3">Total Assets</p>
-                        <h3 className="text-xl md:text-2xl font-black text-purple-900 tracking-tighter">{formatCurrencyCompact(currentAllocation.totalAssets, currency)}</h3>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 mb-8 md:mb-10 relative z-10">
+                      <div className="bg-gradient-to-br from-purple-100/90 to-pink-100/70 p-3 md:p-5 rounded-[1rem] md:rounded-[1.5rem] border border-purple-200/50 shadow-lg">
+                        <p className="text-[8px] md:text-[10px] font-black text-purple-700 uppercase tracking-[0.15em] mb-2">Total Assets</p>
+                        <h3 className="text-lg md:text-xl font-black text-purple-900 tracking-tighter">{formatCurrencyCompact(currentAllocation.totalAssets, currency)}</h3>
                       </div>
-                      <div className="bg-gradient-to-br from-emerald-100/90 to-teal-100/70 p-4 md:p-6 rounded-[1.5rem] md:rounded-[2rem] border border-emerald-200/50 shadow-lg">
-                        <p className="text-[9px] md:text-xs font-black text-emerald-700 uppercase tracking-[0.2em] mb-3">Liquid</p>
-                        <h3 className="text-xl md:text-2xl font-black text-emerald-900 tracking-tighter">{formatCurrencyCompact(data.currentNetWorth, currency)}</h3>
-                        <p className="text-[9px] font-bold text-emerald-600 mt-2">{currentAllocation.liquidPercentage.toFixed(1)}%</p>
+                      <div className="bg-gradient-to-br from-emerald-100/90 to-teal-100/70 p-3 md:p-5 rounded-[1rem] md:rounded-[1.5rem] border border-emerald-200/50 shadow-lg">
+                        <p className="text-[8px] md:text-[10px] font-black text-emerald-700 uppercase tracking-[0.15em] mb-2">Liquid</p>
+                        <h3 className="text-lg md:text-xl font-black text-emerald-900 tracking-tighter">{formatCurrencyCompact(data.currentNetWorth, currency)}</h3>
+                        <p className="text-[8px] font-bold text-emerald-600 mt-1">{currentAllocation.liquidPercentage.toFixed(1)}%</p>
                       </div>
-                      <div className="bg-gradient-to-br from-amber-100/90 to-orange-100/70 p-4 md:p-6 rounded-[1.5rem] md:rounded-[2rem] border border-amber-200/50 shadow-lg">
-                        <p className="text-[9px] md:text-xs font-black text-amber-700 uppercase tracking-[0.2em] mb-3">Non-Liquid</p>
-                        <h3 className="text-xl md:text-2xl font-black text-amber-900 tracking-tighter">{formatCurrencyCompact(data.nonLiquidAssets, currency)}</h3>
-                        <p className="text-[9px] font-bold text-amber-600 mt-2">{currentAllocation.nonLiquidPercentage.toFixed(1)}%</p>
+                      <div className="bg-gradient-to-br from-blue-100/90 to-indigo-100/70 p-3 md:p-5 rounded-[1rem] md:rounded-[1.5rem] border border-blue-200/50 shadow-lg">
+                        <p className="text-[8px] md:text-[10px] font-black text-blue-700 uppercase tracking-[0.15em] mb-2">401k / IRA</p>
+                        <h3 className="text-lg md:text-xl font-black text-blue-900 tracking-tighter">{formatCurrencyCompact(data.retirementAssets, currency)}</h3>
+                        <p className="text-[8px] font-bold text-blue-600 mt-1">{currentAllocation.retirementPercentage.toFixed(1)}% • Locked</p>
+                      </div>
+                      <div className="bg-gradient-to-br from-amber-100/90 to-orange-100/70 p-3 md:p-5 rounded-[1rem] md:rounded-[1.5rem] border border-amber-200/50 shadow-lg">
+                        <p className="text-[8px] md:text-[10px] font-black text-amber-700 uppercase tracking-[0.15em] mb-2">Real Estate</p>
+                        <h3 className="text-lg md:text-xl font-black text-amber-900 tracking-tighter">{formatCurrencyCompact(data.nonLiquidAssets, currency)}</h3>
+                        <p className="text-[8px] font-bold text-amber-600 mt-1">{currentAllocation.nonLiquidPercentage.toFixed(1)}%</p>
+                      </div>
+                    </div>
+
+                    {/* Asset Return Rates */}
+                    <div className="space-y-4 relative z-10">
+                      <h3 className="text-[10px] md:text-xs font-black text-slate-500 uppercase tracking-[0.3em]">Expected Returns</h3>
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-4">
+                        <div className="bg-gradient-to-br from-emerald-50 to-teal-50 p-4 rounded-xl border border-emerald-100">
+                          <SliderInput
+                            label="Liquid Return"
+                            value={data.liquidAssetReturn}
+                            onChange={(v) => updateData('liquidAssetReturn', v)}
+                            min={1} max={20} step={0.5} suffix="%"
+                            tooltip="Brokerage accounts (stocks, bonds)"
+                          />
+                        </div>
+                        <div className="bg-gradient-to-br from-blue-50 to-indigo-50 p-4 rounded-xl border border-blue-100">
+                          <SliderInput
+                            label="401k/IRA Return"
+                            value={data.retirementAssetReturn}
+                            onChange={(v) => updateData('retirementAssetReturn', v)}
+                            min={1} max={20} step={0.5} suffix="%"
+                            tooltip="Retirement accounts (stock-heavy)"
+                          />
+                        </div>
+                        <div className="bg-gradient-to-br from-amber-50 to-orange-50 p-4 rounded-xl border border-amber-100">
+                          <SliderInput
+                            label="Real Estate Return"
+                            value={data.nonLiquidAssetReturn}
+                            onChange={(v) => updateData('nonLiquidAssetReturn', v)}
+                            min={1} max={15} step={0.5} suffix="%"
+                            tooltip="Property appreciation"
+                          />
+                        </div>
                       </div>
                     </div>
 
@@ -775,7 +833,7 @@ const App: React.FC = () => {
                   {/* VISUAL CHART & MILESTONES */}
                   <div className="bg-white/95 backdrop-blur-xl p-6 md:p-10 rounded-[2rem] md:rounded-[3rem] border border-white/40 shadow-2xl shadow-purple-600/25 hover:shadow-3xl hover:shadow-purple-600/35 transition-all duration-500 h-full flex flex-col relative">
                     <div className="absolute inset-0 bg-gradient-to-br from-purple-500/5 via-pink-500/5 to-purple-500/5 rounded-[2rem] md:rounded-[3rem] pointer-events-none"></div>
-                    
+
                     {/* Simulation Controls */}
                     <div className="bg-gradient-to-r from-purple-600/95 via-pink-600/95 to-purple-700/95 backdrop-blur-xl border border-white/40 rounded-xl shadow-xl p-3 md:p-4 mb-6 relative z-10">
                       <div className="grid grid-cols-4 gap-3 md:gap-4">
@@ -793,7 +851,7 @@ const App: React.FC = () => {
                         ))}
                       </div>
                     </div>
-                    
+
                     <h2 className="text-[10px] md:text-xs font-black text-purple-700 uppercase tracking-[0.4em] italic mb-6 md:mb-8 relative z-10">Visual Projection</h2>
                     <div className="flex-1 min-h-[300px]">
                       <ProjectionChart data={results.projections} fiAge={results.fiAge} currency={currency} />

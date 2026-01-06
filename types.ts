@@ -21,8 +21,9 @@ export interface FinancialData {
   currentAge: number;
   retirementAge: number;
   liveUntilAge: number;
-  currentNetWorth: number;
-  nonLiquidAssets: number;
+  currentNetWorth: number; // Liquid assets - cash, stocks, bonds (fully accessible)
+  retirementAssets: number; // Retirement accounts - 401k, IRA (locked until retirement)
+  nonLiquidAssets: number; // Non-liquid assets - real estate, business equity
   monthlyIncome: number;
   monthlySavings: number;
   annualBonus: number;
@@ -36,7 +37,8 @@ export interface FinancialData {
   swpAmount: number;
   retirementTaxRate: number;
   liquidAssetReturn: number;
-  nonLiquidAssetReturn: number;
+  retirementAssetReturn: number; // Return on retirement accounts (typically higher)
+  nonLiquidAssetReturn: number; // Return on real estate, business equity
   inflationRate: number;
   withdrawalRate: number;
   futureIncome: number;

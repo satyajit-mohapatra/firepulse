@@ -50,6 +50,7 @@ const checkSolvency = (data: FinancialData, testRetirementAge: number): boolean 
     currentAge,
     liveUntilAge,
     currentNetWorth,
+    retirementAssets,
     nonLiquidAssets,
     monthlySavings,
     annualBonus,
@@ -60,6 +61,7 @@ const checkSolvency = (data: FinancialData, testRetirementAge: number): boolean 
     medicalInflation,
     retirementTaxRate,
     liquidAssetReturn,
+    retirementAssetReturn,
     nonLiquidAssetReturn,
     inflationRate,
     simulationMode,
@@ -68,7 +70,8 @@ const checkSolvency = (data: FinancialData, testRetirementAge: number): boolean 
   } = data;
 
   let liquidBalance = currentNetWorth;
-  let nonLiquidBalance = nonLiquidAssets;
+  let retirementBalance = retirementAssets; // 401k, IRA - locked until retirement
+  let nonLiquidBalance = nonLiquidAssets; // Real estate - illiquid but appreciates
   let annualLiving = monthlyExpenses * 12;
   let annualMedical = monthlyMedical * 12;
   let currentSavings = monthlySavings;
@@ -82,49 +85,64 @@ const checkSolvency = (data: FinancialData, testRetirementAge: number): boolean 
     const allocation = getAgeBasedAllocation(age, testRetirementAge);
 
     let effectiveLiquidReturn = liquidAssetReturn;
+    let effectiveRetirementReturn = retirementAssetReturn;
     let effectiveNonLiquidReturn = nonLiquidAssetReturn;
     if (simulationMode === 'leaner') {
       effectiveLiquidReturn -= 1;
-      effectiveNonLiquidReturn -= 1;
+      effectiveRetirementReturn -= 1;
+      effectiveNonLiquidReturn -= 0.5; // Real estate less affected
     } else if (simulationMode === 'conservative') {
       effectiveLiquidReturn -= 2;
-      effectiveNonLiquidReturn -= 2;
+      effectiveRetirementReturn -= 2;
+      effectiveNonLiquidReturn -= 1;
     } else if (simulationMode === 'aggressive') {
       effectiveLiquidReturn += 2;
-      effectiveNonLiquidReturn += 2;
+      effectiveRetirementReturn += 2;
+      effectiveNonLiquidReturn += 1;
     }
 
     // Cyclical crash: happens every 10 years (Year 10, 20, 30...)
     if (simulationMode === 'crash' && (age - currentAge) % 10 === 0 && age > currentAge) {
       effectiveLiquidReturn = -20;
-      effectiveNonLiquidReturn = -10; // Non-liquid assets less affected by crashes
+      effectiveRetirementReturn = -20; // Retirement accounts heavily affected by market crashes
+      effectiveNonLiquidReturn = -5; // Real estate less affected by crashes
     }
 
     const liquidReturns = liquidBalance * (effectiveLiquidReturn / 100);
+    const retirementReturns = retirementBalance * (effectiveRetirementReturn / 100);
     const nonLiquidReturns = nonLiquidBalance * (effectiveNonLiquidReturn / 100);
 
     if (!isRetired) {
+      // Before retirement: savings go to liquid assets, retirement accounts grow separately
       liquidBalance += liquidReturns + (currentSavings * 12 + currentBonus);
+      retirementBalance += retirementReturns; // Retirement accounts grow but can't be touched
       nonLiquidBalance += nonLiquidReturns;
       currentSavings *= (1 + incomeIncreaseRate / 100);
       currentBonus *= (1 + incomeIncreaseRate / 100);
     } else {
+      // At retirement, retirement assets become accessible
+      // First year of retirement: transfer retirement assets to liquid
+      if (age === testRetirementAge && retirementBalance > 0) {
+        liquidBalance += retirementBalance;
+        retirementBalance = 0;
+      }
+
       const retirementLiving = annualLiving * (retirementExpenseMultiplier / 100);
       const grossWithdrawal = (retirementLiving + annualMedical) / (1 - taxRate);
       const pension = age >= futureIncomeStartAge ? (futureIncome * 12 * (1 - taxRate)) : 0;
 
-      // Withdraw from liquid assets first
+      // Withdraw from liquid assets (now includes retirement assets)
       liquidBalance += liquidReturns - grossWithdrawal + pension;
       nonLiquidBalance += nonLiquidReturns;
     }
 
-    const totalBalance = liquidBalance + nonLiquidBalance;
+    const totalBalance = liquidBalance + retirementBalance + nonLiquidBalance;
     if (totalBalance < 0) return false;
 
     annualLiving *= (1 + inflationRate / 100);
     annualMedical *= (1 + medicalInflation / 100);
   }
-  return (liquidBalance + nonLiquidBalance) >= 0;
+  return (liquidBalance + retirementBalance + nonLiquidBalance) >= 0;
 };
 
 export const calculateFIRE = (data: FinancialData): CalculationResults => {
@@ -133,6 +151,7 @@ export const calculateFIRE = (data: FinancialData): CalculationResults => {
     retirementAge,
     liveUntilAge,
     currentNetWorth,
+    retirementAssets,
     nonLiquidAssets,
     monthlyIncome,
     monthlySavings: initialMonthlySavings,
@@ -145,6 +164,7 @@ export const calculateFIRE = (data: FinancialData): CalculationResults => {
     swpAmount: initialSwpAmount,
     retirementTaxRate,
     liquidAssetReturn,
+    retirementAssetReturn,
     nonLiquidAssetReturn,
     inflationRate,
     withdrawalRate,
@@ -165,7 +185,8 @@ export const calculateFIRE = (data: FinancialData): CalculationResults => {
   const taxRateDecimal = retirementTaxRate / 100;
   const projections: YearProjection[] = [];
   let liquidBalance = currentNetWorth;
-  let nonLiquidBalance = nonLiquidAssets;
+  let retirementBalance = retirementAssets; // 401k, IRA - locked until retirement
+  let nonLiquidBalance = nonLiquidAssets; // Real estate - illiquid
   let currentAnnualLiving = initialMonthlyLiving * 12;
   let currentAnnualMedical = initialMonthlyMedical * 12;
   let currentMonthlyIncome = monthlyIncome;
@@ -177,6 +198,7 @@ export const calculateFIRE = (data: FinancialData): CalculationResults => {
   for (let age = currentAge; age <= liveUntilAge; age++) {
     const year = currentYear + (age - currentAge);
     const openingLiquidBalance = liquidBalance;
+    const openingRetirementBalance = retirementBalance;
     const openingNonLiquidBalance = nonLiquidBalance;
     const isRetired = age >= retirementAge;
 
@@ -188,24 +210,30 @@ export const calculateFIRE = (data: FinancialData): CalculationResults => {
     liquidBalance -= totalGoalCost; // Goals paid from liquid assets
 
     let effectiveLiquidReturn = liquidAssetReturn;
+    let effectiveRetirementReturn = retirementAssetReturn;
     let effectiveNonLiquidReturn = nonLiquidAssetReturn;
     if (simulationMode === 'leaner') {
       effectiveLiquidReturn -= 1;
-      effectiveNonLiquidReturn -= 1;
+      effectiveRetirementReturn -= 1;
+      effectiveNonLiquidReturn -= 0.5; // Real estate less affected
     } else if (simulationMode === 'conservative') {
       effectiveLiquidReturn -= 2;
-      effectiveNonLiquidReturn -= 2;
+      effectiveRetirementReturn -= 2;
+      effectiveNonLiquidReturn -= 1;
     } else if (simulationMode === 'aggressive') {
       effectiveLiquidReturn += 2;
-      effectiveNonLiquidReturn += 2;
+      effectiveRetirementReturn += 2;
+      effectiveNonLiquidReturn += 1;
     }
 
     if (simulationMode === 'crash' && (age - currentAge) % 10 === 0 && age > currentAge) {
       effectiveLiquidReturn = -20;
-      effectiveNonLiquidReturn = -10;
+      effectiveRetirementReturn = -20; // Retirement accounts heavily affected by market crashes
+      effectiveNonLiquidReturn = -5; // Real estate less affected
     }
 
     const liquidReturns = liquidBalance * (effectiveLiquidReturn / 100);
+    const retirementReturns = retirementBalance * (effectiveRetirementReturn / 100);
     const nonLiquidReturns = nonLiquidBalance * (effectiveNonLiquidReturn / 100);
 
     const retirementLiving = currentAnnualLiving * (retirementExpenseMultiplier / 100);
@@ -218,24 +246,33 @@ export const calculateFIRE = (data: FinancialData): CalculationResults => {
     const yearlySavings = !isRetired ? (currentMonthlySavings * 12 + currentAnnualBonus) : 0;
 
     if (!isRetired) {
+      // Before retirement: savings go to liquid assets, retirement accounts grow separately
       liquidBalance += liquidReturns + yearlySavings;
+      retirementBalance += retirementReturns; // Retirement accounts grow but can't be touched
       nonLiquidBalance += nonLiquidReturns;
       currentMonthlyIncome *= (1 + incomeIncreaseRate / 100);
       currentMonthlySavings *= (1 + incomeIncreaseRate / 100);
       currentAnnualBonus *= (1 + incomeIncreaseRate / 100);
     } else {
+      // At retirement, retirement assets become accessible
+      // First year of retirement: transfer retirement assets to liquid
+      if (age === retirementAge && retirementBalance > 0) {
+        liquidBalance += retirementBalance;
+        retirementBalance = 0;
+      }
+
       liquidBalance += liquidReturns - grossNeeded + yearlyFutureIncomeNet;
       nonLiquidBalance += nonLiquidReturns;
     }
 
-    const totalBalance = liquidBalance + nonLiquidBalance;
+    const totalBalance = liquidBalance + retirementBalance + nonLiquidBalance;
     const dynamicFiNumber = ((retirementLiving + currentAnnualMedical) / (1 - taxRateDecimal)) / (withdrawalRate / 100);
 
     projections.push({
       year,
       age,
-      openingBalance: Math.round(openingLiquidBalance + openingNonLiquidBalance),
-      returns: Math.round(liquidReturns + nonLiquidReturns),
+      openingBalance: Math.round(openingLiquidBalance + openingRetirementBalance + openingNonLiquidBalance),
+      returns: Math.round(liquidReturns + retirementReturns + nonLiquidReturns),
       netWorth: Math.max(0, Math.round(totalBalance)),
       isRetired,
       income: Math.round(yearlyIncome),
@@ -279,7 +316,7 @@ export const calculateFIRE = (data: FinancialData): CalculationResults => {
     timeToFI: fiAge !== null ? fiAge - currentAge : null,
     milestones,
     safeWithdrawalAmount: initialSwpAmount,
-    isSolventAtEnd: (liquidBalance + nonLiquidBalance) >= 0
+    isSolventAtEnd: (liquidBalance + retirementBalance + nonLiquidBalance) >= 0
   };
 };
 
