@@ -4,7 +4,7 @@ import WizardProgress from './WizardProgress';
 import WizardNavigation from './WizardNavigation';
 import Phase1Inputs from './Phase1Inputs';
 import Phase2Results from './Phase2Results';
-import { FinancialData, CalculationResults, CurrencyCode } from '../../types';
+import { FinancialData, CalculationResults, CurrencyCode, SpouseData } from '../../types';
 
 interface WizardContainerProps {
     data: FinancialData;
@@ -12,6 +12,7 @@ interface WizardContainerProps {
     currency: CurrencyCode;
     currencySymbol: string;
     updateData: (key: keyof FinancialData, value: any) => void;
+    updateSpouseData: (key: keyof SpouseData, value: any) => void;
     currentAllocation: any;
     savingsRate: number;
     longevityTooltip: React.ReactNode;
@@ -24,6 +25,7 @@ const WizardContainer: React.FC<WizardContainerProps> = ({
     currency,
     currencySymbol,
     updateData,
+    updateSpouseData,
     currentAllocation,
     savingsRate,
     longevityTooltip,
@@ -38,6 +40,7 @@ const WizardContainer: React.FC<WizardContainerProps> = ({
                     <Phase1Inputs
                         data={data}
                         updateData={updateData}
+                        updateSpouseData={updateSpouseData}
                         currencySymbol={currencySymbol}
                         longevityTooltip={longevityTooltip}
                         currency={currency}

@@ -55,6 +55,7 @@ const calculateWeightedReturn = (
 
 /**
  * Simulates a full lifecycle to check if a specific retirement age is solvent until death.
+ * Accounts for both primary and spouse income when spouse is enabled.
  */
 const checkSolvency = (data: FinancialData, testRetirementAge: number): boolean => {
   const {
@@ -63,6 +64,7 @@ const checkSolvency = (data: FinancialData, testRetirementAge: number): boolean 
     currentNetWorth,
     retirementAssets,
     nonLiquidAssets,
+    monthlyIncome,
     monthlySavings,
     annualBonus,
     incomeIncreaseRate,
@@ -78,24 +80,49 @@ const checkSolvency = (data: FinancialData, testRetirementAge: number): boolean 
     inflationRate,
     simulationMode,
     futureIncome,
-    futureIncomeStartAge
+    futureIncomeStartAge,
+    spouse,
+    bulkExpenses = []
   } = data;
 
+  // Use longer planning horizon if spouse is enabled
+  const planningHorizon = spouse.enabled
+    ? Math.max(liveUntilAge, spouse.liveUntilAge + (currentAge - spouse.currentAge))
+    : liveUntilAge;
+
   let liquidBalance = currentNetWorth;
-  let retirementBalance = retirementAssets; // 401k, IRA - locked until retirement
-  let nonLiquidBalance = nonLiquidAssets; // Real estate - illiquid but appreciates
+  let retirementBalance = retirementAssets;
+  let nonLiquidBalance = nonLiquidAssets;
   let annualLiving = monthlyExpenses * 12;
   let annualMedical = monthlyMedical * 12;
   let annualKidsEducation = monthlyKidsEducation * 12;
-  let currentSavings = monthlySavings;
+
+  // Track individual incomes
+  let currentPrimaryIncome = monthlyIncome * 12;
+  let currentSpouseIncome = spouse.enabled ? spouse.monthlyIncome * 12 : 0;
   let currentBonus = annualBonus;
+  let currentSpouseBonus = spouse.enabled ? spouse.annualBonus : 0;
+
   const taxRate = retirementTaxRate / 100;
 
-  for (let age = currentAge; age <= liveUntilAge; age++) {
-    const isRetired = age >= testRetirementAge;
+  for (let age = currentAge; age <= planningHorizon; age++) {
+    const yearOffset = age - currentAge;
+    const spouseAge = spouse.enabled ? spouse.currentAge + yearOffset : 0;
 
-    // Get age-based allocation for liquid assets
-    const allocation = getAgeBasedAllocation(age, testRetirementAge);
+    // Bulk expenses this year
+    const bulkThisYear = bulkExpenses
+      .filter(e => e.age === age)
+      .reduce((sum, e) => sum + e.amount, 0);
+    liquidBalance -= bulkThisYear;
+
+    const goalsThisYear = data.goals.filter(g => g.targetAge === age);
+    const totalGoalCost = goalsThisYear.reduce((sum, g) => sum + g.targetAmount, 0);
+    liquidBalance -= totalGoalCost;
+
+    // Determine retirement status for each person
+    const primaryRetired = age >= testRetirementAge;
+    const spouseRetired = spouse.enabled ? spouseAge >= spouse.retirementAge : true;
+    const bothRetired = primaryRetired && spouseRetired;
 
     let effectiveLiquidReturn = liquidAssetReturn;
     let effectiveRetirementReturn = retirementAssetReturn;
@@ -103,7 +130,7 @@ const checkSolvency = (data: FinancialData, testRetirementAge: number): boolean 
     if (simulationMode === 'leaner') {
       effectiveLiquidReturn -= 1;
       effectiveRetirementReturn -= 1;
-      effectiveNonLiquidReturn -= 0.5; // Real estate less affected
+      effectiveNonLiquidReturn -= 0.5;
     } else if (simulationMode === 'conservative') {
       effectiveLiquidReturn -= 2;
       effectiveRetirementReturn -= 2;
@@ -114,38 +141,49 @@ const checkSolvency = (data: FinancialData, testRetirementAge: number): boolean 
       effectiveNonLiquidReturn += 1;
     }
 
-    // Cyclical crash: happens every 10 years (Year 10, 20, 30...)
-    if (simulationMode === 'crash' && (age - currentAge) % 10 === 0 && age > currentAge) {
+    // Cyclical crash: happens every 10 years
+    if (simulationMode === 'crash' && yearOffset % 10 === 0 && age > currentAge) {
       effectiveLiquidReturn = -20;
-      effectiveRetirementReturn = -20; // Retirement accounts heavily affected by market crashes
-      effectiveNonLiquidReturn = -5; // Real estate less affected by crashes
+      effectiveRetirementReturn = -20;
+      effectiveNonLiquidReturn = -5;
     }
 
     const liquidReturns = liquidBalance * (effectiveLiquidReturn / 100);
     const retirementReturns = retirementBalance * (effectiveRetirementReturn / 100);
     const nonLiquidReturns = nonLiquidBalance * (effectiveNonLiquidReturn / 100);
 
-    if (!isRetired) {
-      // Before retirement: savings go to liquid assets, retirement accounts grow separately
-      liquidBalance += liquidReturns + (currentSavings * 12 + currentBonus);
-      retirementBalance += retirementReturns; // Retirement accounts grow but can't be touched
+    // Calculate total family income
+    const yearlySavings =
+      (!primaryRetired ? currentPrimaryIncome + currentBonus : 0) +
+      (!spouseRetired ? currentSpouseIncome + currentSpouseBonus : 0) -
+      (bothRetired ? 0 : (annualLiving + annualMedical + annualKidsEducation));
+
+    if (!bothRetired) {
+      // At least one person working
+      liquidBalance += liquidReturns + Math.max(0, yearlySavings);
+      retirementBalance += retirementReturns;
       nonLiquidBalance += nonLiquidReturns;
-      currentSavings *= (1 + incomeIncreaseRate / 100);
-      currentBonus *= (1 + incomeIncreaseRate / 100);
+
+      // Income growth
+      if (!primaryRetired) {
+        currentPrimaryIncome *= (1 + incomeIncreaseRate / 100);
+        currentBonus *= (1 + incomeIncreaseRate / 100);
+      }
+      if (!spouseRetired && spouse.enabled) {
+        currentSpouseIncome *= (1 + spouse.incomeIncreaseRate / 100);
+        currentSpouseBonus *= (1 + spouse.incomeIncreaseRate / 100);
+      }
     } else {
-      // At retirement, retirement assets become accessible
-      // First year of retirement: transfer retirement assets to liquid
+      // Both retired
       if (age === testRetirementAge && retirementBalance > 0) {
         liquidBalance += retirementBalance;
         retirementBalance = 0;
       }
 
       const retirementLiving = annualLiving * (retirementExpenseMultiplier / 100);
-      // Kids education continues during retirement if still applicable (can be adjusted per needs)
       const grossWithdrawal = (retirementLiving + annualMedical + annualKidsEducation) / (1 - taxRate);
       const pension = age >= futureIncomeStartAge ? (futureIncome * 12 * (1 - taxRate)) : 0;
 
-      // Withdraw from liquid assets (now includes retirement assets)
       liquidBalance += liquidReturns - grossWithdrawal + pension;
       nonLiquidBalance += nonLiquidReturns;
     }
@@ -155,7 +193,7 @@ const checkSolvency = (data: FinancialData, testRetirementAge: number): boolean 
 
     annualLiving *= (1 + inflationRate / 100);
     annualMedical *= (1 + medicalInflation / 100);
-    annualKidsEducation *= (1 + inflationRate / 100); // Education follows general inflation
+    annualKidsEducation *= (1 + inflationRate / 100);
   }
   return (liquidBalance + retirementBalance + nonLiquidBalance) >= 0;
 };
@@ -187,11 +225,18 @@ export const calculateFIRE = (data: FinancialData): CalculationResults => {
     futureIncome,
     futureIncomeStartAge,
     simulationMode,
-    goals
+    goals,
+    spouse,
+    bulkExpenses = []
   } = data;
 
+  // Use longer planning horizon if spouse is enabled
+  const planningHorizon = spouse.enabled
+    ? Math.max(liveUntilAge, spouse.liveUntilAge + (currentAge - spouse.currentAge))
+    : liveUntilAge;
+
   let fiAge: number | null = null;
-  for (let testAge = currentAge; testAge <= liveUntilAge; testAge++) {
+  for (let testAge = currentAge; testAge <= planningHorizon; testAge++) {
     if (checkSolvency(data, testAge)) {
       fiAge = testAge;
       break;
@@ -201,30 +246,43 @@ export const calculateFIRE = (data: FinancialData): CalculationResults => {
   const taxRateDecimal = retirementTaxRate / 100;
   const projections: YearProjection[] = [];
   let liquidBalance = currentNetWorth;
-  let retirementBalance = retirementAssets; // 401k, IRA - locked until retirement
-  let nonLiquidBalance = nonLiquidAssets; // Real estate - illiquid
+  let retirementBalance = retirementAssets;
+  let nonLiquidBalance = nonLiquidAssets;
   let currentAnnualLiving = initialMonthlyLiving * 12;
   let currentAnnualMedical = initialMonthlyMedical * 12;
   let currentAnnualKidsEducation = initialMonthlyKidsEducation * 12;
-  let currentMonthlyIncome = monthlyIncome;
+
+  // Track individual incomes
+  let currentPrimaryIncome = monthlyIncome * 12;
+  let currentSpouseIncome = spouse.enabled ? spouse.monthlyIncome * 12 : 0;
   let currentMonthlySavings = initialMonthlySavings;
   let currentAnnualBonus = initialAnnualBonus;
+  let currentSpouseBonus = spouse.enabled ? spouse.annualBonus : 0;
 
   const currentYear = new Date().getFullYear();
 
-  for (let age = currentAge; age <= liveUntilAge; age++) {
+  for (let age = currentAge; age <= planningHorizon; age++) {
     const year = currentYear + (age - currentAge);
+    const yearOffset = age - currentAge;
+    const spouseAge = spouse.enabled ? spouse.currentAge + yearOffset : 0;
     const openingLiquidBalance = liquidBalance;
     const openingRetirementBalance = retirementBalance;
     const openingNonLiquidBalance = nonLiquidBalance;
-    const isRetired = age >= retirementAge;
 
-    // Get age-based allocation
-    const allocation = getAgeBasedAllocation(age, retirementAge);
+    // Bulk expenses this year
+    const bulkThisYear = bulkExpenses
+      .filter(e => e.age === age)
+      .reduce((sum, e) => sum + e.amount, 0);
+    liquidBalance -= bulkThisYear;
+
+    // Determine retirement status for each person
+    const primaryRetired = age >= retirementAge;
+    const spouseRetired = spouse.enabled ? spouseAge >= spouse.retirementAge : true;
+    const bothRetired = primaryRetired && spouseRetired;
 
     const goalsThisYear = goals.filter(g => g.targetAge === age);
     const totalGoalCost = goalsThisYear.reduce((sum, g) => sum + g.targetAmount, 0);
-    liquidBalance -= totalGoalCost; // Goals paid from liquid assets
+    liquidBalance -= totalGoalCost;
 
     let effectiveLiquidReturn = liquidAssetReturn;
     let effectiveRetirementReturn = retirementAssetReturn;
@@ -232,7 +290,7 @@ export const calculateFIRE = (data: FinancialData): CalculationResults => {
     if (simulationMode === 'leaner') {
       effectiveLiquidReturn -= 1;
       effectiveRetirementReturn -= 1;
-      effectiveNonLiquidReturn -= 0.5; // Real estate less affected
+      effectiveNonLiquidReturn -= 0.5;
     } else if (simulationMode === 'conservative') {
       effectiveLiquidReturn -= 2;
       effectiveRetirementReturn -= 2;
@@ -243,10 +301,10 @@ export const calculateFIRE = (data: FinancialData): CalculationResults => {
       effectiveNonLiquidReturn += 1;
     }
 
-    if (simulationMode === 'crash' && (age - currentAge) % 10 === 0 && age > currentAge) {
+    if (simulationMode === 'crash' && yearOffset % 10 === 0 && age > currentAge) {
       effectiveLiquidReturn = -20;
-      effectiveRetirementReturn = -20; // Retirement accounts heavily affected by market crashes
-      effectiveNonLiquidReturn = -5; // Real estate less affected
+      effectiveRetirementReturn = -20;
+      effectiveNonLiquidReturn = -5;
     }
 
     const liquidReturns = liquidBalance * (effectiveLiquidReturn / 100);
@@ -254,25 +312,40 @@ export const calculateFIRE = (data: FinancialData): CalculationResults => {
     const nonLiquidReturns = nonLiquidBalance * (effectiveNonLiquidReturn / 100);
 
     const retirementLiving = currentAnnualLiving * (retirementExpenseMultiplier / 100);
-    const totalOutflowNet = isRetired ? (retirementLiving + currentAnnualMedical + currentAnnualKidsEducation) : 0;
-    const grossNeeded = totalOutflowNet / (1 - taxRateDecimal);
+
+    // Calculate total family income
+    const primaryYearlyIncome = !primaryRetired ? currentPrimaryIncome + currentAnnualBonus : 0;
+    const spouseYearlyIncome = spouse.enabled && !spouseRetired ? currentSpouseIncome + currentSpouseBonus : 0;
+    const totalFamilyIncome = primaryYearlyIncome + spouseYearlyIncome;
+
+    // Calculate working phase expenses
+    const workingPhaseExpenses = currentAnnualLiving + currentAnnualMedical + currentAnnualKidsEducation;
+    const yearlySavings = !bothRetired ? Math.max(0, totalFamilyIncome - workingPhaseExpenses) : 0;
+
+    const totalOutflowNet = bothRetired ? (retirementLiving + currentAnnualMedical + currentAnnualKidsEducation) : workingPhaseExpenses;
+    const grossNeeded = bothRetired ? totalOutflowNet / (1 - taxRateDecimal) : 0;
     const hasFutureIncome = age >= futureIncomeStartAge;
     const yearlyFutureIncomeNet = hasFutureIncome ? (futureIncome * 12 * (1 - taxRateDecimal)) : 0;
 
-    const yearlyIncome = !isRetired ? (currentMonthlyIncome * 12 + currentAnnualBonus) : 0;
-    const yearlySavings = !isRetired ? (currentMonthlySavings * 12 + currentAnnualBonus) : 0;
-
-    if (!isRetired) {
-      // Before retirement: savings go to liquid assets, retirement accounts grow separately
+    if (!bothRetired) {
+      // At least one person working
       liquidBalance += liquidReturns + yearlySavings;
-      retirementBalance += retirementReturns; // Retirement accounts grow but can't be touched
+      retirementBalance += retirementReturns;
       nonLiquidBalance += nonLiquidReturns;
-      currentMonthlyIncome *= (1 + incomeIncreaseRate / 100);
+
+      // Income growth for those still working
+      if (!primaryRetired) {
+        currentPrimaryIncome *= (1 + incomeIncreaseRate / 100);
+        currentAnnualBonus *= (1 + incomeIncreaseRate / 100);
+      }
+      if (spouse.enabled && !spouseRetired) {
+        currentSpouseIncome *= (1 + spouse.incomeIncreaseRate / 100);
+        currentSpouseBonus *= (1 + spouse.incomeIncreaseRate / 100);
+      }
+      // Only grow savings if at least one is working
       currentMonthlySavings *= (1 + incomeIncreaseRate / 100);
-      currentAnnualBonus *= (1 + incomeIncreaseRate / 100);
     } else {
-      // At retirement, retirement assets become accessible
-      // First year of retirement: transfer retirement assets to liquid
+      // Both retired
       if (age === retirementAge && retirementBalance > 0) {
         liquidBalance += retirementBalance;
         retirementBalance = 0;
@@ -291,21 +364,22 @@ export const calculateFIRE = (data: FinancialData): CalculationResults => {
       openingBalance: Math.round(openingLiquidBalance + openingRetirementBalance + openingNonLiquidBalance),
       returns: Math.round(liquidReturns + retirementReturns + nonLiquidReturns),
       netWorth: Math.max(0, Math.round(totalBalance)),
-      isRetired,
-      income: Math.round(yearlyIncome),
-      livingExpenses: Math.round(isRetired ? retirementLiving : currentAnnualLiving),
+      isRetired: bothRetired,
+      income: Math.round(totalFamilyIncome),
+      livingExpenses: Math.round(bothRetired ? retirementLiving : currentAnnualLiving),
       medicalExpenses: Math.round(currentAnnualMedical),
       kidsEducationExpenses: Math.round(currentAnnualKidsEducation),
-      totalOutflow: Math.round(isRetired ? grossNeeded : (currentAnnualLiving + currentAnnualMedical + currentAnnualKidsEducation)),
+      bulkExpenses: Math.round(bulkThisYear),
+      totalOutflow: Math.round(bothRetired ? grossNeeded : workingPhaseExpenses),
       fiNumber: Math.round(dynamicFiNumber),
-      passiveIncome: Math.round(isRetired ? (grossNeeded * (1 - taxRateDecimal) + yearlyFutureIncomeNet) : 0),
+      passiveIncome: Math.round(bothRetired ? (grossNeeded * (1 - taxRateDecimal) + yearlyFutureIncomeNet) : 0),
       goalSpending: totalGoalCost,
       yearlySavings: Math.round(yearlySavings)
     });
 
     currentAnnualLiving *= (1 + inflationRate / 100);
     currentAnnualMedical *= (1 + medicalInflation / 100);
-    currentAnnualKidsEducation *= (1 + inflationRate / 100); // Education follows general inflation
+    currentAnnualKidsEducation *= (1 + inflationRate / 100);
 
     if (totalBalance < -1000000000) break;
   }

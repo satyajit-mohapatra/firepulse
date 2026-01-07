@@ -9,6 +9,14 @@ export interface InvestmentGoal {
   category: 'Housing' | 'Education' | 'Travel' | 'Vehicle' | 'Other';
 }
 
+export interface BulkExpense {
+  id: string;
+  name: string;
+  amount: number;
+  age: number;
+  category: 'General' | 'Education' | 'Travel' | 'Vehicle' | 'Other';
+}
+
 export interface Milestone {
   name: string;
   age: number | null;
@@ -17,17 +25,36 @@ export interface Milestone {
   description: string;
 }
 
-export interface FinancialData {
+// Spouse Profile
+export interface SpouseData {
+  enabled: boolean;
   currentAge: number;
   retirementAge: number;
   liveUntilAge: number;
-  currentNetWorth: number; // Liquid assets - cash, stocks, bonds (fully accessible)
-  retirementAssets: number; // Retirement accounts - 401k, IRA (locked until retirement)
-  nonLiquidAssets: number; // Non-liquid assets - real estate, business equity
   monthlyIncome: number;
-  monthlySavings: number;
-  annualBonus: number;
   incomeIncreaseRate: number;
+  annualBonus: number;
+}
+
+export interface FinancialData {
+  // Primary Person
+  currentAge: number;
+  retirementAge: number;
+  liveUntilAge: number;
+  monthlyIncome: number;
+  incomeIncreaseRate: number;
+  annualBonus: number;
+
+  // Spouse (optional)
+  spouse: SpouseData;
+
+  // Family Assets (shared)
+  currentNetWorth: number; // Family Liquid assets - cash, stocks, bonds (fully accessible)
+  retirementAssets: number; // Family Retirement accounts - 401k, IRA (locked until retirement)
+  nonLiquidAssets: number; // Family Non-liquid assets - real estate, business equity
+
+  // Family Expenses
+  monthlySavings: number;
   expenseIncreaseRate: number;
   retirementExpenseMultiplier: number;
   monthlyExpenses: number;
@@ -37,16 +64,23 @@ export interface FinancialData {
   annualExpenses: number;
   swpAmount: number;
   retirementTaxRate: number;
+
+  // Investment Returns
   liquidAssetReturn: number;
   retirementAssetReturn: number; // Return on retirement accounts (typically higher)
   nonLiquidAssetReturn: number; // Return on real estate, business equity
   inflationRate: number;
   withdrawalRate: number;
+
+  // Future Income
   futureIncome: number;
   futureIncomeStartAge: number;
+
+  // Simulation Settings
   simulationMode: 'leaner' | 'conservative' | 'crash' | 'aggressive';
   withdrawalStrategy: 'fixed' | 'variable';
   goals: InvestmentGoal[];
+  bulkExpenses: BulkExpense[];
 }
 
 export interface YearProjection {
@@ -60,6 +94,7 @@ export interface YearProjection {
   livingExpenses: number;
   medicalExpenses: number;
   kidsEducationExpenses: number;
+  bulkExpenses: number;
   totalOutflow: number;
   fiNumber: number;
   passiveIncome: number;

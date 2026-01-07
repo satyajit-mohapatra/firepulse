@@ -1,12 +1,12 @@
 // International Financial Planning Calculator Component
-import React, { useState, useMemo, useCallback } from 'react';
+import React, { useState, useMemo, useCallback, useEffect } from 'react';
 import {
     InternationalScenario,
     ScenarioType,
     LifePhase,
     ScenarioResults,
 } from '../types/internationalPlanning';
-import { FinancialData } from '../types';
+import { FinancialData, SpouseData } from '../types';
 import { COUNTRIES, getCountryOptions, calculateTax, getEffectiveTaxRate } from '../data/countries';
 import {
     calculateInternationalScenario,
@@ -59,7 +59,8 @@ const PhaseEditor: React.FC<{
     isFirst: boolean;
     isLast: boolean;
     onMatchLifestyle?: () => void;
-}> = ({ phase, onChange, onDelete, onMoveUp, onMoveDown, isFirst, isLast, onMatchLifestyle }) => {
+    showSpouse: boolean;
+}> = ({ phase, onChange, onDelete, onMoveUp, onMoveDown, isFirst, isLast, onMatchLifestyle, showSpouse }) => {
     const countryData = COUNTRIES[phase.country];
 
     const phaseColors = {
@@ -72,6 +73,34 @@ const PhaseEditor: React.FC<{
         work: 'Working Phase',
         transition: 'Transition',
         retirement: 'Retirement',
+    };
+
+    const addBulkExpense = () => {
+        const currentBulk = phase.bulkExpenses || [];
+        onChange({
+            ...phase,
+            bulkExpenses: [...currentBulk, {
+                id: crypto.randomUUID(),
+                name: 'Large Purchase',
+                amount: 50000,
+                age: phase.startAge + 1,
+                category: 'general'
+            }]
+        });
+    };
+
+    const removeBulkExpense = (id: string) => {
+        onChange({
+            ...phase,
+            bulkExpenses: (phase.bulkExpenses || []).filter(e => e.id !== id)
+        });
+    };
+
+    const updateBulkExpense = (id: string, key: string, value: any) => {
+        onChange({
+            ...phase,
+            bulkExpenses: (phase.bulkExpenses || []).map(e => e.id === id ? { ...e, [key]: value } : e)
+        });
     };
 
     return (
@@ -166,29 +195,198 @@ const PhaseEditor: React.FC<{
                     />
                 </div>
 
-                {/* Work Phase Specific */}
+                {/* Work Phase Specific - Primary */}
                 {phase.type === 'work' && (
-                    <div className="space-y-3">
-                        <SliderInput
-                            label="Annual Income"
-                            value={phase.annualIncome || 0}
-                            onChange={(v) => onChange({ ...phase, annualIncome: v })}
-                            min={0}
-                            max={1000000}
-                            step={5000}
-                            prefix={countryData?.currencySymbol || '$'}
-                            tooltip="Estimate pre-tax annual income from employment"
-                        />
-                        <SliderInput
-                            label="Income Growth %"
-                            value={phase.incomeGrowthRate || 3}
-                            onChange={(v) => onChange({ ...phase, incomeGrowthRate: v })}
-                            min={0}
-                            max={15}
-                            step={0.5}
-                            suffix="%"
-                            tooltip="Expected annual salary increase (real growth + matches inflation)"
-                        />
+                    <div className="space-y-6">
+                        {/* Primary Income with Working Toggle */}
+                        <div className="space-y-3 p-4 bg-emerald-50/50 rounded-xl border border-emerald-100">
+                            <div className="flex items-center justify-between">
+                                <h5 className="text-[10px] font-black text-emerald-700 uppercase tracking-widest flex items-center gap-2">
+                                    👤 Primary Person
+                                </h5>
+                                <label className="flex items-center gap-2 cursor-pointer">
+                                    <span className="text-[9px] font-bold text-emerald-600 uppercase">Working</span>
+                                    <button
+                                        onClick={() => onChange({ ...phase, primaryIsWorking: !(phase.primaryIsWorking ?? true) })}
+                                        className={`relative w-10 h-5 rounded-full transition-all duration-300 ${(phase.primaryIsWorking ?? true)
+                                            ? 'bg-emerald-500'
+                                            : 'bg-slate-300'
+                                            }`}
+                                    >
+                                        <span
+                                            className={`absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform duration-300 ${(phase.primaryIsWorking ?? true) ? 'translate-x-5' : 'translate-x-0'
+                                                }`}
+                                        />
+                                    </button>
+                                </label>
+                            </div>
+                            {(phase.primaryIsWorking ?? true) && (
+                                <>
+                                    <SliderInput
+                                        label="Annual Income"
+                                        value={phase.annualIncomePrimary || phase.annualIncome || 0}
+                                        onChange={(v) => onChange({ ...phase, annualIncomePrimary: v, annualIncome: v })}
+                                        min={0}
+                                        max={1000000}
+                                        step={5000}
+                                        prefix={countryData?.currencySymbol || '$'}
+                                        tooltip="Estimate pre-tax annual income for primary person"
+                                    />
+                                    <SliderInput
+                                        label="Growth Rate %"
+                                        value={phase.incomeGrowthRatePrimary || phase.incomeGrowthRate || 3}
+                                        onChange={(v) => onChange({ ...phase, incomeGrowthRatePrimary: v, incomeGrowthRate: v })}
+                                        min={0}
+                                        max={15}
+                                        step={0.5}
+                                        suffix="%"
+                                        tooltip="Expected annual salary increase for primary"
+                                    />
+                                </>
+                            )}
+                            {!(phase.primaryIsWorking ?? true) && (
+                                <p className="text-xs text-emerald-600 italic">Primary person not working during this phase</p>
+                            )}
+                        </div>
+
+                        {/* Spouse Income with Working Toggle & Work Period */}
+                        {showSpouse && (
+                            <div className="space-y-3 p-4 bg-rose-50/50 rounded-xl border border-rose-100">
+                                <div className="flex items-center justify-between">
+                                    <h5 className="text-[10px] font-black text-rose-700 uppercase tracking-widest flex items-center gap-2">
+                                        💑 Spouse
+                                    </h5>
+                                    <label className="flex items-center gap-2 cursor-pointer">
+                                        <span className="text-[9px] font-bold text-rose-600 uppercase">Working</span>
+                                        <button
+                                            onClick={() => onChange({ ...phase, spouseIsWorking: !(phase.spouseIsWorking ?? true) })}
+                                            className={`relative w-10 h-5 rounded-full transition-all duration-300 ${(phase.spouseIsWorking ?? true)
+                                                ? 'bg-rose-500'
+                                                : 'bg-slate-300'
+                                                }`}
+                                        >
+                                            <span
+                                                className={`absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform duration-300 ${(phase.spouseIsWorking ?? true) ? 'translate-x-5' : 'translate-x-0'
+                                                    }`}
+                                            />
+                                        </button>
+                                    </label>
+                                </div>
+                                {(phase.spouseIsWorking ?? true) && (
+                                    <>
+                                        {/* Spouse Work Period */}
+                                        <div className="grid grid-cols-2 gap-2 p-2 bg-rose-100/30 rounded-lg">
+                                            <SliderInput
+                                                label="Work Start Age"
+                                                value={phase.spouseWorkStartAge ?? phase.startAge}
+                                                onChange={(v) => onChange({ ...phase, spouseWorkStartAge: v })}
+                                                min={phase.startAge}
+                                                max={phase.spouseWorkEndAge ?? phase.endAge}
+                                                tooltip="Age when spouse starts working in this phase"
+                                            />
+                                            <SliderInput
+                                                label="Work End Age"
+                                                value={phase.spouseWorkEndAge ?? phase.endAge}
+                                                onChange={(v) => onChange({ ...phase, spouseWorkEndAge: v })}
+                                                min={phase.spouseWorkStartAge ?? phase.startAge}
+                                                max={phase.endAge}
+                                                tooltip="Spouse's retirement age (can retire before you)"
+                                            />
+                                        </div>
+                                        <SliderInput
+                                            label="Annual Income"
+                                            value={phase.annualIncomeSpouse || 0}
+                                            onChange={(v) => onChange({ ...phase, annualIncomeSpouse: v })}
+                                            min={0}
+                                            max={1000000}
+                                            step={5000}
+                                            prefix={countryData?.currencySymbol || '$'}
+                                            tooltip="Estimate pre-tax annual income for spouse"
+                                        />
+                                        <SliderInput
+                                            label="Growth Rate %"
+                                            value={phase.incomeGrowthRateSpouse || 3}
+                                            onChange={(v) => onChange({ ...phase, incomeGrowthRateSpouse: v })}
+                                            min={0}
+                                            max={15}
+                                            step={0.5}
+                                            suffix="%"
+                                            tooltip="Expected annual salary increase for spouse"
+                                        />
+                                    </>
+                                )}
+                                {!(phase.spouseIsWorking ?? true) && (
+                                    <p className="text-xs text-rose-600 italic">Spouse not working during this phase</p>
+                                )}
+                            </div>
+                        )}
+                    </div>
+                )}
+
+                {/* Retirement Phase - Allow Spouse to Continue Working */}
+                {phase.type === 'retirement' && showSpouse && (
+                    <div className="space-y-3 p-4 bg-rose-50/50 rounded-xl border border-rose-100 mb-4">
+                        <div className="flex items-center justify-between">
+                            <h5 className="text-[10px] font-black text-rose-700 uppercase tracking-widest flex items-center gap-2">
+                                💑 Spouse Status
+                            </h5>
+                            <label className="flex items-center gap-2 cursor-pointer">
+                                <span className="text-[9px] font-bold text-rose-600 uppercase">Still Working</span>
+                                <button
+                                    onClick={() => onChange({ ...phase, spouseIsWorking: !(phase.spouseIsWorking ?? false) })}
+                                    className={`relative w-10 h-5 rounded-full transition-all duration-300 ${(phase.spouseIsWorking ?? false)
+                                        ? 'bg-rose-500'
+                                        : 'bg-slate-300'
+                                        }`}
+                                >
+                                    <span
+                                        className={`absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform duration-300 ${(phase.spouseIsWorking ?? false) ? 'translate-x-5' : 'translate-x-0'
+                                            }`}
+                                    />
+                                </button>
+                            </label>
+                        </div>
+                        {(phase.spouseIsWorking ?? false) && (
+                            <div className="space-y-3">
+                                <div className="p-2 bg-rose-100/50 rounded-lg text-[10px] text-rose-700 font-medium">
+                                    ⚡ Spouse continues working while you're retired
+                                </div>
+                                {/* Spouse Work Period in Retirement */}
+                                <div className="grid grid-cols-2 gap-2 p-2 bg-rose-100/30 rounded-lg">
+                                    <SliderInput
+                                        label="Work Until Age"
+                                        value={phase.spouseWorkEndAge ?? phase.startAge + 5}
+                                        onChange={(v) => onChange({ ...phase, spouseWorkEndAge: v, spouseWorkStartAge: phase.startAge })}
+                                        min={phase.startAge}
+                                        max={phase.endAge}
+                                        tooltip="When spouse stops working during your retirement"
+                                    />
+                                </div>
+                                <SliderInput
+                                    label="Annual Income"
+                                    value={phase.annualIncomeSpouse || 0}
+                                    onChange={(v) => onChange({ ...phase, annualIncomeSpouse: v })}
+                                    min={0}
+                                    max={1000000}
+                                    step={5000}
+                                    prefix={countryData?.currencySymbol || '$'}
+                                    tooltip="Spouse's annual income during your retirement"
+                                />
+                                <SliderInput
+                                    label="Growth Rate %"
+                                    value={phase.incomeGrowthRateSpouse || 3}
+                                    onChange={(v) => onChange({ ...phase, incomeGrowthRateSpouse: v })}
+                                    min={0}
+                                    max={15}
+                                    step={0.5}
+                                    suffix="%"
+                                    tooltip="Expected annual salary increase for spouse"
+                                />
+                            </div>
+                        )}
+                        {!(phase.spouseIsWorking ?? false) && (
+                            <p className="text-xs text-rose-600 italic">Spouse is also retired in this phase</p>
+                        )}
                     </div>
                 )}
 
@@ -215,20 +413,121 @@ const PhaseEditor: React.FC<{
                     </button>
                 )}
 
+                {/* Bulk Expenses in Phase */}
+                <div className="mt-6 border-t border-slate-100 pt-4">
+                    <div className="flex items-center justify-between mb-3">
+                        <label className="text-[10px] font-black text-slate-500 uppercase tracking-wider">
+                            🛒 Bulk Expenses in this Phase
+                        </label>
+                        <button
+                            onClick={addBulkExpense}
+                            className="text-[10px] font-black text-indigo-600 uppercase tracking-wider hover:text-indigo-800"
+                        >
+                            + Add Bulk
+                        </button>
+                    </div>
+                    <div className="space-y-3">
+                        {(phase.bulkExpenses || []).map((expense) => (
+                            <div key={expense.id} className="p-3 bg-slate-50 rounded-lg border border-slate-100 relative group/bulk">
+                                <button
+                                    onClick={() => removeBulkExpense(expense.id)}
+                                    className="absolute top-2 right-2 p-1 text-slate-300 hover:text-rose-500 opacity-0 group-hover/bulk:opacity-100 transition-opacity"
+                                >
+                                    <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                    </svg>
+                                </button>
+                                <div className="grid grid-cols-2 gap-3">
+                                    <div>
+                                        <label className="text-[9px] font-bold text-slate-400 uppercase mb-1 block">Description</label>
+                                        <input
+                                            type="text"
+                                            value={expense.name}
+                                            onChange={(e) => updateBulkExpense(expense.id, 'name', e.target.value)}
+                                            className="w-full px-2 py-1 bg-white border border-slate-200 rounded text-xs"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="text-[9px] font-bold text-slate-400 uppercase mb-1 block">At Age</label>
+                                        <input
+                                            type="number"
+                                            value={expense.age}
+                                            onChange={(e) => updateBulkExpense(expense.id, 'age', parseInt(e.target.value) || phase.startAge)}
+                                            className="w-full px-2 py-1 bg-white border border-slate-200 rounded text-xs"
+                                            min={phase.startAge}
+                                            max={phase.endAge}
+                                        />
+                                    </div>
+                                    <div className="col-span-2">
+                                        <SliderInput
+                                            label={`Amount (${countryData?.currencySymbol || '$'})`}
+                                            value={expense.amount}
+                                            onChange={(v) => updateBulkExpense(expense.id, 'amount', v)}
+                                            min={0}
+                                            max={10000000}
+                                            step={1000}
+                                            prefix={countryData?.currencySymbol || '$'}
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+
                 {/* Country Tax Info */}
-                {phase.type === 'work' && countryData && phase.annualIncome && (
-                    <div className="mt-4 p-3 bg-slate-50 rounded-lg">
-                        <div className="flex justify-between text-xs">
-                            <span className="text-slate-500">Effective Tax Rate:</span>
-                            <span className="font-bold text-slate-700">
-                                {getEffectiveTaxRate(phase.annualIncome, phase.country).toFixed(1)}%
-                            </span>
+                {phase.type === 'work' && countryData && (phase.annualIncomePrimary || phase.annualIncome) && (
+                    <div className="mt-6 p-4 bg-slate-900 rounded-xl text-white shadow-inner">
+                        <div className="flex items-center gap-2 mb-3 border-b border-white/10 pb-2">
+                            <span className="text-xs font-black uppercase tracking-widest text-slate-400">Tax Preview (Local)</span>
                         </div>
-                        <div className="flex justify-between text-xs mt-1">
-                            <span className="text-slate-500">Est. Annual Tax:</span>
-                            <span className="font-bold text-rose-600">
-                                {formatIntlCurrency(calculateTax(phase.annualIncome, phase.country), countryData.currency)}
-                            </span>
+                        <div className="space-y-4">
+                            {/* Primary Tax */}
+                            <div>
+                                <div className="flex justify-between text-[10px] font-bold text-emerald-400 uppercase tracking-tight mb-1">
+                                    <span>👤 Primary</span>
+                                    <span>{getEffectiveTaxRate(phase.annualIncomePrimary || phase.annualIncome || 0, phase.country).toFixed(1)}% Tax</span>
+                                </div>
+                                <div className="flex justify-between text-sm">
+                                    <span className="text-slate-400">Net Annual:</span>
+                                    <span className="font-black">
+                                        {formatIntlCurrency((phase.annualIncomePrimary || phase.annualIncome || 0) - calculateTax(phase.annualIncomePrimary || phase.annualIncome || 0, phase.country), countryData.currency)}
+                                    </span>
+                                </div>
+                            </div>
+
+                            {/* Spouse Tax */}
+                            {showSpouse && phase.annualIncomeSpouse && phase.annualIncomeSpouse > 0 && (
+                                <div className="pt-2 border-t border-white/5">
+                                    <div className="flex justify-between text-[10px] font-bold text-rose-400 uppercase tracking-tight mb-1">
+                                        <span>💑 Spouse</span>
+                                        <span>{getEffectiveTaxRate(phase.annualIncomeSpouse || 0, phase.country).toFixed(1)}% Tax</span>
+                                    </div>
+                                    <div className="flex justify-between text-sm">
+                                        <span className="text-slate-400">Net Annual:</span>
+                                        <span className="font-black">
+                                            {formatIntlCurrency(phase.annualIncomeSpouse - calculateTax(phase.annualIncomeSpouse, phase.country), countryData.currency)}
+                                        </span>
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Combined Net */}
+                            <div className="pt-3 border-t border-white/20">
+                                <div className="flex justify-between text-xs font-black text-indigo-300 uppercase tracking-widest">
+                                    <span>Total Net Family</span>
+                                </div>
+                                <div className="flex justify-between items-end mt-1">
+                                    <div className="text-[10px] text-slate-400 leading-none">After all taxes</div>
+                                    <div className="text-lg font-black text-white leading-none">
+                                        {formatIntlCurrency(
+                                            ((phase.annualIncomePrimary || phase.annualIncome || 0) - calculateTax(phase.annualIncomePrimary || phase.annualIncome || 0, phase.country)) +
+                                            ((phase.annualIncomeSpouse || 0) - calculateTax(phase.annualIncomeSpouse || 0, phase.country)),
+                                            countryData.currency
+                                        )}
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 )}
@@ -290,21 +589,46 @@ const TimelineVisualization: React.FC<{
                                     </div>
 
                                     <div className="space-y-1">
+                                        {/* Primary Work Info */}
                                         <div className="flex justify-between gap-4">
-                                            <span className="text-slate-400">Age Span:</span>
-                                            <span className="font-bold text-indigo-300">{phase.startAge} — {phase.endAge}</span>
+                                            <span className="text-slate-400">👤 You:</span>
+                                            <span className="font-bold text-indigo-300">
+                                                {phase.startAge} — {phase.endAge}
+                                                {phase.type === 'work' && !(phase.primaryIsWorking ?? true) && (
+                                                    <span className="text-amber-400 text-[9px] ml-1">(not working)</span>
+                                                )}
+                                            </span>
                                         </div>
+                                        {/* Spouse Work Info */}
+                                        {phase.spouseIsWorking && (
+                                            <div className="flex justify-between gap-4">
+                                                <span className="text-slate-400">💑 Spouse:</span>
+                                                <span className="font-bold text-rose-300">
+                                                    {phase.spouseWorkStartAge ?? phase.startAge} — {phase.spouseWorkEndAge ?? phase.endAge}
+                                                    <span className="text-emerald-400 text-[9px] ml-1">(working)</span>
+                                                </span>
+                                            </div>
+                                        )}
+                                        {phase.type === 'retirement' && !phase.spouseIsWorking && (
+                                            <div className="flex justify-between gap-4">
+                                                <span className="text-slate-400">💑 Spouse:</span>
+                                                <span className="font-bold text-purple-300 text-[10px]">Also retired</span>
+                                            </div>
+                                        )}
                                         <div className="flex justify-between gap-4">
                                             <span className="text-slate-400">Expenses:</span>
                                             <span className="font-bold text-rose-300">
                                                 {COUNTRIES[phase.country]?.currencySymbol}{phase.monthlyExpenses.toLocaleString()}/mo
                                             </span>
                                         </div>
-                                        {phase.type === 'work' && phase.annualIncome && (
+                                        {(phase.type === 'work' || phase.spouseIsWorking) && (phase.annualIncome || phase.annualIncomeSpouse) && (
                                             <div className="flex justify-between gap-4">
                                                 <span className="text-slate-400">Income:</span>
                                                 <span className="font-bold text-emerald-300">
-                                                    {COUNTRIES[phase.country]?.currencySymbol}{phase.annualIncome.toLocaleString()}/yr
+                                                    {COUNTRIES[phase.country]?.currencySymbol}
+                                                    {((phase.primaryIsWorking ?? true) ? (phase.annualIncomePrimary ?? phase.annualIncome ?? 0) : 0) +
+                                                        ((phase.spouseIsWorking) ? (phase.annualIncomeSpouse ?? 0) : 0)
+                                                    }/yr
                                                 </span>
                                             </div>
                                         )}
@@ -497,7 +821,7 @@ const ResultsDashboard: React.FC<{
                         <table className="w-full text-xs">
                             <thead className="bg-slate-50 border-b border-slate-100">
                                 <tr>
-                                    <th className="px-3 py-3 text-left font-black uppercase text-slate-500 tracking-wider">Age (Year)</th>
+                                    <th className="px-3 py-3 text-left font-black uppercase text-slate-500 tracking-wider">Year (You/Spouse)</th>
                                     <th className="px-3 py-3 text-left font-black uppercase text-slate-500 tracking-wider">Phase</th>
                                     <th className="px-3 py-3 text-left font-black uppercase text-slate-500 tracking-wider">Country/Location</th>
                                     <th className="px-3 py-3 text-right font-black uppercase text-slate-500 tracking-wider">Income (Local)</th>
@@ -518,7 +842,7 @@ const ResultsDashboard: React.FC<{
                                     return (
                                         <tr key={idx} className={`hover:bg-slate-50 ${p.phase === 'retirement' ? 'bg-purple-50/30' : ''}`}>
                                             <td className="px-3 py-2 font-bold text-slate-800">
-                                                {p.age} <span className="text-slate-400 font-normal">({p.year})</span>
+                                                {p.year} <span className="text-slate-400 font-normal">({p.age}{p.spouseAge !== undefined ? `/${p.spouseAge}` : ''})</span>
                                             </td>
                                             <td className="px-3 py-2">
                                                 <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${p.phase === 'work' ? 'bg-emerald-100 text-emerald-700' :
@@ -559,9 +883,14 @@ const ResultsDashboard: React.FC<{
 };
 
 // Main Component
-const InternationalPlanner: React.FC<{ data: FinancialData; currency: string }> = ({ data, currency }) => {
+const InternationalPlanner: React.FC<{
+    data: FinancialData;
+    currency: string;
+    updateSpouseData: (key: keyof SpouseData, value: any) => void;
+}> = ({ data, currency, updateSpouseData }) => {
     const [activeTab, setActiveTab] = useState<'scenario' | 'phases' | 'assets' | 'settings' | 'results'>('scenario');
     const [scenarioType, setScenarioType] = useState<ScenarioType>('work-retire');
+    const [showSpouseSection, setShowSpouseSection] = useState(data.spouse.enabled);
 
     const tabs = [
         { id: 'scenario', label: 'Scenario', icon: '📋', description: 'Choose your journey' },
@@ -581,7 +910,13 @@ const InternationalPlanner: React.FC<{ data: FinancialData; currency: string }> 
         return {
             ...defaultScenario,
             currentAge: data.currentAge,
+            retirementAge: data.retirementAge,
             lifeExpectancy: data.liveUntilAge,
+            // Spouse info for age tracking
+            spouseEnabled: data.spouse.enabled,
+            spouseCurrentAge: data.spouse.currentAge,
+            spouseRetirementAge: data.spouse.retirementAge,
+            spouseLiveUntilAge: data.spouse.liveUntilAge,
             liquidAssets: [{
                 country: 'US', // Defaulting to US for now, could be dynamic
                 currency: 'USD',
@@ -617,6 +952,17 @@ const InternationalPlanner: React.FC<{ data: FinancialData; currency: string }> 
         };
     });
 
+    // Sync spouse data to scenario when it changes
+    useEffect(() => {
+        setScenario(prev => ({
+            ...prev,
+            spouseEnabled: data.spouse.enabled,
+            spouseCurrentAge: data.spouse.currentAge,
+            spouseRetirementAge: data.spouse.retirementAge,
+            spouseLiveUntilAge: data.spouse.liveUntilAge,
+        }));
+    }, [data.spouse.enabled, data.spouse.currentAge, data.spouse.retirementAge, data.spouse.liveUntilAge]);
+
     // Recalculate when scenario changes
     const results = useMemo(() => calculateInternationalScenario(scenario), [scenario]);
 
@@ -628,7 +974,13 @@ const InternationalPlanner: React.FC<{ data: FinancialData; currency: string }> 
             return {
                 ...newDefault,
                 currentAge: data.currentAge,
+                retirementAge: data.retirementAge,
                 lifeExpectancy: data.liveUntilAge,
+                // Preserve spouse info
+                spouseEnabled: data.spouse.enabled,
+                spouseCurrentAge: data.spouse.currentAge,
+                spouseRetirementAge: data.spouse.retirementAge,
+                spouseLiveUntilAge: data.spouse.liveUntilAge,
                 liquidAssets: prev.liquidAssets, // Preserve asset edits
                 retirementAccounts: prev.retirementAccounts, // Preserve retirement account edits
                 realEstateAssets: prev.realEstateAssets,
@@ -754,7 +1106,15 @@ const InternationalPlanner: React.FC<{ data: FinancialData; currency: string }> 
                 startAge,
                 endAge: startAge + duration,
                 monthlyExpenses: lastPhase?.monthlyExpenses || 4000,
-                ...(type === 'work' ? { annualIncome: 100000, incomeGrowthRate: 3 } : {}),
+                bulkExpenses: [],
+                ...(type === 'work' ? {
+                    annualIncome: 100000,
+                    annualIncomePrimary: 100000,
+                    annualIncomeSpouse: 0,
+                    incomeGrowthRate: 3,
+                    incomeGrowthRatePrimary: 3,
+                    incomeGrowthRateSpouse: 3
+                } : {}),
             };
 
             return {
@@ -856,25 +1216,45 @@ const InternationalPlanner: React.FC<{ data: FinancialData; currency: string }> 
                         </div>
 
                         {/* Basic Settings */}
-                        <div className="bg-white p-4 sm:p-6 rounded-2xl border border-slate-100 shadow-sm">
-                            <h3 className="text-sm font-black text-slate-800 uppercase tracking-wider mb-4">
-                                Basic Settings
+                        <div className="bg-white p-4 sm:p-6 rounded-2xl border border-purple-100 shadow-sm">
+                            <h3 className="text-sm font-black text-purple-700 uppercase tracking-wider mb-4 flex items-center gap-2">
+                                <span className="w-2 h-2 bg-gradient-to-r from-purple-600 to-pink-600 rounded-full"></span>
+                                👤 You
                             </h3>
-                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                                 <SliderInput
-                                    label="Current Age"
+                                    label="Age Now"
                                     value={scenario.currentAge}
                                     onChange={(v) => setScenario(prev => ({ ...prev, currentAge: v }))}
                                     min={18}
-                                    max={70}
+                                    max={scenario.retirementAge - 1}
                                 />
                                 <SliderInput
-                                    label="Life Expectancy"
+                                    label="Retire Age"
+                                    value={scenario.retirementAge}
+                                    onChange={(v) => setScenario(prev => ({ ...prev, retirementAge: v }))}
+                                    min={scenario.currentAge + 1}
+                                    max={scenario.lifeExpectancy - 1}
+                                    tooltip="Target age to stop working"
+                                />
+                                <SliderInput
+                                    label="Live Until Age"
                                     value={scenario.lifeExpectancy}
                                     onChange={(v) => setScenario(prev => ({ ...prev, lifeExpectancy: v }))}
-                                    min={70}
+                                    min={scenario.retirementAge + 1}
                                     max={110}
+                                    tooltip="Planning horizon for your financial projections"
                                 />
+                            </div>
+                        </div>
+
+                        {/* Global Parameters */}
+                        <div className="bg-white p-4 sm:p-6 rounded-2xl border border-slate-100 shadow-sm">
+                            <h3 className="text-sm font-black text-slate-700 uppercase tracking-wider mb-4 flex items-center gap-2">
+                                <span className="w-2 h-2 bg-gradient-to-r from-slate-500 to-slate-600 rounded-full"></span>
+                                🌍 Global Parameters
+                            </h3>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 <SliderInput
                                     label="Exchange Rate Volatility"
                                     value={scenario.exchangeRateVolatility}
@@ -903,6 +1283,74 @@ const InternationalPlanner: React.FC<{ data: FinancialData; currency: string }> 
                                 </div>
                             </div>
                         </div>
+
+                        {/* Spouse / Partner Section */}
+                        <div className="bg-white p-4 sm:p-6 rounded-2xl border border-rose-100 shadow-sm">
+                            <div className="flex items-center justify-between mb-4">
+                                <h3 className="text-sm font-black text-rose-700 uppercase tracking-wider flex items-center gap-2">
+                                    <span className="w-2 h-2 bg-gradient-to-r from-rose-600 to-pink-600 rounded-full"></span>
+                                    💑 Spouse / Partner
+                                </h3>
+                                <button
+                                    onClick={() => {
+                                        const newEnabled = !showSpouseSection;
+                                        setShowSpouseSection(newEnabled);
+                                        updateSpouseData('enabled', newEnabled);
+                                    }}
+                                    className={`relative w-14 h-7 rounded-full transition-all duration-300 ${showSpouseSection
+                                        ? 'bg-gradient-to-r from-rose-500 to-pink-500 shadow-lg shadow-rose-500/30'
+                                        : 'bg-slate-300'
+                                        }`}
+                                >
+                                    <span
+                                        className={`absolute top-1 left-1 w-5 h-5 bg-white rounded-full shadow-md transition-transform duration-300 ${showSpouseSection ? 'translate-x-7' : 'translate-x-0'
+                                            }`}
+                                    />
+                                </button>
+                            </div>
+
+                            {showSpouseSection && (
+                                <div className="space-y-4 animate-in fade-in slide-in-from-top-2 duration-300">
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                                        <SliderInput
+                                            label="Spouse Age"
+                                            value={data.spouse.currentAge}
+                                            onChange={(v) => updateSpouseData('currentAge', v)}
+                                            min={18}
+                                            max={data.spouse.retirementAge - 1}
+                                        />
+                                        <SliderInput
+                                            label="Spouse Retire Age"
+                                            value={data.spouse.retirementAge}
+                                            onChange={(v) => updateSpouseData('retirementAge', v)}
+                                            min={data.spouse.currentAge + 1}
+                                            max={data.spouse.liveUntilAge - 1}
+                                            tooltip="Spouse's target retirement age - can be different from yours"
+                                        />
+                                        <SliderInput
+                                            label="Spouse Live Until"
+                                            value={data.spouse.liveUntilAge}
+                                            onChange={(v) => updateSpouseData('liveUntilAge', v)}
+                                            min={data.spouse.retirementAge + 1}
+                                            max={110}
+                                            tooltip="Planning horizon for spouse. Uses longer of both for calculations."
+                                        />
+                                    </div>
+                                    <div className="p-3 bg-rose-50 rounded-lg border border-rose-100">
+                                        <p className="text-xs text-rose-600 font-medium flex items-center gap-2">
+                                            <span className="text-sm">💡</span>
+                                            Spouse income details are configured per life phase in the <strong>Life Phases</strong> tab for flexibility.
+                                        </p>
+                                    </div>
+                                </div>
+                            )}
+
+                            {!showSpouseSection && (
+                                <p className="text-sm text-slate-500 italic">
+                                    Enable to add your spouse/partner's financial profile for joint international planning
+                                </p>
+                            )}
+                        </div>
                     </div>
                 )}
 
@@ -920,6 +1368,7 @@ const InternationalPlanner: React.FC<{ data: FinancialData; currency: string }> 
                                     onMoveDown={() => movePhase(idx, 'down')}
                                     isFirst={idx === 0}
                                     isLast={idx === scenario.phases.length - 1}
+                                    showSpouse={showSpouseSection}
                                     onMatchLifestyle={idx > 0 ? () => {
                                         const basePhase = scenario.phases[0];
                                         const matched = calculateLifestyleMatch(
@@ -1390,8 +1839,8 @@ const InternationalPlanner: React.FC<{ data: FinancialData; currency: string }> 
                         </svg>
                     </button>
                 </div>
-            </div>
-        </div>
+            </div >
+        </div >
     );
 };
 

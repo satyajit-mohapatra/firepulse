@@ -115,7 +115,7 @@ export const calculateInternationalScenario = (
     let currentLiquidUSD = scenario.liquidAssets.reduce((sum, a) => sum + a.valueInUSD, 0);
     let currentRetirementUSD = scenario.retirementAccounts.reduce((sum, a) => sum + a.valueInUSD, 0);
     let currentRealEstateUSD = scenario.realEstateAssets.reduce(
-        (sum, a) => sum + (a.valueInUSD - a.mortgageBalance * COUNTRIES[a.country]?.exchangeRateToUSD || 0),
+        (sum, a) => sum + (a.valueInUSD - a.mortgageBalance * (COUNTRIES[a.country]?.exchangeRateToUSD || 0)),
         0
     );
 
@@ -141,25 +141,44 @@ export const calculateInternationalScenario = (
         let netIncome = 0;
         let retirementContributions = 0;
 
-        if (currentPhase.type === 'work' && currentPhase.annualIncome) {
-            const growthRate = currentPhase.incomeGrowthRate || 3;
-            grossIncome = currentPhase.annualIncome * Math.pow(1 + growthRate / 100, yearsElapsed);
+        if (currentPhase.type === 'work' || (currentPhase.spouseIsWorking && currentPhase.annualIncomeSpouse && currentPhase.annualIncomeSpouse > 0)) {
+            // Primary person income - only if working in this phase
+            const primaryIsWorking = currentPhase.primaryIsWorking ?? (currentPhase.type === 'work');
+            const incomePrimary = primaryIsWorking ? (currentPhase.annualIncomePrimary ?? (currentPhase.annualIncome || 0)) : 0;
 
-            // Calculate taxes
-            const incomeTax = calculateTax(grossIncome, currentPhase.country);
-            const socialSecurityTax = grossIncome * (country.socialSecurityRate / 100);
-            const totalTax = incomeTax + socialSecurityTax;
+            // Spouse income - check if spouse is working and if age is within spouse's work period
+            const spouseIsWorking = currentPhase.spouseIsWorking ?? (currentPhase.type === 'work');
+            const spouseWorkStart = currentPhase.spouseWorkStartAge ?? currentPhase.startAge;
+            const spouseWorkEnd = currentPhase.spouseWorkEndAge ?? currentPhase.endAge;
+            const spouseInRange = age >= spouseWorkStart && age <= spouseWorkEnd;
+            const incomeSpouse = (spouseIsWorking && spouseInRange) ? (currentPhase.annualIncomeSpouse ?? 0) : 0;
 
-            netIncome = grossIncome - totalTax;
+            const growthRatePrimary = currentPhase.incomeGrowthRatePrimary ?? currentPhase.incomeGrowthRate ?? 3;
+            const growthRateSpouse = currentPhase.incomeGrowthRateSpouse ?? growthRatePrimary;
 
-            // Retirement contributions (assume max contributions)
-            if (currentPhase.retirementContributions) {
+            // Calculate years of work for growth (from phase start, not from scenario start)
+            const primaryWorkYears = Math.max(0, age - currentPhase.startAge);
+            const spouseWorkYears = spouseInRange ? Math.max(0, age - spouseWorkStart) : 0;
+
+            const currentIncomePrimary = primaryIsWorking ? incomePrimary * Math.pow(1 + growthRatePrimary / 100, primaryWorkYears) : 0;
+            const currentIncomeSpouse = (spouseIsWorking && spouseInRange) ? incomeSpouse * Math.pow(1 + growthRateSpouse / 100, spouseWorkYears) : 0;
+
+            grossIncome = currentIncomePrimary + currentIncomeSpouse;
+
+            // Calculate taxes (individually then sum, as most countries have individual taxation)
+            const taxPrimary = primaryIsWorking ? calculateTax(currentIncomePrimary, currentPhase.country) + (currentIncomePrimary * (country.socialSecurityRate / 100)) : 0;
+            const taxSpouse = (spouseIsWorking && spouseInRange) ? calculateTax(currentIncomeSpouse, currentPhase.country) + (currentIncomeSpouse * (country.socialSecurityRate / 100)) : 0;
+
+            netIncome = grossIncome - (taxPrimary + taxSpouse);
+
+            // Retirement contributions (only from working income)
+            if (currentPhase.retirementContributions && currentPhase.retirementContributions.length > 0) {
                 retirementContributions = currentPhase.retirementContributions.reduce(
                     (sum, c) => sum + c.annualContribution + (c.employerMatch || 0),
                     0
                 );
-            } else {
-                // Default 10% of gross income
+            } else if (grossIncome > 0) {
+                // Default 10% of gross income (combined)
                 retirementContributions = grossIncome * 0.10;
             }
         }
@@ -173,6 +192,11 @@ export const calculateInternationalScenario = (
 
         const livingExpenses = calculateInflationAdjustedExpense(baseExpenses, localInflation, yearsElapsed);
 
+        // Bulk expenses this year in this phase
+        const bulkThisYear = (currentPhase.bulkExpenses || [])
+            .filter(e => e.age === age)
+            .reduce((sum, e) => sum + e.amount, 0);
+
         // Healthcare costs (increases faster with age)
         const ageHealthMultiplier = age > 60 ? 1 + ((age - 60) * 0.05) : 1;
         const healthcareCosts = (country.healthcareCostIndex * 50 * 12) * ageHealthMultiplier;
@@ -180,6 +204,7 @@ export const calculateInternationalScenario = (
         // Convert expenses to USD for comparison
         const livingExpensesUSD = livingExpenses * country.exchangeRateToUSD;
         const healthcareCostsUSD = healthcareCosts * country.exchangeRateToUSD;
+        const bulkExpensesUSD = bulkThisYear * country.exchangeRateToUSD;
 
         // Passive income (from investments)
         const passiveIncome = currentLiquidUSD * 0.04; // 4% SWP
@@ -189,23 +214,23 @@ export const calculateInternationalScenario = (
         const retirementReturn = (countryConfig?.expectedReturnRetirement ?? 7) / 100;
         const realEstateReturn = (countryConfig?.expectedReturnRealEstate ?? 4) / 100;
 
-        const liquidGrowth = currentLiquidUSD * liquidReturn;
-        const retirementGrowth = currentRetirementUSD * retirementReturn;
-        const realEstateGrowth = currentRealEstateUSD * realEstateReturn;
+        const liquidGrowth = currentLiquidUSD > 0 ? currentLiquidUSD * liquidReturn : 0;
+        const retirementGrowth = currentRetirementUSD > 0 ? currentRetirementUSD * retirementReturn : 0;
+        const realEstateGrowth = currentRealEstateUSD > 0 ? currentRealEstateUSD * realEstateReturn : 0;
 
         // Net cash flow
         let netCashFlow = 0;
         if (currentPhase.type === 'work') {
-            netCashFlow = netIncome - livingExpenses - healthcareCosts - retirementContributions;
+            netCashFlow = netIncome - livingExpenses - healthcareCosts - retirementContributions - bulkThisYear;
         } else {
             // In retirement, draw from savings
-            netCashFlow = passiveIncome - livingExpenses - healthcareCosts;
+            netCashFlow = passiveIncome - livingExpenses - healthcareCosts - bulkThisYear;
         }
 
         // Update balances
-        currentLiquidUSD += liquidGrowth + (netCashFlow * country.exchangeRateToUSD);
-        currentRetirementUSD += retirementGrowth + retirementContributions * country.exchangeRateToUSD;
-        currentRealEstateUSD += realEstateGrowth;
+        currentLiquidUSD = Math.max(0, currentLiquidUSD + liquidGrowth + (netCashFlow * country.exchangeRateToUSD));
+        currentRetirementUSD = Math.max(0, currentRetirementUSD + retirementGrowth + retirementContributions * country.exchangeRateToUSD);
+        currentRealEstateUSD = Math.max(0, currentRealEstateUSD + realEstateGrowth);
 
         // Apply exchange rate volatility
         const exchangeRate = simulateExchangeRate(
@@ -227,21 +252,27 @@ export const calculateInternationalScenario = (
 
         const isSolvent = currentLiquidUSD > 0 || (currentPhase.type !== 'retirement');
 
+        // Calculate spouse age for this year (based on year offset from start)
+        const spouseAge = scenario.spouseEnabled && scenario.spouseCurrentAge !== undefined
+            ? scenario.spouseCurrentAge + yearsElapsed
+            : undefined;
+
         projections.push({
             year,
             age,
+            spouseAge,
             phase: currentPhase.type,
             country: currentPhase.country,
             currency: country.currency,
             grossIncome,
             grossIncomeUSD: grossIncome * country.exchangeRateToUSD,
-            taxPaid: grossIncome - netIncome,
+            taxPaid: grossIncome > netIncome ? grossIncome - netIncome : 0,
             netIncome,
             passiveIncome,
             livingExpenses,
             livingExpensesUSD,
             healthcareCosts: healthcareCostsUSD,
-            taxesOwed: grossIncome - netIncome,
+            taxesOwed: grossIncome > netIncome ? grossIncome - netIncome : 0,
             retirementContributions,
             investmentGrowth: liquidGrowth + retirementGrowth + realEstateGrowth,
             liquidAssetsLocal: currentLiquidUSD / country.exchangeRateToUSD,
@@ -396,6 +427,7 @@ export const createDefaultScenario = (type: 'work-retire' | 'work-move-retire' |
         name: 'New International Plan',
         type,
         currentAge: 35,
+        retirementAge: 60,
         lifeExpectancy: 90,
         phases: [],
         liquidAssets: [{
@@ -447,8 +479,13 @@ export const createDefaultScenario = (type: 'work-retire' | 'work-move-retire' |
                     startAge: 35,
                     endAge: 55,
                     annualIncome: 150000,
+                    annualIncomePrimary: 150000,
+                    annualIncomeSpouse: 0,
                     incomeGrowthRate: 3,
+                    incomeGrowthRatePrimary: 3,
+                    incomeGrowthRateSpouse: 3,
                     monthlyExpenses: 5000,
+                    bulkExpenses: [],
                 },
                 {
                     id: 'retire-1',
@@ -470,8 +507,13 @@ export const createDefaultScenario = (type: 'work-retire' | 'work-move-retire' |
                     startAge: 35,
                     endAge: 50,
                     annualIncome: 150000,
+                    annualIncomePrimary: 150000,
+                    annualIncomeSpouse: 0,
                     incomeGrowthRate: 3,
+                    incomeGrowthRatePrimary: 3,
+                    incomeGrowthRateSpouse: 3,
                     monthlyExpenses: 5000,
+                    bulkExpenses: [],
                 },
                 {
                     id: 'transition-1',
@@ -488,8 +530,13 @@ export const createDefaultScenario = (type: 'work-retire' | 'work-move-retire' |
                     startAge: 52,
                     endAge: 60,
                     annualIncome: 80000,
+                    annualIncomePrimary: 80000,
+                    annualIncomeSpouse: 0,
                     incomeGrowthRate: 2,
+                    incomeGrowthRatePrimary: 2,
+                    incomeGrowthRateSpouse: 2,
                     monthlyExpenses: 3000,
+                    bulkExpenses: [],
                 },
                 {
                     id: 'retire-1',
@@ -498,6 +545,7 @@ export const createDefaultScenario = (type: 'work-retire' | 'work-move-retire' |
                     startAge: 61,
                     endAge: 90,
                     monthlyExpenses: 2500,
+                    bulkExpenses: [],
                 },
             ];
             break;
@@ -511,8 +559,13 @@ export const createDefaultScenario = (type: 'work-retire' | 'work-move-retire' |
                     startAge: 35,
                     endAge: 45,
                     annualIncome: 150000,
+                    annualIncomePrimary: 150000,
+                    annualIncomeSpouse: 0,
                     incomeGrowthRate: 3,
+                    incomeGrowthRatePrimary: 3,
+                    incomeGrowthRateSpouse: 3,
                     monthlyExpenses: 5000,
+                    bulkExpenses: [],
                 },
                 {
                     id: 'transition-1',
@@ -529,8 +582,13 @@ export const createDefaultScenario = (type: 'work-retire' | 'work-move-retire' |
                     startAge: 47,
                     endAge: 55,
                     annualIncome: 200000,
+                    annualIncomePrimary: 200000,
+                    annualIncomeSpouse: 0,
                     incomeGrowthRate: 2,
+                    incomeGrowthRatePrimary: 2,
+                    incomeGrowthRateSpouse: 2,
                     monthlyExpenses: 6000,
+                    bulkExpenses: [],
                 },
                 {
                     id: 'transition-2',

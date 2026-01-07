@@ -13,16 +13,32 @@ import Phase3International from './components/wizard/Phase3International';
 const App: React.FC = () => {
   const [viewMode, setViewMode] = useState<'simple' | 'advanced'>('simple');
   const [data, setData] = useState<FinancialData>({
+    // Primary Person
     currentAge: 44,
     retirementAge: 55,
     liveUntilAge: 90,
+    monthlyIncome: 6000,
+    incomeIncreaseRate: 5,
+    annualBonus: 0,
+
+    // Spouse (disabled by default)
+    spouse: {
+      enabled: false,
+      currentAge: 42,
+      retirementAge: 55,
+      liveUntilAge: 92,
+      monthlyIncome: 4000,
+      incomeIncreaseRate: 5,
+      annualBonus: 0,
+    },
+
+    // Family Assets (shared)
     currentNetWorth: 100000, // Liquid assets
     retirementAssets: 200000, // 401k, IRA, retirement accounts
     nonLiquidAssets: 100000, // Real estate, business equity
-    monthlyIncome: 6000,
+
+    // Family Expenses
     monthlySavings: 2400,
-    annualBonus: 0,
-    incomeIncreaseRate: 5,
     expenseIncreaseRate: 3,
     retirementExpenseMultiplier: 85,
     monthlyExpenses: 3100,
@@ -32,16 +48,23 @@ const App: React.FC = () => {
     annualExpenses: 60000,
     swpAmount: 5000,
     retirementTaxRate: 24,
+
+    // Investment Returns
     liquidAssetReturn: 12,
     retirementAssetReturn: 10, // Higher returns, typically stock-heavy portfolios
     nonLiquidAssetReturn: 5, // Real estate appreciation
     inflationRate: 8,
     withdrawalRate: 4,
+
+    // Future Income
     futureIncome: 0,
     futureIncomeStartAge: 65,
+
+    // Simulation Settings
     simulationMode: 'leaner',
     withdrawalStrategy: 'fixed',
-    goals: []
+    goals: [],
+    bulkExpenses: []
   });
 
   const [currency, setCurrency] = useState<CurrencyCode>('USD');
@@ -75,11 +98,31 @@ const App: React.FC = () => {
   const updateData = (key: keyof FinancialData, value: any) => {
     setData(prev => {
       const newData = { ...prev, [key]: value };
+      // Calculate total family income (primary + spouse if enabled)
+      const totalFamilyIncome = newData.monthlyIncome + (newData.spouse.enabled ? newData.spouse.monthlyIncome : 0);
+
       if (key === 'monthlyIncome' || key === 'monthlyExpenses' || key === 'monthlyMedical' || key === 'monthlyKidsEducation') {
-        newData.monthlySavings = Math.max(0, newData.monthlyIncome - (newData.monthlyExpenses + newData.monthlyMedical + newData.monthlyKidsEducation));
+        newData.monthlySavings = Math.max(0, totalFamilyIncome - (newData.monthlyExpenses + newData.monthlyMedical + newData.monthlyKidsEducation));
       } else if (key === 'monthlySavings') {
-        newData.monthlyIncome = newData.monthlySavings + newData.monthlyExpenses + newData.monthlyMedical + newData.monthlyKidsEducation;
+        // When adjusting savings, adjust primary income
+        newData.monthlyIncome = newData.monthlySavings + newData.monthlyExpenses + newData.monthlyMedical + newData.monthlyKidsEducation - (newData.spouse.enabled ? newData.spouse.monthlyIncome : 0);
       }
+      return newData;
+    });
+  };
+
+  // Update spouse data helper
+  const updateSpouseData = (key: keyof FinancialData['spouse'], value: any) => {
+    setData(prev => {
+      const newSpouse = { ...prev.spouse, [key]: value };
+      let newData = { ...prev, spouse: newSpouse };
+
+      // Recalculate family savings when spouse enabled/income changes
+      if (key === 'enabled' || key === 'monthlyIncome') {
+        const totalFamilyIncome = newData.monthlyIncome + (newSpouse.enabled ? newSpouse.monthlyIncome : 0);
+        newData.monthlySavings = Math.max(0, totalFamilyIncome - (newData.monthlyExpenses + newData.monthlyMedical + newData.monthlyKidsEducation));
+      }
+
       return newData;
     });
   };
@@ -767,6 +810,7 @@ const App: React.FC = () => {
                   currency={currency}
                   currencySymbol={currencySymbol}
                   updateData={updateData}
+                  updateSpouseData={updateSpouseData}
                   currentAllocation={currentAllocation}
                   savingsRate={savingsRate}
                   longevityTooltip={longevityTooltip}
@@ -774,7 +818,7 @@ const App: React.FC = () => {
                 />
               ) : (
                 <div className="overflow-hidden rounded-xl">
-                  <Phase3International data={data} currency={currency} />
+                  <Phase3International data={data} currency={currency} updateSpouseData={updateSpouseData} />
                 </div>
               )}
             </div>

@@ -45,11 +45,34 @@ export interface LifePhase {
     country: string;
     startAge: number;
     endAge: number;
-    annualIncome?: number; // For work phases
+
+    // Primary person work settings
+    annualIncome?: number; // Total or primary
+    annualIncomePrimary?: number;
     incomeGrowthRate?: number;
+    incomeGrowthRatePrimary?: number;
+    primaryIsWorking?: boolean; // Can override - primary may stop while spouse works
+
+    // Spouse work settings (independent from primary)
+    annualIncomeSpouse?: number;
+    incomeGrowthRateSpouse?: number;
+    spouseIsWorking?: boolean; // Spouse can work even in retirement phase
+    spouseWorkStartAge?: number; // Auto-synced but overridable
+    spouseWorkEndAge?: number; // Spouse's retirement age for this phase
+
+    // Shared settings
     monthlyExpenses: number;
     taxableIncome?: number;
     retirementContributions?: RetirementContribution[];
+    bulkExpenses?: IntlBulkExpense[];
+}
+
+export interface IntlBulkExpense {
+    id: string;
+    name: string;
+    amount: number;
+    age: number;
+    category: 'general' | 'education' | 'relocation' | 'other';
 }
 
 export interface RetirementContribution {
@@ -84,7 +107,14 @@ export interface InternationalScenario {
     type: ScenarioType;
     phases: LifePhase[];
     currentAge: number;
+    retirementAge: number;
     lifeExpectancy: number;
+
+    // Spouse info (optional, for spouse age tracking)
+    spouseEnabled?: boolean;
+    spouseCurrentAge?: number;
+    spouseRetirementAge?: number;
+    spouseLiveUntilAge?: number;
 
     // Asset positions
     liquidAssets: AssetPosition[];
@@ -139,6 +169,7 @@ export interface RealEstateAsset {
 export interface YearlyProjectionIntl {
     year: number;
     age: number;
+    spouseAge?: number; // Spouse's age for this year (calculated from year offset)
     phase: 'work' | 'transition' | 'retirement';
     country: string;
     currency: string;
