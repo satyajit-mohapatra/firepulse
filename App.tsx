@@ -7,6 +7,7 @@ import ProjectionChart from './components/ProjectionChart';
 import { WizardProvider } from './contexts/WizardContext';
 import WizardContainer from './components/wizard/WizardContainer';
 import Phase3International from './components/wizard/Phase3International';
+import FAQ from './components/FAQ';
 
 
 
@@ -72,6 +73,7 @@ const App: React.FC = () => {
   const [showLongevityTable, setShowLongevityTable] = useState(false);
   const [showExportMenu, setShowExportMenu] = useState(false);
   const [showImportModal, setShowImportModal] = useState(false);
+  const [showFAQ, setShowFAQ] = useState(false);
   const [importPreview, setImportPreview] = useState<{ data: Partial<FinancialData>, errors: string[], source: 'csv' | 'json' } | null>(null);
   const [toastMessage, setToastMessage] = useState<{ type: 'success' | 'error' | 'info', message: string } | null>(null);
 
@@ -549,78 +551,119 @@ const App: React.FC = () => {
               </div>
               <div className="flex flex-col sm:flex-row items-center gap-1.5 sm:gap-2 lg:gap-4 w-full lg:w-auto">
 
-                <div className="flex flex-wrap justify-center sm:justify-start gap-1.5 sm:gap-2 lg:gap-4 w-full sm:w-auto">
-                  {/* Export Dropdown */}
-                  <div className="relative">
-                    <button
-                      onClick={() => setShowExportMenu(!showExportMenu)}
-                      className="flex-1 sm:flex-none px-2 sm:px-3 py-1.5 sm:py-2 lg:px-5 lg:py-3 bg-gradient-to-r from-emerald-500 to-emerald-600 border border-emerald-400/50 rounded-lg sm:rounded-xl lg:rounded-2xl text-[10px] sm:text-xs font-bold text-white hover:from-emerald-600 hover:to-emerald-700 transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105 flex items-center justify-center gap-1 sm:gap-2 print:hidden"
-                      title="Export data"
-                    >
-                      <svg className="w-3 h-3 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                <div className="relative">
+                  <button
+                    onClick={() => setShowExportMenu(!showExportMenu)}
+                    className="px-4 py-2 sm:px-6 sm:py-3 bg-white/10 hover:bg-white/20 border border-white/30 rounded-xl sm:rounded-2xl text-xs sm:text-sm font-black text-white transition-all duration-300 shadow-xl hover:scale-105 flex items-center justify-center gap-2 sm:gap-3 backdrop-blur-md group"
+                  >
+                    <div className="w-5 h-5 sm:w-6 sm:h-6 rounded-lg bg-white/20 flex items-center justify-center group-hover:bg-white/30 transition-colors">
+                      <svg className="w-3 h-3 sm:w-4 sm:h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M4 6h16M4 12h16M4 18h16" />
                       </svg>
-                      <span className="hidden sm:inline">Export</span>
-                      <span className="sm:hidden">📥</span>
-                      <svg className="w-2 h-2 sm:w-3 sm:h-3 ml-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M19 9l-7 7-7-7" />
-                      </svg>
-                    </button>
-                    {showExportMenu && (
-                      <>
-                        <div className="fixed inset-0 z-40" onClick={() => setShowExportMenu(false)} />
-                        <div className="absolute top-full right-0 mt-2 bg-white rounded-xl shadow-2xl border border-slate-200 py-2 min-w-[160px] z-50 animate-in fade-in slide-in-from-top-2 duration-200">
-                          <button
-                            onClick={exportToCSV}
-                            className="w-full px-4 py-2.5 text-left text-sm font-medium text-slate-700 hover:bg-emerald-50 hover:text-emerald-700 flex items-center gap-3 transition-colors"
-                          >
-                            <span className="text-lg">📊</span>
-                            <div>
-                              <div className="font-semibold">CSV Format</div>
-                              <div className="text-xs text-slate-400">Spreadsheet compatible</div>
-                            </div>
-                          </button>
-                          <button
-                            onClick={exportToJSON}
-                            className="w-full px-4 py-2.5 text-left text-sm font-medium text-slate-700 hover:bg-indigo-50 hover:text-indigo-700 flex items-center gap-3 transition-colors"
-                          >
-                            <span className="text-lg">📋</span>
-                            <div>
-                              <div className="font-semibold">JSON Format</div>
-                              <div className="text-xs text-slate-400">Full data with metadata</div>
-                            </div>
-                          </button>
-                          <div className="border-t border-slate-100 my-1" />
-                          <button
-                            onClick={exportToPDF}
-                            className="w-full px-4 py-2.5 text-left text-sm font-medium text-slate-700 hover:bg-purple-50 hover:text-purple-700 flex items-center gap-3 transition-colors"
-                          >
-                            <span className="text-lg">📄</span>
-                            <div>
-                              <div className="font-semibold">PDF Report</div>
-                              <div className="text-xs text-slate-400">Print-ready document</div>
-                            </div>
-                          </button>
-                        </div>
-                      </>
-                    )}
-                  </div>
-
-                  {/* Import Button */}
-                  <label className="flex-1 sm:flex-none px-2 sm:px-3 py-1.5 sm:py-2 lg:px-5 lg:py-3 bg-gradient-to-r from-white/20 to-white/10 border border-white/30 rounded-lg sm:rounded-xl lg:rounded-2xl text-[10px] sm:text-xs font-bold text-white hover:from-white/30 hover:to-white/20 transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105 flex items-center justify-center gap-1 sm:gap-2 cursor-pointer print:hidden backdrop-blur-md">
-                    <svg className="w-3 h-3 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                    </div>
+                    <span className="uppercase tracking-widest">Actions</span>
+                    <svg className={`w-3 h-3 sm:w-4 sm:h-4 transition-transform duration-300 ${showExportMenu ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M19 9l-7 7-7-7" />
                     </svg>
-                    <span className="hidden sm:inline">Import</span>
-                    <span className="sm:hidden">📤</span>
-                    <input
-                      type="file"
-                      accept=".csv,.json"
-                      onChange={handleFileImport}
-                      className="hidden"
-                    />
-                  </label>
+                  </button>
 
+                  {showExportMenu && (
+                    <>
+                      <div className="fixed inset-0 z-40" onClick={() => setShowExportMenu(false)} />
+                      <div className="absolute top-full right-0 mt-3 bg-white rounded-2xl sm:rounded-3xl shadow-[0_20px_50px_rgba(0,0,0,0.2)] border border-slate-100 py-3 min-w-[240px] sm:min-w-[280px] z-50 animate-in fade-in slide-in-from-top-4 duration-300 overflow-hidden">
+
+                        {/* Knowledge Base Section */}
+                        <div className="px-4 py-2 mb-1">
+                          <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">General</span>
+                        </div>
+                        <button
+                          onClick={() => { setShowFAQ(true); setShowExportMenu(false); }}
+                          className="w-full px-5 py-3 text-left hover:bg-indigo-50 flex items-center gap-4 transition-all group"
+                        >
+                          <div className="w-10 h-10 rounded-xl bg-indigo-100 flex items-center justify-center text-indigo-600 group-hover:bg-indigo-600 group-hover:text-white transition-all shadow-sm">
+                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                            </svg>
+                          </div>
+                          <div>
+                            <div className="font-bold text-slate-800 text-sm">Knowledge Base</div>
+                            <div className="text-[10px] text-slate-400 font-bold uppercase tracking-tight">Learn everything about FIRE</div>
+                          </div>
+                        </button>
+
+                        <div className="h-px bg-slate-100 my-2" />
+
+                        {/* Data Management Section */}
+                        <div className="px-4 py-2 mb-1">
+                          <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Data Management</span>
+                        </div>
+
+                        <label className="w-full px-5 py-3 text-left hover:bg-emerald-50 flex items-center gap-4 transition-all group cursor-pointer">
+                          <div className="w-10 h-10 rounded-xl bg-emerald-100 flex items-center justify-center text-emerald-600 group-hover:bg-emerald-600 group-hover:text-white transition-all shadow-sm">
+                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                            </svg>
+                          </div>
+                          <div>
+                            <div className="font-bold text-slate-800 text-sm">Import Data</div>
+                            <div className="text-[10px] text-slate-400 font-bold uppercase tracking-tight">Load CSV or JSON file</div>
+                          </div>
+                          <input
+                            type="file"
+                            accept=".csv,.json"
+                            onChange={(e) => { handleFileImport(e); setShowExportMenu(false); }}
+                            className="hidden"
+                          />
+                        </label>
+
+                        <div className="h-px bg-slate-100 my-2" />
+
+                        {/* Export Section */}
+                        <div className="px-4 py-2 mb-1">
+                          <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Export Options</span>
+                        </div>
+
+                        <button
+                          onClick={exportToCSV}
+                          className="w-full px-5 py-3 text-left hover:bg-slate-50 flex items-center gap-4 transition-all group"
+                        >
+                          <div className="w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center text-slate-500 group-hover:bg-indigo-500 group-hover:text-white transition-all">
+                            <span className="text-lg">📊</span>
+                          </div>
+                          <div>
+                            <div className="font-bold text-slate-800 text-sm">Export to CSV</div>
+                            <div className="text-[10px] text-slate-400 font-bold uppercase tracking-tight">Spreadsheet compatible</div>
+                          </div>
+                        </button>
+
+                        <button
+                          onClick={exportToJSON}
+                          className="w-full px-5 py-3 text-left hover:bg-slate-50 flex items-center gap-4 transition-all group"
+                        >
+                          <div className="w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center text-slate-500 group-hover:bg-indigo-500 group-hover:text-white transition-all">
+                            <span className="text-lg">📋</span>
+                          </div>
+                          <div>
+                            <div className="font-bold text-slate-800 text-sm">Export to JSON</div>
+                            <div className="text-[10px] text-slate-400 font-bold uppercase tracking-tight">Full application state</div>
+                          </div>
+                        </button>
+
+                        <button
+                          onClick={exportToPDF}
+                          className="w-full px-5 py-3 text-left hover:bg-slate-50 flex items-center gap-4 transition-all group"
+                        >
+                          <div className="w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center text-slate-500 group-hover:bg-indigo-500 group-hover:text-white transition-all">
+                            <span className="text-lg">📄</span>
+                          </div>
+                          <div>
+                            <div className="font-bold text-slate-800 text-sm">Print PDF Report</div>
+                            <div className="text-[10px] text-slate-400 font-bold uppercase tracking-tight">Downloadable document</div>
+                          </div>
+                        </button>
+                      </div>
+                    </>
+                  )}
                 </div>
               </div>
             </header>
@@ -915,6 +958,8 @@ const App: React.FC = () => {
           </button>
         </div>
       )}
+
+      {showFAQ && <FAQ onClose={() => setShowFAQ(false)} />}
     </WizardProvider>
   );
 };

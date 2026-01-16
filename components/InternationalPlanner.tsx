@@ -453,6 +453,11 @@ const PhaseEditor: React.FC<{
                                             type="number"
                                             value={expense.age}
                                             onChange={(e) => updateBulkExpense(expense.id, 'age', parseInt(e.target.value) || phase.startAge)}
+                                            onKeyDown={(e) => {
+                                                if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
+                                                    e.preventDefault();
+                                                }
+                                            }}
                                             className="w-full px-2 py-1 bg-white border border-slate-200 rounded text-xs"
                                             min={phase.startAge}
                                             max={phase.endAge}
@@ -952,16 +957,6 @@ const InternationalPlanner: React.FC<{
         };
     });
 
-    // Sync spouse data to scenario when it changes
-    useEffect(() => {
-        setScenario(prev => ({
-            ...prev,
-            spouseEnabled: data.spouse.enabled,
-            spouseCurrentAge: data.spouse.currentAge,
-            spouseRetirementAge: data.spouse.retirementAge,
-            spouseLiveUntilAge: data.spouse.liveUntilAge,
-        }));
-    }, [data.spouse.enabled, data.spouse.currentAge, data.spouse.retirementAge, data.spouse.liveUntilAge]);
 
     // Recalculate when scenario changes
     const results = useMemo(() => calculateInternationalScenario(scenario), [scenario]);
@@ -973,14 +968,14 @@ const InternationalPlanner: React.FC<{
             const newDefault = createDefaultScenario(type);
             return {
                 ...newDefault,
-                currentAge: data.currentAge,
-                retirementAge: data.retirementAge,
-                lifeExpectancy: data.liveUntilAge,
+                currentAge: prev.currentAge,
+                retirementAge: prev.retirementAge,
+                lifeExpectancy: prev.lifeExpectancy,
                 // Preserve spouse info
-                spouseEnabled: data.spouse.enabled,
-                spouseCurrentAge: data.spouse.currentAge,
-                spouseRetirementAge: data.spouse.retirementAge,
-                spouseLiveUntilAge: data.spouse.liveUntilAge,
+                spouseEnabled: prev.spouseEnabled,
+                spouseCurrentAge: prev.spouseCurrentAge,
+                spouseRetirementAge: prev.spouseRetirementAge,
+                spouseLiveUntilAge: prev.spouseLiveUntilAge,
                 liquidAssets: prev.liquidAssets, // Preserve asset edits
                 retirementAccounts: prev.retirementAccounts, // Preserve retirement account edits
                 realEstateAssets: prev.realEstateAssets,
@@ -989,7 +984,7 @@ const InternationalPlanner: React.FC<{
                     if (index === 0) {
                         return {
                             ...phase,
-                            startAge: data.currentAge,
+                            startAge: prev.currentAge,
                             annualIncome: data.monthlyIncome * 12,
                             monthlyExpenses: data.monthlyExpenses,
                         };
@@ -1293,45 +1288,45 @@ const InternationalPlanner: React.FC<{
                                 </h3>
                                 <button
                                     onClick={() => {
-                                        const newEnabled = !showSpouseSection;
+                                        const newEnabled = !scenario.spouseEnabled;
+                                        setScenario(prev => ({ ...prev, spouseEnabled: newEnabled }));
                                         setShowSpouseSection(newEnabled);
-                                        updateSpouseData('enabled', newEnabled);
                                     }}
-                                    className={`relative w-14 h-7 rounded-full transition-all duration-300 ${showSpouseSection
+                                    className={`relative w-14 h-7 rounded-full transition-all duration-300 ${scenario.spouseEnabled
                                         ? 'bg-gradient-to-r from-rose-500 to-pink-500 shadow-lg shadow-rose-500/30'
                                         : 'bg-slate-300'
                                         }`}
                                 >
                                     <span
-                                        className={`absolute top-1 left-1 w-5 h-5 bg-white rounded-full shadow-md transition-transform duration-300 ${showSpouseSection ? 'translate-x-7' : 'translate-x-0'
+                                        className={`absolute top-1 left-1 w-5 h-5 bg-white rounded-full shadow-md transition-transform duration-300 ${scenario.spouseEnabled ? 'translate-x-7' : 'translate-x-0'
                                             }`}
                                     />
                                 </button>
                             </div>
 
-                            {showSpouseSection && (
+                            {scenario.spouseEnabled && (
                                 <div className="space-y-4 animate-in fade-in slide-in-from-top-2 duration-300">
                                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                                         <SliderInput
                                             label="Spouse Age"
-                                            value={data.spouse.currentAge}
-                                            onChange={(v) => updateSpouseData('currentAge', v)}
+                                            value={scenario.spouseCurrentAge || 18}
+                                            onChange={(v) => setScenario(prev => ({ ...prev, spouseCurrentAge: v }))}
                                             min={18}
-                                            max={data.spouse.retirementAge - 1}
+                                            max={(scenario.spouseRetirementAge || 60) - 1}
                                         />
                                         <SliderInput
                                             label="Spouse Retire Age"
-                                            value={data.spouse.retirementAge}
-                                            onChange={(v) => updateSpouseData('retirementAge', v)}
-                                            min={data.spouse.currentAge + 1}
-                                            max={data.spouse.liveUntilAge - 1}
+                                            value={scenario.spouseRetirementAge || 60}
+                                            onChange={(v) => setScenario(prev => ({ ...prev, spouseRetirementAge: v }))}
+                                            min={(scenario.spouseCurrentAge || 18) + 1}
+                                            max={(scenario.spouseLiveUntilAge || 95) - 1}
                                             tooltip="Spouse's target retirement age - can be different from yours"
                                         />
                                         <SliderInput
                                             label="Spouse Live Until"
-                                            value={data.spouse.liveUntilAge}
-                                            onChange={(v) => updateSpouseData('liveUntilAge', v)}
-                                            min={data.spouse.retirementAge + 1}
+                                            value={scenario.spouseLiveUntilAge || 95}
+                                            onChange={(v) => setScenario(prev => ({ ...prev, spouseLiveUntilAge: v }))}
+                                            min={(scenario.spouseRetirementAge || 60) + 1}
                                             max={110}
                                             tooltip="Planning horizon for spouse. Uses longer of both for calculations."
                                         />
@@ -1345,7 +1340,7 @@ const InternationalPlanner: React.FC<{
                                 </div>
                             )}
 
-                            {!showSpouseSection && (
+                            {!scenario.spouseEnabled && (
                                 <p className="text-sm text-slate-500 italic">
                                     Enable to add your spouse/partner's financial profile for joint international planning
                                 </p>

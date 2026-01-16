@@ -80,6 +80,11 @@ const BulkExpensesEditor: React.FC<{
                                     type="number"
                                     value={expense.amount}
                                     onChange={(e) => updateExpense(expense.id, 'amount', parseFloat(e.target.value) || 0)}
+                                    onKeyDown={(e) => {
+                                        if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
+                                            e.preventDefault();
+                                        }
+                                    }}
                                     className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm font-medium outline-none focus:ring-2 focus:ring-indigo-500/50"
                                 />
                             </div>
@@ -89,6 +94,11 @@ const BulkExpensesEditor: React.FC<{
                                     type="number"
                                     value={expense.age}
                                     onChange={(e) => updateExpense(expense.id, 'age', parseInt(e.target.value) || 0)}
+                                    onKeyDown={(e) => {
+                                        if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
+                                            e.preventDefault();
+                                        }
+                                    }}
                                     className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm font-medium outline-none focus:ring-2 focus:ring-indigo-500/50"
                                 />
                             </div>
