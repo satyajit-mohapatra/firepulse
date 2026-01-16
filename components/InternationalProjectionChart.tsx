@@ -152,7 +152,7 @@ const InternationalProjectionChart: React.FC<Props> = ({ projections, fiAge, cur
     return (
         <div className="w-full h-[400px] sm:h-[500px]">
             <ResponsiveContainer width="100%" height="100%">
-                <ComposedChart data={chartData} margin={{ top: 20, right: 30, left: 10, bottom: 10 }}>
+                <ComposedChart data={chartData} margin={{ top: 20, right: 30, left: 10, bottom: 25 }}>
                     {/* Background phase areas */}
                     {phaseBoundaries.map((boundary, idx) => (
                         <ReferenceArea

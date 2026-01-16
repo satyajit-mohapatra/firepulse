@@ -16,7 +16,7 @@ import {
     calculateRelocationCosts,
     calculateLifestyleMatch,
 } from '../utils/internationalCalculations';
-import SliderInput from './SliderInput';
+import ModernSliderInput from './ModernSliderInput';
 import InternationalProjectionChart from './InternationalProjectionChart';
 
 // Scenario type options
@@ -177,21 +177,23 @@ const PhaseEditor: React.FC<{
 
                 {/* Age Range */}
                 <div className="grid grid-cols-2 gap-3 mb-4">
-                    <SliderInput
+                    <ModernSliderInput
                         label="Start Age"
                         value={phase.startAge}
                         onChange={(v) => onChange({ ...phase, startAge: v })}
                         min={18}
                         max={phase.endAge - 1}
                         tooltip="Age where this life phase begins"
+                        color="indigo"
                     />
-                    <SliderInput
+                    <ModernSliderInput
                         label="End Age"
                         value={phase.endAge}
                         onChange={(v) => onChange({ ...phase, endAge: v })}
                         min={phase.startAge + 1}
                         max={100}
                         tooltip="Age where this life phase ends"
+                        color="indigo"
                     />
                 </div>
 
@@ -222,7 +224,7 @@ const PhaseEditor: React.FC<{
                             </div>
                             {(phase.primaryIsWorking ?? true) && (
                                 <>
-                                    <SliderInput
+                                    <ModernSliderInput
                                         label="Annual Income"
                                         value={phase.annualIncomePrimary || phase.annualIncome || 0}
                                         onChange={(v) => onChange({ ...phase, annualIncomePrimary: v, annualIncome: v })}
@@ -231,8 +233,9 @@ const PhaseEditor: React.FC<{
                                         step={5000}
                                         prefix={countryData?.currencySymbol || '$'}
                                         tooltip="Estimate pre-tax annual income for primary person"
+                                        color="emerald"
                                     />
-                                    <SliderInput
+                                    <ModernSliderInput
                                         label="Growth Rate %"
                                         value={phase.incomeGrowthRatePrimary || phase.incomeGrowthRate || 3}
                                         onChange={(v) => onChange({ ...phase, incomeGrowthRatePrimary: v, incomeGrowthRate: v })}
@@ -241,6 +244,7 @@ const PhaseEditor: React.FC<{
                                         step={0.5}
                                         suffix="%"
                                         tooltip="Expected annual salary increase for primary"
+                                        color="emerald"
                                     />
                                 </>
                             )}
@@ -276,24 +280,26 @@ const PhaseEditor: React.FC<{
                                     <>
                                         {/* Spouse Work Period */}
                                         <div className="grid grid-cols-2 gap-2 p-2 bg-rose-100/30 rounded-lg">
-                                            <SliderInput
+                                            <ModernSliderInput
                                                 label="Work Start Age"
                                                 value={phase.spouseWorkStartAge ?? phase.startAge}
                                                 onChange={(v) => onChange({ ...phase, spouseWorkStartAge: v })}
                                                 min={phase.startAge}
                                                 max={phase.spouseWorkEndAge ?? phase.endAge}
                                                 tooltip="Age when spouse starts working in this phase"
+                                                color="rose"
                                             />
-                                            <SliderInput
+                                            <ModernSliderInput
                                                 label="Work End Age"
                                                 value={phase.spouseWorkEndAge ?? phase.endAge}
                                                 onChange={(v) => onChange({ ...phase, spouseWorkEndAge: v })}
                                                 min={phase.spouseWorkStartAge ?? phase.startAge}
                                                 max={phase.endAge}
                                                 tooltip="Spouse's retirement age (can retire before you)"
+                                                color="rose"
                                             />
                                         </div>
-                                        <SliderInput
+                                        <ModernSliderInput
                                             label="Annual Income"
                                             value={phase.annualIncomeSpouse || 0}
                                             onChange={(v) => onChange({ ...phase, annualIncomeSpouse: v })}
@@ -302,8 +308,9 @@ const PhaseEditor: React.FC<{
                                             step={5000}
                                             prefix={countryData?.currencySymbol || '$'}
                                             tooltip="Estimate pre-tax annual income for spouse"
+                                            color="rose"
                                         />
-                                        <SliderInput
+                                        <ModernSliderInput
                                             label="Growth Rate %"
                                             value={phase.incomeGrowthRateSpouse || 3}
                                             onChange={(v) => onChange({ ...phase, incomeGrowthRateSpouse: v })}
@@ -312,6 +319,7 @@ const PhaseEditor: React.FC<{
                                             step={0.5}
                                             suffix="%"
                                             tooltip="Expected annual salary increase for spouse"
+                                            color="rose"
                                         />
                                     </>
                                 )}
@@ -353,16 +361,17 @@ const PhaseEditor: React.FC<{
                                 </div>
                                 {/* Spouse Work Period in Retirement */}
                                 <div className="grid grid-cols-2 gap-2 p-2 bg-rose-100/30 rounded-lg">
-                                    <SliderInput
+                                    <ModernSliderInput
                                         label="Work Until Age"
                                         value={phase.spouseWorkEndAge ?? phase.startAge + 5}
                                         onChange={(v) => onChange({ ...phase, spouseWorkEndAge: v, spouseWorkStartAge: phase.startAge })}
                                         min={phase.startAge}
                                         max={phase.endAge}
                                         tooltip="When spouse stops working during your retirement"
+                                        color="rose"
                                     />
                                 </div>
-                                <SliderInput
+                                <ModernSliderInput
                                     label="Annual Income"
                                     value={phase.annualIncomeSpouse || 0}
                                     onChange={(v) => onChange({ ...phase, annualIncomeSpouse: v })}
@@ -371,8 +380,9 @@ const PhaseEditor: React.FC<{
                                     step={5000}
                                     prefix={countryData?.currencySymbol || '$'}
                                     tooltip="Spouse's annual income during your retirement"
+                                    color="rose"
                                 />
-                                <SliderInput
+                                <ModernSliderInput
                                     label="Growth Rate %"
                                     value={phase.incomeGrowthRateSpouse || 3}
                                     onChange={(v) => onChange({ ...phase, incomeGrowthRateSpouse: v })}
@@ -381,6 +391,7 @@ const PhaseEditor: React.FC<{
                                     step={0.5}
                                     suffix="%"
                                     tooltip="Expected annual salary increase for spouse"
+                                    color="rose"
                                 />
                             </div>
                         )}
@@ -392,7 +403,7 @@ const PhaseEditor: React.FC<{
 
                 {/* Monthly Expenses */}
                 <div className="mt-4">
-                    <SliderInput
+                    <ModernSliderInput
                         label="Monthly Expenses"
                         value={phase.monthlyExpenses}
                         onChange={(v) => onChange({ ...phase, monthlyExpenses: v })}
@@ -401,6 +412,7 @@ const PhaseEditor: React.FC<{
                         step={100}
                         prefix={countryData?.currencySymbol || '$'}
                         tooltip={`Monthly living costs including rent/food (Cost of Living Index: ${countryData?.costOfLivingIndex || 100})`}
+                        color="amber"
                     />
                 </div>
 
@@ -464,7 +476,7 @@ const PhaseEditor: React.FC<{
                                         />
                                     </div>
                                     <div className="col-span-2">
-                                        <SliderInput
+                                        <ModernSliderInput
                                             label={`Amount (${countryData?.currencySymbol || '$'})`}
                                             value={expense.amount}
                                             onChange={(v) => updateBulkExpense(expense.id, 'amount', v)}
@@ -472,6 +484,7 @@ const PhaseEditor: React.FC<{
                                             max={10000000}
                                             step={1000}
                                             prefix={countryData?.currencySymbol || '$'}
+                                            color="purple"
                                         />
                                     </div>
                                 </div>
@@ -892,8 +905,10 @@ const InternationalPlanner: React.FC<{
     data: FinancialData;
     currency: string;
     updateSpouseData: (key: keyof SpouseData, value: any) => void;
-}> = ({ data, currency, updateSpouseData }) => {
-    const [activeTab, setActiveTab] = useState<'scenario' | 'phases' | 'assets' | 'settings' | 'results'>('scenario');
+    scenario: InternationalScenario;
+    setScenario: React.Dispatch<React.SetStateAction<InternationalScenario>>;
+}> = ({ data, currency, updateSpouseData, scenario, setScenario }) => {
+    const [activeTab, setActiveTab] = useState<'scenario' | 'phases' | 'assets' | 'settings'>('scenario');
     const [scenarioType, setScenarioType] = useState<ScenarioType>('work-retire');
     const [showSpouseSection, setShowSpouseSection] = useState(data.spouse.enabled);
 
@@ -902,63 +917,13 @@ const InternationalPlanner: React.FC<{
         { id: 'phases', label: 'Life Phases', icon: '🗓️', description: 'Plan your timeline' },
         { id: 'assets', label: 'Assets', icon: '💰', description: 'Current net worth' },
         { id: 'settings', label: 'Country Params', icon: '⚙️', description: 'Tax & inflation' },
-        { id: 'results', label: 'Results', icon: '📊', description: 'View projections' },
     ] as const;
 
     const currentTabIndex = tabs.findIndex(t => t.id === activeTab);
     const prevTab = tabs[currentTabIndex - 1];
     const nextTab = tabs[currentTabIndex + 1];
 
-    // Initialize scenario with data from main app
-    const [scenario, setScenario] = useState<InternationalScenario>(() => {
-        const defaultScenario = createDefaultScenario('work-retire');
-        return {
-            ...defaultScenario,
-            currentAge: data.currentAge,
-            retirementAge: data.retirementAge,
-            lifeExpectancy: data.liveUntilAge,
-            // Spouse info for age tracking
-            spouseEnabled: data.spouse.enabled,
-            spouseCurrentAge: data.spouse.currentAge,
-            spouseRetirementAge: data.spouse.retirementAge,
-            spouseLiveUntilAge: data.spouse.liveUntilAge,
-            liquidAssets: [{
-                country: 'US', // Defaulting to US for now, could be dynamic
-                currency: 'USD',
-                currentValue: data.currentNetWorth,
-                valueInUSD: data.currentNetWorth,
-                assetType: 'mixed',
-                expectedReturn: data.liquidAssetReturn,
-                taxEfficient: false,
-            }],
-            retirementAccounts: [{
-                country: 'US',
-                accountType: '401k',
-                currentBalance: data.retirementAssets,
-                valueInUSD: data.retirementAssets,
-                vestingPercentage: 100,
-                portableToCountries: ['US'],
-                earlyWithdrawalPenalty: 10,
-                withdrawalAge: 59.5,
-                expectedReturn: data.retirementAssetReturn,
-            }],
-            // Update first phase with current age and income
-            phases: defaultScenario.phases.map((phase, index) => {
-                if (index === 0) {
-                    return {
-                        ...phase,
-                        startAge: data.currentAge,
-                        annualIncome: data.monthlyIncome * 12,
-                        monthlyExpenses: data.monthlyExpenses,
-                    };
-                }
-                return phase;
-            })
-        };
-    });
-
-
-    // Recalculate when scenario changes
+    // Recalculate results when scenario changes
     const results = useMemo(() => calculateInternationalScenario(scenario), [scenario]);
 
     // Handle scenario type change
@@ -1120,71 +1085,66 @@ const InternationalPlanner: React.FC<{
     }, []);
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-slate-50 via-purple-50/30 to-slate-50">
-            {/* Wizard Progress */}
-            <div className="bg-white border-b border-slate-100">
-                <div className="max-w-4xl mx-auto py-8 px-4">
-                    <div className="relative flex items-center justify-between">
-                        {/* Progress Line */}
-                        <div className="absolute left-0 top-1/2 h-0.5 w-full -translate-y-1/2 bg-slate-100" />
-                        <div
-                            className="absolute left-0 top-1/2 h-0.5 -translate-y-1/2 bg-indigo-600 transition-all duration-500 ease-in-out"
-                            style={{ width: `${(currentTabIndex / (tabs.length - 1)) * 100}%` }}
-                        />
+        <div className="space-y-6">
+            {/* Timeline Preview - Moved to Header Area */}
+            <div className="mb-4 bg-white p-4 sm:p-6 rounded-2xl border border-slate-100 shadow-sm relative z-40">
+                <h3 className="text-xs font-black text-slate-500 uppercase tracking-wider mb-4">
+                    Lifetime Timeline
+                </h3>
+                <TimelineVisualization
+                    phases={scenario.phases}
+                    currentAge={scenario.currentAge}
+                    lifeExpectancy={scenario.lifeExpectancy}
+                />
+            </div>
 
-                        {/* Steps */}
+            {/* Wizard Progress - Floating Modern Style */}
+            <div className="sticky top-0 z-50 py-2 px-4 backdrop-blur-xl bg-white/70 rounded-2xl border border-white/20 shadow-sm -mx-0 sm:-mx-0 mb-6 transition-all duration-300">
+                <div className="w-full overflow-x-auto [-ms-overflow-style:'none'] [scrollbar-width:'none'] [&::-webkit-scrollbar]:hidden">
+                    <div className="bg-white/90 rounded-2xl p-2 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100/50 flex items-center gap-2 min-w-max sm:min-w-0 sm:justify-between">
                         {tabs.map((tab, idx) => {
                             const isCompleted = currentTabIndex > idx;
                             const isActive = activeTab === tab.id;
 
                             return (
-                                <div key={tab.id} className="relative z-10 flex flex-col items-center">
-                                    <button
-                                        onClick={() => setActiveTab(tab.id as any)}
-                                        className={`flex h-10 w-10 items-center justify-center rounded-full border-2 transition-all duration-300 ${isActive
-                                            ? 'border-indigo-600 bg-white text-indigo-600 shadow-[0_0_15px_rgba(79,70,229,0.4)]'
-                                            : isCompleted
-                                                ? 'border-indigo-600 bg-indigo-600 text-white'
-                                                : 'border-slate-200 bg-white text-slate-400'
-                                            }`}
-                                    >
-                                        {isCompleted ? (
-                                            <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                                            </svg>
-                                        ) : (
-                                            <span className="text-sm font-bold">{idx + 1}</span>
-                                        )}
-                                    </button>
-                                    <div className="absolute top-12 flex flex-col items-center text-center">
-                                        <span className={`text-[10px] font-black uppercase tracking-wider whitespace-nowrap ${isActive ? 'text-indigo-600' : 'text-slate-500'}`}>
+                                <button
+                                    key={tab.id}
+                                    onClick={() => setActiveTab(tab.id as any)}
+                                    className={`relative flex-1 group flex flex-col items-center py-2 px-4 sm:px-1 rounded-xl transition-all duration-300 min-w-[100px] sm:min-w-0 ${isActive
+                                        ? 'bg-gradient-to-br from-indigo-50 to-purple-50 text-indigo-700 shadow-sm ring-1 ring-indigo-100'
+                                        : isCompleted
+                                            ? 'text-emerald-600 hover:bg-emerald-50/50'
+                                            : 'text-slate-400 hover:bg-slate-50'
+                                        }`}
+                                >
+                                    {/* Connection Line */}
+                                    {idx < tabs.length - 1 && (
+                                        <div className={`absolute top-1/2 left-[calc(50%+16px)] w-[calc(100%-32px)] h-[2px] -translate-y-1/2 rounded-full transition-colors duration-500 hidden sm:block pointer-events-none ${isCompleted ? 'bg-emerald-100' : 'bg-slate-100'
+                                            }`} style={{ zIndex: 0 }} />
+                                    )}
+
+                                    <div className="relative z-10 flex flex-col items-center gap-1">
+                                        <div className={`text-xl transition-transform duration-300 ${isActive ? 'scale-110' : 'scale-100 grayscale hover:grayscale-0'}`}>
+                                            {isCompleted ? '✅' : tab.icon}
+                                        </div>
+                                        <span className={`text-[9px] font-black uppercase tracking-widest ${isActive ? 'opacity-100' : 'opacity-60'}`}>
                                             {tab.label}
                                         </span>
-                                        <span className="hidden text-[9px] text-slate-400 sm:block font-bold uppercase tracking-tight">
-                                            {tab.description}
-                                        </span>
                                     </div>
-                                </div>
+
+                                    {/* Active Indicator Dot */}
+                                    {isActive && (
+                                        <div className="absolute -bottom-1 w-8 h-1 bg-indigo-500 rounded-full shadow-[0_2px_8px_rgba(99,102,241,0.4)] animate-in fade-in zoom-in duration-300" />
+                                    )}
+                                </button>
                             );
                         })}
                     </div>
                 </div>
             </div>
 
-            {/* Content */}
-            <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-10 py-6 sm:py-8">
-                {/* Timeline Preview */}
-                <div className="mt-6 mb-10 bg-white p-4 sm:p-6 rounded-2xl border border-slate-100 shadow-sm relative z-40">
-                    <h3 className="text-xs font-black text-slate-500 uppercase tracking-wider mb-8">
-                        Lifetime Timeline
-                    </h3>
-                    <TimelineVisualization
-                        phases={scenario.phases}
-                        currentAge={scenario.currentAge}
-                        lifeExpectancy={scenario.lifeExpectancy}
-                    />
-                </div>
-
+            {/* Content Area */}
+            <div className="w-full">
                 {activeTab === 'scenario' && (
                     <div className="space-y-6">
                         {/* Scenario Type Selection */}
@@ -1217,14 +1177,14 @@ const InternationalPlanner: React.FC<{
                                 👤 You
                             </h3>
                             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                                <SliderInput
+                                <ModernSliderInput
                                     label="Age Now"
                                     value={scenario.currentAge}
                                     onChange={(v) => setScenario(prev => ({ ...prev, currentAge: v }))}
                                     min={18}
                                     max={scenario.retirementAge - 1}
                                 />
-                                <SliderInput
+                                <ModernSliderInput
                                     label="Retire Age"
                                     value={scenario.retirementAge}
                                     onChange={(v) => setScenario(prev => ({ ...prev, retirementAge: v }))}
@@ -1232,7 +1192,7 @@ const InternationalPlanner: React.FC<{
                                     max={scenario.lifeExpectancy - 1}
                                     tooltip="Target age to stop working"
                                 />
-                                <SliderInput
+                                <ModernSliderInput
                                     label="Live Until Age"
                                     value={scenario.lifeExpectancy}
                                     onChange={(v) => setScenario(prev => ({ ...prev, lifeExpectancy: v }))}
@@ -1250,7 +1210,7 @@ const InternationalPlanner: React.FC<{
                                 🌍 Global Parameters
                             </h3>
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                <SliderInput
+                                <ModernSliderInput
                                     label="Exchange Rate Volatility"
                                     value={scenario.exchangeRateVolatility}
                                     onChange={(v) => setScenario(prev => ({ ...prev, exchangeRateVolatility: v }))}
@@ -1259,22 +1219,31 @@ const InternationalPlanner: React.FC<{
                                     suffix="%"
                                     tooltip="Expected currency fluctuation risk"
                                 />
-                                <div>
-                                    <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1 block">
-                                        Inflation Scenario
-                                    </label>
-                                    <select
-                                        value={scenario.inflationScenario}
-                                        onChange={(e) => setScenario(prev => ({
-                                            ...prev,
-                                            inflationScenario: e.target.value as 'low' | 'moderate' | 'high'
-                                        }))}
-                                        className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm font-medium"
-                                    >
-                                        <option value="low">Low (2-3%)</option>
-                                        <option value="moderate">Moderate (4-6%)</option>
-                                        <option value="high">High (7-10%)</option>
-                                    </select>
+                                <div className="space-y-3">
+                                    <div className="flex items-center justify-between gap-2">
+                                        <label className="text-[11px] sm:text-xs font-bold uppercase tracking-wider text-slate-500 truncate">
+                                            Inflation Scenario
+                                        </label>
+                                    </div>
+                                    <div className="relative mt-1">
+                                        <select
+                                            value={scenario.inflationScenario}
+                                            onChange={(e) => setScenario(prev => ({
+                                                ...prev,
+                                                inflationScenario: e.target.value as 'low' | 'moderate' | 'high'
+                                            }))}
+                                            className="w-full h-6 sm:h-8 px-3 bg-slate-100 border border-slate-200 rounded-lg text-xs font-bold text-slate-700 outline-none focus:ring-2 focus:ring-indigo-500/30 transition-all appearance-none"
+                                        >
+                                            <option value="low">Low (2-3%)</option>
+                                            <option value="moderate">Moderate (4-6%)</option>
+                                            <option value="high">High (7-10%)</option>
+                                        </select>
+                                        <div className="absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none">
+                                            <svg className="w-3 h-3 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+                                            </svg>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -1307,28 +1276,31 @@ const InternationalPlanner: React.FC<{
                             {scenario.spouseEnabled && (
                                 <div className="space-y-4 animate-in fade-in slide-in-from-top-2 duration-300">
                                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                                        <SliderInput
+                                        <ModernSliderInput
                                             label="Spouse Age"
                                             value={scenario.spouseCurrentAge || 18}
                                             onChange={(v) => setScenario(prev => ({ ...prev, spouseCurrentAge: v }))}
                                             min={18}
                                             max={(scenario.spouseRetirementAge || 60) - 1}
+                                            color="rose"
                                         />
-                                        <SliderInput
+                                        <ModernSliderInput
                                             label="Spouse Retire Age"
                                             value={scenario.spouseRetirementAge || 60}
                                             onChange={(v) => setScenario(prev => ({ ...prev, spouseRetirementAge: v }))}
                                             min={(scenario.spouseCurrentAge || 18) + 1}
                                             max={(scenario.spouseLiveUntilAge || 95) - 1}
                                             tooltip="Spouse's target retirement age - can be different from yours"
+                                            color="rose"
                                         />
-                                        <SliderInput
+                                        <ModernSliderInput
                                             label="Spouse Live Until"
                                             value={scenario.spouseLiveUntilAge || 95}
                                             onChange={(v) => setScenario(prev => ({ ...prev, spouseLiveUntilAge: v }))}
                                             min={(scenario.spouseRetirementAge || 60) + 1}
                                             max={110}
                                             tooltip="Planning horizon for spouse. Uses longer of both for calculations."
+                                            color="rose"
                                         />
                                     </div>
                                     <div className="p-3 bg-rose-50 rounded-lg border border-rose-100">
@@ -1434,7 +1406,7 @@ const InternationalPlanner: React.FC<{
                                                 </select>
                                             </div>
                                             <div>
-                                                <SliderInput
+                                                <ModernSliderInput
                                                     label={`Value (${countryData?.currency || 'USD'})`}
                                                     value={asset.currentValue}
                                                     onChange={(v) => {
@@ -1454,7 +1426,7 @@ const InternationalPlanner: React.FC<{
                                                 />
                                             </div>
                                             <div>
-                                                <SliderInput
+                                                <ModernSliderInput
                                                     label="Expected Return"
                                                     value={asset.expectedReturn}
                                                     onChange={(v) => {
@@ -1549,7 +1521,7 @@ const InternationalPlanner: React.FC<{
                                                 </select>
                                             </div>
                                             <div className="sm:col-span-1">
-                                                <SliderInput
+                                                <ModernSliderInput
                                                     label={`Balance (${countryData?.currency || 'USD'})`}
                                                     value={account.currentBalance}
                                                     onChange={(v) => {
@@ -1569,7 +1541,7 @@ const InternationalPlanner: React.FC<{
                                                 />
                                             </div>
                                             <div>
-                                                <SliderInput
+                                                <ModernSliderInput
                                                     label="Withdrawal Age"
                                                     value={account.withdrawalAge}
                                                     onChange={(v) => {
@@ -1648,7 +1620,7 @@ const InternationalPlanner: React.FC<{
                                                 </select>
                                             </div>
                                             <div>
-                                                <SliderInput
+                                                <ModernSliderInput
                                                     label={`Property Value (${countryData?.currency || 'USD'})`}
                                                     value={asset.currentValue}
                                                     onChange={(v) => {
@@ -1667,7 +1639,7 @@ const InternationalPlanner: React.FC<{
                                                 />
                                             </div>
                                             <div>
-                                                <SliderInput
+                                                <ModernSliderInput
                                                     label="Appreciation Rate"
                                                     value={asset.appreciationRate}
                                                     onChange={(v) => {
@@ -1762,28 +1734,28 @@ const InternationalPlanner: React.FC<{
                                             </div>
 
                                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                                                <SliderInput
+                                                <ModernSliderInput
                                                     label="Annual Inflation"
                                                     value={config.inflationRate}
                                                     onChange={(v) => updateConfig('inflationRate', v)}
                                                     min={0} max={20} step={0.1} suffix="%"
                                                     tooltip="Local currency degradation rate"
                                                 />
-                                                <SliderInput
+                                                <ModernSliderInput
                                                     label="Liquid Return"
                                                     value={config.expectedReturnLiquid}
                                                     onChange={(v) => updateConfig('expectedReturnLiquid', v)}
                                                     min={1} max={20} step={0.5} suffix="%"
                                                     tooltip="Expected return on liquid investments (stocks/bonds) in this country"
                                                 />
-                                                <SliderInput
+                                                <ModernSliderInput
                                                     label="Retire Return"
                                                     value={config.expectedReturnRetirement}
                                                     onChange={(v) => updateConfig('expectedReturnRetirement', v)}
                                                     min={1} max={20} step={0.5} suffix="%"
                                                     tooltip="Expected return on retirement accounts in this country"
                                                 />
-                                                <SliderInput
+                                                <ModernSliderInput
                                                     label="RE Growth"
                                                     value={config.expectedReturnRealEstate}
                                                     onChange={(v) => updateConfig('expectedReturnRealEstate', v)}
@@ -1800,9 +1772,7 @@ const InternationalPlanner: React.FC<{
                 )}
 
                 {/* Results Tab */}
-                {activeTab === 'results' && (
-                    <ResultsDashboard results={results} scenario={scenario} currency={currency} />
-                )}
+
 
                 {/* Navigation Buttons */}
                 <div className="flex justify-between mt-8 pt-6 border-t border-slate-200">

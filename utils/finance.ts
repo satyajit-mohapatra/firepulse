@@ -34,6 +34,137 @@ export const getAgeBasedAllocation = (currentAge: number, retirementAge: number)
 };
 
 /**
+ * Estimates FIRE Age (Financial Independence Age) - the earliest age you could potentially 
+ * stop working and sustain your lifestyle indefinitely.
+ * 
+ * This is DIFFERENT from Retirement Age:
+ * - Retirement Age: When you PLAN to stop working
+ * - FIRE Age: When you COULD stop working (have enough to sustain expenses)
+ * 
+ * Uses simplified 4% safe withdrawal rate calculation with compound growth.
+ */
+export const estimateFIREAge = (data: {
+  currentAge: number;
+  currentNetWorth: number;
+  retirementAssets: number;
+  nonLiquidAssets: number;
+  monthlyExpenses: number;
+  monthlyMedical: number;
+  monthlyKidsEducation: number;
+  monthlySavings: number;
+  monthlyIncome: number;
+  annualBonus: number;
+  retirementExpenseMultiplier: number;
+  withdrawalRate: number;
+  liquidAssetReturn: number;
+  incomeIncreaseRate: number;
+  inflationRate: number;
+  liveUntilAge: number;
+  spouse?: {
+    enabled: boolean;
+    monthlyIncome: number;
+    annualBonus: number;
+  };
+}): { fiAge: number | null; yearsToFI: number | null; fiNumber: number } => {
+  const {
+    currentAge,
+    currentNetWorth,
+    retirementAssets,
+    nonLiquidAssets,
+    monthlyExpenses,
+    monthlyMedical,
+    monthlyKidsEducation,
+    monthlySavings,
+    monthlyIncome,
+    annualBonus,
+    retirementExpenseMultiplier,
+    withdrawalRate,
+    liquidAssetReturn,
+    incomeIncreaseRate,
+    inflationRate,
+    liveUntilAge,
+    spouse,
+  } = data;
+
+  // Calculate annual retirement expenses
+  const annualRetirementExpenses =
+    (monthlyExpenses * 12 * (retirementExpenseMultiplier / 100)) +
+    (monthlyMedical * 12) +
+    (monthlyKidsEducation * 12);
+
+  // FIRE number = annual expenses / withdrawal rate
+  const fiNumber = annualRetirementExpenses / (withdrawalRate / 100);
+
+  // Simulate retirement at each potential FIRE age and check if portfolio lasts until death
+  const checkSolvencyAtTestAge = (testRetirementAge: number): boolean => {
+    let totalAssets = currentNetWorth + retirementAssets + nonLiquidAssets;
+    let annualSavings = monthlySavings * 12 + annualBonus;
+
+    // Add spouse savings if enabled
+    if (spouse?.enabled) {
+      const spouseIncome = spouse.monthlyIncome * 12 + spouse.annualBonus;
+      const primaryIncome = monthlyIncome * 12 + annualBonus;
+      if (primaryIncome > 0) {
+        const savingsRatio = (monthlySavings * 12) / primaryIncome;
+        annualSavings += spouseIncome * Math.min(savingsRatio, 0.5);
+      }
+    }
+
+    const avgReturn = liquidAssetReturn / 100;
+    const incomeGrowth = incomeIncreaseRate / 100;
+    const inflation = inflationRate / 100;
+
+    let projectedSavings = annualSavings;
+    let projectedExpenses = annualRetirementExpenses;
+
+    // Simulate each year from current age to death
+    for (let age = currentAge; age <= liveUntilAge; age++) {
+      const isRetired = age >= testRetirementAge;
+
+      if (!isRetired) {
+        // Working phase: grow savings by return rate and add new savings
+        projectedSavings *= (1 + incomeGrowth);
+        totalAssets = totalAssets * (1 + avgReturn) + projectedSavings;
+      } else {
+        // Retirement phase: grow by return, withdraw expenses
+        totalAssets = totalAssets * (1 + avgReturn) - projectedExpenses;
+      }
+
+      // Inflate expenses for next year
+      projectedExpenses *= (1 + inflation);
+
+      // If we run out of money, this test age doesn't work
+      if (totalAssets < 0) {
+        return false;
+      }
+    }
+
+    // If we made it to liveUntilAge with positive balance, this test age works
+    return totalAssets >= 0;
+  };
+
+  // Total current assets - check if already at FI
+  const totalAssets = currentNetWorth + retirementAssets + nonLiquidAssets;
+  if (checkSolvencyAtTestAge(currentAge)) {
+    return { fiAge: currentAge, yearsToFI: 0, fiNumber };
+  }
+
+  // Find the EARLIEST age at which retiring would result in solvency until death
+  for (let testAge = currentAge + 1; testAge <= liveUntilAge; testAge++) {
+    if (checkSolvencyAtTestAge(testAge)) {
+      return {
+        fiAge: testAge,
+        yearsToFI: testAge - currentAge,
+        fiNumber
+      };
+    }
+  }
+
+  // Could not reach FI within planning horizon
+  return { fiAge: null, yearsToFI: null, fiNumber };
+};
+
+/**
  * Calculates weighted average return based on age-based allocation and individual returns
  */
 const calculateWeightedReturn = (

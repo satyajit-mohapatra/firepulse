@@ -104,9 +104,151 @@ export const calculateAccountPortability = (
     return { portableAmount, penalty, taxImplication };
 };
 
+/**
+ * Simulates retiring at a test age and checks if the portfolio remains solvent until life expectancy.
+ * Returns true if the portfolio lasts through the entire retirement period.
+ */
+const checkSolvencyAtRetirementAge = (
+    scenario: InternationalScenario,
+    testRetirementAge: number,
+    simulationMode: 'leaner' | 'conservative' | 'crash' | 'aggressive' = 'conservative'
+): boolean => {
+    let currentLiquidUSD = scenario.liquidAssets.reduce((sum, a) => sum + a.valueInUSD, 0);
+    let currentRetirementUSD = scenario.retirementAccounts.reduce((sum, a) => sum + a.valueInUSD, 0);
+    let currentRealEstateUSD = scenario.realEstateAssets.reduce(
+        (sum, a) => sum + (a.valueInUSD - a.mortgageBalance * (COUNTRIES[a.country]?.exchangeRateToUSD || 0)),
+        0
+    );
+
+    const getReturnMultiplier = () => {
+        switch (simulationMode) {
+            case 'leaner': return 0.85;
+            case 'conservative': return 0.95;
+            case 'aggressive': return 1.10;
+            case 'crash': return 0.70;
+            default: return 1.0;
+        }
+    };
+    const returnMultiplier = getReturnMultiplier();
+
+    for (let age = scenario.currentAge; age <= scenario.lifeExpectancy; age++) {
+        const yearsElapsed = age - scenario.currentAge;
+
+        // Determine if we're in "retirement" based on test age
+        const isRetired = age >= testRetirementAge;
+
+        // Find current life phase from scenario (for country/expense info)
+        const currentPhase = scenario.phases.find(
+            p => age >= p.startAge && age <= p.endAge
+        ) || scenario.phases[scenario.phases.length - 1];
+
+        const country = COUNTRIES[currentPhase.country];
+        if (!country) continue;
+
+        // Calculate expenses
+        const baseExpenses = currentPhase.monthlyExpenses * 12;
+        const countryConfig = scenario.countryConfigs[currentPhase.country];
+        const localInflation = countryConfig?.inflationRate ?? country.averageInflation;
+        const livingExpenses = calculateInflationAdjustedExpense(baseExpenses, localInflation, yearsElapsed);
+
+        // Healthcare costs
+        const ageHealthMultiplier = age > 60 ? 1 + ((age - 60) * 0.05) : 1;
+        const healthcareCosts = (country.healthcareCostIndex * 50 * 12) * ageHealthMultiplier;
+
+        // Bulk expenses
+        const bulkThisYear = (currentPhase.bulkExpenses || [])
+            .filter(e => e.age === age)
+            .reduce((sum, e) => sum + e.amount, 0);
+
+        // Convert to USD
+        const livingExpensesUSD = livingExpenses * country.exchangeRateToUSD;
+        const healthcareCostsUSD = healthcareCosts * country.exchangeRateToUSD;
+        const bulkExpensesUSD = bulkThisYear * country.exchangeRateToUSD;
+
+        // Investment returns
+        const baseLiquidReturn = (countryConfig?.expectedReturnLiquid ?? (isRetired ? 5 : 8)) / 100;
+        const baseRetirementReturn = (countryConfig?.expectedReturnRetirement ?? 7) / 100;
+        const baseRealEstateReturn = (countryConfig?.expectedReturnRealEstate ?? 4) / 100;
+
+        const liquidReturn = baseLiquidReturn * returnMultiplier;
+        const retirementReturn = baseRetirementReturn * returnMultiplier;
+        const realEstateReturn = baseRealEstateReturn * returnMultiplier;
+
+        let crashAdjustment = 1.0;
+        if (simulationMode === 'crash' && yearsElapsed % 10 === 0 && age > scenario.currentAge) {
+            crashAdjustment = 0.70;
+        }
+
+        const liquidGrowth = currentLiquidUSD > 0 ? currentLiquidUSD * liquidReturn * crashAdjustment : 0;
+        const retirementGrowth = currentRetirementUSD > 0 ? currentRetirementUSD * retirementReturn * crashAdjustment : 0;
+        const realEstateGrowth = currentRealEstateUSD > 0 ? currentRealEstateUSD * realEstateReturn * crashAdjustment : 0;
+
+        if (!isRetired) {
+            // Still working - calculate income and savings
+            const primaryIsWorking = currentPhase.primaryIsWorking ?? (currentPhase.type === 'work');
+            const incomePrimary = primaryIsWorking ? (currentPhase.annualIncomePrimary ?? (currentPhase.annualIncome || 0)) : 0;
+
+            const spouseIsWorking = currentPhase.spouseIsWorking ?? (currentPhase.type === 'work');
+            const spouseWorkStart = currentPhase.spouseWorkStartAge ?? currentPhase.startAge;
+            const spouseWorkEnd = currentPhase.spouseWorkEndAge ?? currentPhase.endAge;
+            const spouseInRange = age >= spouseWorkStart && age <= spouseWorkEnd;
+            const incomeSpouse = (spouseIsWorking && spouseInRange) ? (currentPhase.annualIncomeSpouse ?? 0) : 0;
+
+            const growthRatePrimary = currentPhase.incomeGrowthRatePrimary ?? currentPhase.incomeGrowthRate ?? 3;
+            const growthRateSpouse = currentPhase.incomeGrowthRateSpouse ?? growthRatePrimary;
+            const primaryWorkYears = Math.max(0, age - currentPhase.startAge);
+            const spouseWorkYears = spouseInRange ? Math.max(0, age - spouseWorkStart) : 0;
+
+            const currentIncomePrimary = primaryIsWorking ? incomePrimary * Math.pow(1 + growthRatePrimary / 100, primaryWorkYears) : 0;
+            const currentIncomeSpouse = (spouseIsWorking && spouseInRange) ? incomeSpouse * Math.pow(1 + growthRateSpouse / 100, spouseWorkYears) : 0;
+            const grossIncome = currentIncomePrimary + currentIncomeSpouse;
+
+            const taxPrimary = primaryIsWorking ? calculateTax(currentIncomePrimary, currentPhase.country) + (currentIncomePrimary * (country.socialSecurityRate / 100)) : 0;
+            const taxSpouse = (spouseIsWorking && spouseInRange) ? calculateTax(currentIncomeSpouse, currentPhase.country) + (currentIncomeSpouse * (country.socialSecurityRate / 100)) : 0;
+            const netIncome = grossIncome - (taxPrimary + taxSpouse);
+
+            let retirementContributions = 0;
+            if (currentPhase.retirementContributions?.length > 0) {
+                retirementContributions = currentPhase.retirementContributions.reduce(
+                    (sum, c) => sum + c.annualContribution + (c.employerMatch || 0), 0
+                );
+            } else if (grossIncome > 0) {
+                retirementContributions = grossIncome * 0.10;
+            }
+
+            const netCashFlow = netIncome - livingExpenses - healthcareCosts - retirementContributions - bulkThisYear;
+            currentLiquidUSD = Math.max(0, currentLiquidUSD + liquidGrowth + (netCashFlow * country.exchangeRateToUSD));
+            currentRetirementUSD = Math.max(0, currentRetirementUSD + retirementGrowth + retirementContributions * country.exchangeRateToUSD);
+            currentRealEstateUSD = Math.max(0, currentRealEstateUSD + realEstateGrowth);
+        } else {
+            // Retired - draw from savings
+            // At retirement age, roll retirement accounts into liquid
+            if (age === testRetirementAge && currentRetirementUSD > 0) {
+                currentLiquidUSD += currentRetirementUSD;
+                currentRetirementUSD = 0;
+            }
+
+            const totalExpensesUSD = livingExpensesUSD + healthcareCostsUSD + bulkExpensesUSD;
+            const withdrawal = totalExpensesUSD;
+
+            currentLiquidUSD = currentLiquidUSD + liquidGrowth - withdrawal;
+            currentRetirementUSD = currentRetirementUSD + retirementGrowth;
+            currentRealEstateUSD = currentRealEstateUSD + realEstateGrowth;
+        }
+
+        const totalNetWorthUSD = currentLiquidUSD + currentRetirementUSD + currentRealEstateUSD;
+        if (totalNetWorthUSD < 0) {
+            return false; // Portfolio depleted before life expectancy
+        }
+    }
+
+    return true; // Portfolio lasted until life expectancy
+};
+
 // Main scenario calculation
 export const calculateInternationalScenario = (
-    scenario: InternationalScenario
+    scenario: InternationalScenario,
+    simulationMode: 'leaner' | 'conservative' | 'crash' | 'aggressive' = 'conservative'
 ): ScenarioResults => {
     const projections: YearlyProjectionIntl[] = [];
     const recommendations: Recommendation[] = [];
@@ -120,8 +262,35 @@ export const calculateInternationalScenario = (
     );
 
     const currentYear = new Date().getFullYear();
+
+    // Find the EARLIEST age at which retiring would result in solvency until life expectancy
     let fiAge: number | null = null;
-    let retirementYear: number | null = null;
+    for (let testAge = scenario.currentAge; testAge <= scenario.lifeExpectancy; testAge++) {
+        if (checkSolvencyAtRetirementAge(scenario, testAge, simulationMode)) {
+            fiAge = testAge;
+            break;
+        }
+    }
+
+    let retirementYear: number | null = fiAge ? currentYear + (fiAge - scenario.currentAge) : null;
+
+    // Calculate return rate multiplier based on simulation mode
+    const getReturnMultiplier = () => {
+        switch (simulationMode) {
+            case 'leaner':
+                return 0.85; // 15% lower returns - pessimistic
+            case 'conservative':
+                return 0.95; // 5% lower returns - safe
+            case 'aggressive':
+                return 1.10; // 10% higher returns - optimistic
+            case 'crash':
+                return 0.70; // 30% lower returns - worst case
+            default:
+                return 1.0;
+        }
+    };
+
+    const returnMultiplier = getReturnMultiplier();
 
     // Process each year from current age to life expectancy
     for (let age = scenario.currentAge; age <= scenario.lifeExpectancy; age++) {
@@ -209,14 +378,25 @@ export const calculateInternationalScenario = (
         // Passive income (from investments)
         const passiveIncome = currentLiquidUSD * 0.04; // 4% SWP
 
-        // Calculate investment returns based on per-country config
-        const liquidReturn = (countryConfig?.expectedReturnLiquid ?? (currentPhase.type === 'retirement' ? 5 : 8)) / 100;
-        const retirementReturn = (countryConfig?.expectedReturnRetirement ?? 7) / 100;
-        const realEstateReturn = (countryConfig?.expectedReturnRealEstate ?? 4) / 100;
+        // Calculate investment returns based on per-country config, adjusted by simulation mode
+        const baseLiquidReturn = (countryConfig?.expectedReturnLiquid ?? (currentPhase.type === 'retirement' ? 5 : 8)) / 100;
+        const baseRetirementReturn = (countryConfig?.expectedReturnRetirement ?? 7) / 100;
+        const baseRealEstateReturn = (countryConfig?.expectedReturnRealEstate ?? 4) / 100;
 
-        const liquidGrowth = currentLiquidUSD > 0 ? currentLiquidUSD * liquidReturn : 0;
-        const retirementGrowth = currentRetirementUSD > 0 ? currentRetirementUSD * retirementReturn : 0;
-        const realEstateGrowth = currentRealEstateUSD > 0 ? currentRealEstateUSD * realEstateReturn : 0;
+        // Apply simulation mode multiplier
+        const liquidReturn = baseLiquidReturn * returnMultiplier;
+        const retirementReturn = baseRetirementReturn * returnMultiplier;
+        const realEstateReturn = baseRealEstateReturn * returnMultiplier;
+
+        // Apply market crash simulation (every 10 years in crash mode)
+        let crashAdjustment = 1.0;
+        if (simulationMode === 'crash' && yearsElapsed % 10 === 0 && age > scenario.currentAge) {
+            crashAdjustment = 0.70; // 30% market crash
+        }
+
+        const liquidGrowth = currentLiquidUSD > 0 ? currentLiquidUSD * liquidReturn * crashAdjustment : 0;
+        const retirementGrowth = currentRetirementUSD > 0 ? currentRetirementUSD * retirementReturn * crashAdjustment : 0;
+        const realEstateGrowth = currentRealEstateUSD > 0 ? currentRealEstateUSD * realEstateReturn * crashAdjustment : 0;
 
         // Net cash flow
         let netCashFlow = 0;
@@ -240,15 +420,10 @@ export const calculateInternationalScenario = (
         );
         const exchangeRateImpact = (exchangeRate / country.exchangeRateToUSD - 1) * currentLiquidUSD;
 
-        // Check for FI/RE milestone
+        // Check for FI/RE milestone - now calculated at the beginning using solvency check
         const totalNetWorthUSD = currentLiquidUSD + currentRetirementUSD + currentRealEstateUSD;
         const annualExpensesUSD = livingExpensesUSD + healthcareCostsUSD;
-        const fiNumber = annualExpensesUSD * 25; // 4% rule
-
-        if (!fiAge && totalNetWorthUSD >= fiNumber && currentPhase.type !== 'retirement') {
-            fiAge = age;
-            retirementYear = year;
-        }
+        const fiNumber = annualExpensesUSD * 25; // 4% rule - kept for reference/display only
 
         const isSolvent = currentLiquidUSD > 0 || (currentPhase.type !== 'retirement');
 

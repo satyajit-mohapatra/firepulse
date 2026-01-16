@@ -1,10 +1,14 @@
 import React from 'react';
 import { useWizard } from '../../contexts/WizardContext';
-import WizardProgress from './WizardProgress';
+import { useWizardPersistence } from '../../hooks/useWizardPersistence';
+import { useEffect } from 'react';
+import StepperProgress from './StepperProgress';
 import WizardNavigation from './WizardNavigation';
-import Phase1Inputs from './Phase1Inputs';
+import PersonalProfile from './PersonalProfile';
+import FinancialDetails from './FinancialDetails';
 import Phase2Results from './Phase2Results';
 import { FinancialData, CalculationResults, CurrencyCode, SpouseData } from '../../types';
+import { InternationalScenario, ScenarioResults } from '../../types/internationalPlanning';
 
 interface WizardContainerProps {
     data: FinancialData;
@@ -17,6 +21,11 @@ interface WizardContainerProps {
     savingsRate: number;
     longevityTooltip: React.ReactNode;
     setCurrency: (currency: CurrencyCode) => void;
+    uiMode: 'basic' | 'advanced';
+    setUiMode: (mode: 'basic' | 'advanced') => void;
+    internationalScenario: InternationalScenario;
+    setInternationalScenario: React.Dispatch<React.SetStateAction<InternationalScenario>>;
+    internationalResults: ScenarioResults;
 }
 
 const WizardContainer: React.FC<WizardContainerProps> = ({
@@ -30,24 +39,60 @@ const WizardContainer: React.FC<WizardContainerProps> = ({
     savingsRate,
     longevityTooltip,
     setCurrency,
+    uiMode,
+    setUiMode,
+    internationalScenario,
+    setInternationalScenario,
+    internationalResults,
 }) => {
     const { currentStep } = useWizard();
+    const { saveState } = useWizardPersistence();
+
+    // Auto-save state changes (debounced)
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            saveState(
+                currentStep,
+                data,
+                internationalScenario,
+                uiMode,
+                currency
+            );
+        }, 1000);
+
+        return () => clearTimeout(timer);
+    }, [currentStep, data, internationalScenario, uiMode, currency, saveState]);
 
     const renderStep = () => {
         switch (currentStep) {
             case 1:
+                // Step 1: Personal Profile (Basic Info)
                 return (
-                    <Phase1Inputs
+                    <PersonalProfile
+                        data={data}
+                        updateData={updateData}
+                        updateSpouseData={updateSpouseData}
+                        longevityTooltip={longevityTooltip}
+                    />
+                );
+            case 2:
+                // Step 2: Financial Details (Basic vs Advanced toggle)
+                return (
+                    <FinancialDetails
                         data={data}
                         updateData={updateData}
                         updateSpouseData={updateSpouseData}
                         currencySymbol={currencySymbol}
-                        longevityTooltip={longevityTooltip}
                         currency={currency}
                         setCurrency={setCurrency}
+                        uiMode={uiMode}
+                        setUiMode={setUiMode}
+                        internationalScenario={internationalScenario}
+                        setInternationalScenario={setInternationalScenario}
                     />
                 );
-            case 2:
+            case 3:
+                // Step 3: Results & Analysis
                 return (
                     <Phase2Results
                         data={data}
@@ -57,6 +102,9 @@ const WizardContainer: React.FC<WizardContainerProps> = ({
                         updateData={updateData}
                         currentAllocation={currentAllocation}
                         savingsRate={savingsRate}
+                        uiMode={uiMode}
+                        internationalScenario={internationalScenario}
+                        internationalResults={internationalResults}
                     />
                 );
             default:
@@ -66,10 +114,15 @@ const WizardContainer: React.FC<WizardContainerProps> = ({
 
     return (
         <div className="flex-1 flex flex-col">
-            <WizardProgress />
-            <div className="flex-1 py-6">
+            {/* Premium Stepper Progress */}
+            <StepperProgress />
+
+            {/* Step Content */}
+            <div className="flex-1 py-2 sm:py-4">
                 {renderStep()}
             </div>
+
+            {/* Navigation */}
             <WizardNavigation />
         </div>
     );

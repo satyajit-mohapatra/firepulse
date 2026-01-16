@@ -1,0 +1,666 @@
+/* FirePulse Modern Theme - 2024/2025 Design System */
+
+/* ============================
+   CSS Custom Properties (Theme)
+   ============================ */
+:root {
+  /* Color Palette - Light Mode */
+  --fp-bg-primary: #f8fafc;
+  --fp-bg-secondary: #ffffff;
+  --fp-bg-tertiary: #f1f5f9;
+  --fp-bg-accent: rgba(99, 102, 241, 0.05);
+
+  /* Text Colors */
+  --fp-text-primary: #0f172a;
+  --fp-text-secondary: #475569;
+  --fp-text-muted: #94a3b8;
+  --fp-text-accent: #6366f1;
+
+  /* Brand Colors */
+  --fp-brand-primary: #6366f1;
+  --fp-brand-secondary: #8b5cf6;
+  --fp-brand-gradient: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #a855f7 100%);
+
+  /* Status Colors */
+  --fp-success: #10b981;
+  --fp-success-light: #d1fae5;
+  --fp-warning: #f59e0b;
+  --fp-warning-light: #fef3c7;
+  --fp-error: #ef4444;
+  --fp-error-light: #fee2e2;
+  --fp-info: #3b82f6;
+  --fp-info-light: #dbeafe;
+
+  /* Border & Shadow */
+  --fp-border-light: rgba(0, 0, 0, 0.05);
+  --fp-border-medium: rgba(0, 0, 0, 0.1);
+  --fp-shadow-soft: 0 2px 8px -2px rgba(0, 0, 0, 0.05), 0 4px 16px -4px rgba(0, 0, 0, 0.05);
+  --fp-shadow-medium: 0 4px 12px -2px rgba(0, 0, 0, 0.08), 0 8px 24px -4px rgba(0, 0, 0, 0.08);
+  --fp-shadow-large: 0 8px 24px -4px rgba(0, 0, 0, 0.12), 0 16px 48px -8px rgba(0, 0, 0, 0.12);
+  --fp-shadow-glow: 0 0 40px -10px rgba(99, 102, 241, 0.3);
+
+  /* Glassmorphism */
+  --fp-glass-bg: rgba(255, 255, 255, 0.7);
+  --fp-glass-border: rgba(255, 255, 255, 0.3);
+  --fp-glass-blur: blur(20px);
+
+  /* Spacing Scale */
+  --fp-space-xs: 0.25rem;
+  --fp-space-sm: 0.5rem;
+  --fp-space-md: 1rem;
+  --fp-space-lg: 1.5rem;
+  --fp-space-xl: 2rem;
+  --fp-space-2xl: 3rem;
+
+  /* Border Radius */
+  --fp-radius-sm: 0.5rem;
+  --fp-radius-md: 0.75rem;
+  --fp-radius-lg: 1rem;
+  --fp-radius-xl: 1.5rem;
+  --fp-radius-2xl: 2rem;
+  --fp-radius-full: 9999px;
+
+  /* Transitions */
+  --fp-transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+  --fp-transition-normal: 250ms cubic-bezier(0.4, 0, 0.2, 1);
+  --fp-transition-slow: 350ms cubic-bezier(0.4, 0, 0.2, 1);
+  --fp-transition-spring: 500ms cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* Dark Mode */
+[data-theme="dark"] {
+  --fp-bg-primary: #0f172a;
+  --fp-bg-secondary: #1e293b;
+  --fp-bg-tertiary: #334155;
+  --fp-bg-accent: rgba(99, 102, 241, 0.15);
+
+  --fp-text-primary: #f8fafc;
+  --fp-text-secondary: #cbd5e1;
+  --fp-text-muted: #64748b;
+  --fp-text-accent: #818cf8;
+
+  --fp-border-light: rgba(255, 255, 255, 0.05);
+  --fp-border-medium: rgba(255, 255, 255, 0.1);
+
+  --fp-shadow-soft: 0 2px 8px -2px rgba(0, 0, 0, 0.3), 0 4px 16px -4px rgba(0, 0, 0, 0.3);
+  --fp-shadow-medium: 0 4px 12px -2px rgba(0, 0, 0, 0.4), 0 8px 24px -4px rgba(0, 0, 0, 0.4);
+  --fp-shadow-large: 0 8px 24px -4px rgba(0, 0, 0, 0.5), 0 16px 48px -8px rgba(0, 0, 0, 0.5);
+
+  --fp-glass-bg: rgba(30, 41, 59, 0.8);
+  --fp-glass-border: rgba(255, 255, 255, 0.1);
+}
+
+/* ============================
+   Base Styles
+   ============================ */
+* {
+  box-sizing: border-box;
+}
+
+html {
+  font-size: 16px;
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background: var(--fp-bg-primary);
+  color: var(--fp-text-primary);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  transition: background-color var(--fp-transition-normal), color var(--fp-transition-normal);
+}
+
+/* ============================
+   Modern Animated Background
+   ============================ */
+.fp-animated-bg {
+  position: relative;
+  overflow: hidden;
+}
+
+.fp-animated-bg::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background:
+    radial-gradient(ellipse at 20% 20%, rgba(99, 102, 241, 0.08) 0%, transparent 50%),
+    radial-gradient(ellipse at 80% 80%, rgba(139, 92, 246, 0.06) 0%, transparent 50%),
+    radial-gradient(ellipse at 40% 60%, rgba(168, 85, 247, 0.04) 0%, transparent 50%);
+  animation: fp-bg-float 20s ease-in-out infinite;
+  pointer-events: none;
+}
+
+@keyframes fp-bg-float {
+
+  0%,
+  100% {
+    transform: translate(0, 0) scale(1);
+  }
+
+  33% {
+    transform: translate(2%, -2%) scale(1.02);
+  }
+
+  66% {
+    transform: translate(-1%, 1%) scale(0.98);
+  }
+}
+
+/* ============================
+   Modern Card Styles
+   ============================ */
+.fp-card {
+  background: var(--fp-glass-bg);
+  backdrop-filter: var(--fp-glass-blur);
+  -webkit-backdrop-filter: var(--fp-glass-blur);
+  border: 1px solid var(--fp-glass-border);
+  border-radius: var(--fp-radius-xl);
+  box-shadow: var(--fp-shadow-medium);
+  transition: all var(--fp-transition-normal);
+}
+
+.fp-card:hover {
+  box-shadow: var(--fp-shadow-large);
+  transform: translateY(-2px);
+}
+
+.fp-card-solid {
+  background: var(--fp-bg-secondary);
+  border: 1px solid var(--fp-border-light);
+  border-radius: var(--fp-radius-xl);
+  box-shadow: var(--fp-shadow-soft);
+}
+
+/* ============================
+   Modern Input Styles
+   ============================ */
+.fp-input-wrapper {
+  position: relative;
+}
+
+.fp-input-label {
+  display: block;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--fp-text-muted);
+  margin-bottom: 0.5rem;
+  transition: color var(--fp-transition-fast);
+}
+
+.fp-input-wrapper:focus-within .fp-input-label {
+  color: var(--fp-text-accent);
+}
+
+.fp-input {
+  width: 100%;
+  padding: 1rem 1.25rem;
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--fp-text-primary);
+  background: var(--fp-bg-tertiary);
+  border: 2px solid transparent;
+  border-radius: var(--fp-radius-lg);
+  outline: none;
+  transition: all var(--fp-transition-fast);
+}
+
+.fp-input:hover {
+  background: var(--fp-bg-secondary);
+  border-color: var(--fp-border-medium);
+}
+
+.fp-input:focus {
+  background: var(--fp-bg-secondary);
+  border-color: var(--fp-brand-primary);
+  box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.15);
+}
+
+/* ============================
+   Modern Slider Styles
+   ============================ */
+.fp-slider {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 8px;
+  background: var(--fp-bg-tertiary);
+  border-radius: var(--fp-radius-full);
+  outline: none;
+  cursor: pointer;
+  transition: all var(--fp-transition-fast);
+}
+
+.fp-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 24px;
+  height: 24px;
+  background: var(--fp-brand-gradient);
+  border: none;
+  border-radius: 50%;
+  cursor: grab;
+  transition: all var(--fp-transition-fast);
+}
+
+.fp-slider::-webkit-slider-thumb:hover {
+  transform: scale(1.15);
+}
+
+.fp-slider::-webkit-slider-thumb:active {
+  cursor: grabbing;
+  transform: scale(0.95);
+}
+
+.fp-slider::-moz-range-thumb {
+  width: 24px;
+  height: 24px;
+  background: var(--fp-brand-gradient);
+  border: none;
+  border-radius: 50%;
+  cursor: grab;
+  transition: all var(--fp-transition-fast);
+}
+
+/* Slider Track Fill */
+.fp-slider-filled {
+  position: relative;
+}
+
+.fp-slider-track {
+  position: absolute;
+  height: 8px;
+  border-radius: var(--fp-radius-full);
+  background: var(--fp-brand-gradient);
+  pointer-events: none;
+  transition: width var(--fp-transition-fast);
+}
+
+/* ============================
+   Modern Button Styles
+   ============================ */
+.fp-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.875rem 1.5rem;
+  font-size: 0.875rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  border: none;
+  border-radius: var(--fp-radius-lg);
+  cursor: pointer;
+  transition: all var(--fp-transition-fast);
+  position: relative;
+  overflow: hidden;
+}
+
+.fp-btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.2) 0%, transparent 50%);
+  opacity: 0;
+  transition: opacity var(--fp-transition-fast);
+}
+
+.fp-btn:hover::before {
+  opacity: 1;
+}
+
+.fp-btn-primary {
+  color: white;
+  background: var(--fp-brand-gradient);
+  box-shadow: 0 4px 16px -4px rgba(99, 102, 241, 0.4);
+}
+
+.fp-btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px -4px rgba(99, 102, 241, 0.5);
+}
+
+.fp-btn-primary:active {
+  transform: translateY(0);
+}
+
+.fp-btn-secondary {
+  color: var(--fp-text-primary);
+  background: var(--fp-bg-tertiary);
+  border: 2px solid var(--fp-border-medium);
+}
+
+.fp-btn-secondary:hover {
+  background: var(--fp-bg-secondary);
+  border-color: var(--fp-brand-primary);
+}
+
+.fp-btn-ghost {
+  color: var(--fp-text-secondary);
+  background: transparent;
+}
+
+.fp-btn-ghost:hover {
+  color: var(--fp-brand-primary);
+  background: var(--fp-bg-accent);
+}
+
+/* ============================
+   Progress Ring Component
+   ============================ */
+.fp-progress-ring {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.fp-progress-ring svg {
+  transform: rotate(-90deg);
+}
+
+.fp-progress-ring-bg {
+  stroke: var(--fp-bg-tertiary);
+}
+
+.fp-progress-ring-fill {
+  stroke: url(#progressGradient);
+  stroke-linecap: round;
+  transition: stroke-dashoffset 1s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.fp-progress-ring-content {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+/* ============================
+   Metric Card Component
+   ============================ */
+.fp-metric-card {
+  position: relative;
+  padding: 1.5rem;
+  border-radius: var(--fp-radius-xl);
+  background: var(--fp-brand-gradient);
+  color: white;
+  overflow: hidden;
+}
+
+.fp-metric-card::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  right: -50%;
+  width: 100%;
+  height: 200%;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.15) 0%, transparent 50%);
+  animation: fp-metric-shimmer 3s ease-in-out infinite;
+}
+
+@keyframes fp-metric-shimmer {
+
+  0%,
+  100% {
+    transform: translate(0, 0);
+    opacity: 0.5;
+  }
+
+  50% {
+    transform: translate(-20%, 20%);
+    opacity: 1;
+  }
+}
+
+.fp-metric-label {
+  font-size: 0.6875rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  opacity: 0.9;
+}
+
+.fp-metric-value {
+  font-size: 2.5rem;
+  font-weight: 900;
+  line-height: 1;
+  margin-top: 0.5rem;
+  font-style: italic;
+}
+
+.fp-metric-caption {
+  font-size: 0.75rem;
+  font-weight: 600;
+  opacity: 0.8;
+  margin-top: 0.5rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+/* ============================
+   Modern Toggle Switch
+   ============================ */
+.fp-toggle {
+  position: relative;
+  width: 56px;
+  height: 28px;
+  background: var(--fp-bg-tertiary);
+  border-radius: var(--fp-radius-full);
+  cursor: pointer;
+  transition: all var(--fp-transition-fast);
+}
+
+.fp-toggle.active {
+  background: var(--fp-brand-gradient);
+}
+
+.fp-toggle-thumb {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 24px;
+  height: 24px;
+  background: white;
+  border-radius: 50%;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  transition: all var(--fp-transition-spring);
+}
+
+.fp-toggle.active .fp-toggle-thumb {
+  transform: translateX(28px);
+}
+
+/* ============================
+   Animations
+   ============================ */
+@keyframes fp-fade-in {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes fp-slide-up {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fp-scale-in {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes fp-pulse {
+
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0.7;
+  }
+}
+
+@keyframes fp-float {
+
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(-5px);
+  }
+}
+
+.fp-animate-in {
+  animation: fp-slide-up 0.4s ease-out forwards;
+}
+
+.fp-animate-pulse {
+  animation: fp-pulse 2s ease-in-out infinite;
+}
+
+.fp-animate-float {
+  animation: fp-float 3s ease-in-out infinite;
+}
+
+/* Staggered animation delays */
+.fp-animate-in:nth-child(1) {
+  animation-delay: 0ms;
+}
+
+.fp-animate-in:nth-child(2) {
+  animation-delay: 50ms;
+}
+
+.fp-animate-in:nth-child(3) {
+  animation-delay: 100ms;
+}
+
+.fp-animate-in:nth-child(4) {
+  animation-delay: 150ms;
+}
+
+.fp-animate-in:nth-child(5) {
+  animation-delay: 200ms;
+}
+
+.fp-animate-in:nth-child(6) {
+  animation-delay: 250ms;
+}
+
+/* ============================
+   Responsive Breakpoints
+   ============================ */
+@media (max-width: 640px) {
+  :root {
+    font-size: 15px;
+  }
+
+  .fp-card {
+    border-radius: var(--fp-radius-lg);
+    padding: 1.25rem;
+  }
+
+  .fp-metric-value {
+    font-size: 2rem;
+  }
+
+  .fp-btn {
+    padding: 0.75rem 1.25rem;
+    font-size: 0.8125rem;
+  }
+
+  .fp-input {
+    padding: 0.875rem 1rem;
+    font-size: 1rem;
+  }
+}
+
+@media (min-width: 641px) and (max-width: 1024px) {
+  :root {
+    font-size: 15px;
+  }
+}
+
+/* ============================
+   Utility Classes
+   ============================ */
+.fp-gradient-text {
+  background: var(--fp-brand-gradient);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.fp-glass {
+  background: var(--fp-glass-bg);
+  backdrop-filter: var(--fp-glass-blur);
+  -webkit-backdrop-filter: var(--fp-glass-blur);
+  border: 1px solid var(--fp-glass-border);
+}
+
+.fp-shadow-glow {
+  box-shadow: var(--fp-shadow-glow);
+}
+
+/* Hide scrollbar but keep functionality */
+.fp-scrollbar-hidden {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.fp-scrollbar-hidden::-webkit-scrollbar {
+  display: none;
+}
+
+/* Custom scrollbar styling */
+.fp-scrollbar-styled::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.fp-scrollbar-styled::-webkit-scrollbar-track {
+  background: var(--fp-bg-tertiary);
+  border-radius: var(--fp-radius-full);
+}
+
+.fp-scrollbar-styled::-webkit-scrollbar-thumb {
+  background: var(--fp-brand-primary);
+  border-radius: var(--fp-radius-full);
+}
+
+.fp-scrollbar-styled::-webkit-scrollbar-thumb:hover {
+  background: var(--fp-brand-secondary);
+}

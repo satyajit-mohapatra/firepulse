@@ -88,7 +88,7 @@ const ProjectionChart: React.FC<ProjectionChartProps> = ({ data, fiAge, currency
   return (
     <div className="h-[300px] sm:h-[350px] md:h-[400px] w-full">
       <ResponsiveContainer width="100%" height="100%">
-        <AreaChart data={data} margin={{ top: 10, right: 20, left: 5, bottom: 15 }}>
+        <AreaChart data={data} margin={{ top: 10, right: 20, left: 5, bottom: 25 }}>
           <defs>
             <linearGradient id="colorNetWorth" x1="0" y1="0" x2="0" y2="1">
               <stop offset="5%" stopColor="#6366f1" stopOpacity={0.2} />
@@ -101,7 +101,6 @@ const ProjectionChart: React.FC<ProjectionChartProps> = ({ data, fiAge, currency
             axisLine={false}
             tickLine={false}
             tick={{ fontSize: 10, fill: '#64748b', fontWeight: 700 }}
-            dy={10}
           />
           <YAxis
             axisLine={false}

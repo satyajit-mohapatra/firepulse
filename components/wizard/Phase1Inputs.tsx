@@ -147,7 +147,8 @@ const Phase1Inputs: React.FC<Phase1InputsProps> = ({
                     <select
                         value={currency}
                         onChange={(e) => setCurrency(e.target.value as CurrencyCode)}
-                        className="relative w-full px-4 py-2 bg-white border border-slate-200 rounded-lg shadow-sm text-sm font-bold text-slate-700 outline-none focus:ring-2 focus:ring-purple-500/50 appearance-none cursor-pointer pr-10"
+                        className="relative w-full px-4 py-2 rounded-lg shadow-sm text-sm font-bold outline-none focus:ring-2 focus:ring-purple-500/50 appearance-none cursor-pointer pr-10 transition-colors"
+                        style={{ background: 'var(--fp-bg-secondary)', color: 'var(--fp-text-primary)', borderColor: 'var(--fp-border-light)' }}
                     >
                         {currencies.map(c => (
                             <option key={c.code} value={c.code}>
@@ -164,7 +165,7 @@ const Phase1Inputs: React.FC<Phase1InputsProps> = ({
             </div>
 
             {/* PRIMARY PERSON STATS */}
-            <section className="space-y-4 sm:space-y-6 md:space-y-8 p-4 sm:p-6 md:p-8 rounded-[1rem] sm:rounded-[1.5rem] border border-purple-200/50 bg-gradient-to-br from-purple-50/60 via-pink-50/40 to-purple-50/60 shadow-lg relative z-10">
+            <section className="space-y-4 sm:space-y-6 md:space-y-8 p-4 sm:p-6 md:p-8 rounded-[1rem] sm:rounded-[1.5rem] border border-purple-200/30 shadow-lg relative z-10 backdrop-blur-sm" style={{ background: 'var(--fp-bg-card, rgba(255,255,255,0.85))' }}>
                 <div className="flex items-center justify-between">
                     <h3 className="text-[9px] sm:text-[10px] md:text-xs font-black text-purple-700 uppercase tracking-[0.4em] sm:tracking-[0.5em] flex items-center gap-2 sm:gap-3">
                         <span className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-gradient-to-r from-purple-600 to-pink-600 rounded-full shadow-lg shadow-purple-600/40"></span>
@@ -203,15 +204,16 @@ const Phase1Inputs: React.FC<Phase1InputsProps> = ({
                         step={500}
                         prefix={currencySymbol}
                         tooltip="Your monthly salary/income (before spouse income)"
+                        currency={currency}
                     />
                 </div>
             </section>
 
             {/* SPOUSE TOGGLE & SECTION */}
-            <section className="space-y-4 sm:space-y-6 md:space-y-8 p-4 sm:p-6 md:p-8 rounded-[1rem] sm:rounded-[1.5rem] border border-rose-200/50 bg-gradient-to-br from-rose-50/60 via-pink-50/40 to-rose-50/60 shadow-lg relative z-10">
+            <section className="space-y-4 sm:space-y-6 p-4 sm:p-6 rounded-xl sm:rounded-2xl border border-slate-200 bg-white shadow-sm">
                 <div className="flex items-center justify-between">
-                    <h3 className="text-[9px] sm:text-[10px] md:text-xs font-black text-rose-700 uppercase tracking-[0.4em] sm:tracking-[0.5em] flex items-center gap-2 sm:gap-3">
-                        <span className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-gradient-to-r from-rose-600 to-pink-600 rounded-full shadow-lg shadow-rose-600/40"></span>
+                    <h3 className="text-xs sm:text-sm font-bold text-slate-700 flex items-center gap-2">
+                        <span className="w-2 h-2 bg-rose-500 rounded-full"></span>
                         💑 Spouse / Partner
                     </h3>
                     <button
@@ -261,6 +263,7 @@ const Phase1Inputs: React.FC<Phase1InputsProps> = ({
                             step={500}
                             prefix={currencySymbol}
                             tooltip="Spouse's monthly salary/income. Adds to family income."
+                            currency={currency}
                         />
                         <SliderInput
                             label="Spouse Income Growth %"
@@ -301,6 +304,7 @@ const Phase1Inputs: React.FC<Phase1InputsProps> = ({
                         step={10000}
                         prefix={currencySymbol}
                         tooltip="Family cash, stocks, bonds, brokerage accounts - fully accessible anytime"
+                        currency={currency}
                     />
                     <SliderInput
                         label="Retirement Assets"
@@ -311,6 +315,7 @@ const Phase1Inputs: React.FC<Phase1InputsProps> = ({
                         step={10000}
                         prefix={currencySymbol}
                         tooltip="Combined 401k, IRA, retirement accounts - locked until retirement but higher returns"
+                        currency={currency}
                     />
                     <SliderInput
                         label="Real Estate / Non-Liquid"
@@ -321,6 +326,7 @@ const Phase1Inputs: React.FC<Phase1InputsProps> = ({
                         step={10000}
                         prefix={currencySymbol}
                         tooltip="Family real estate, business equity - hard to liquidate, lower but stable returns"
+                        currency={currency}
                     />
                 </div>
             </section>
@@ -346,6 +352,7 @@ const Phase1Inputs: React.FC<Phase1InputsProps> = ({
                         max={500000}
                         step={500}
                         prefix={currencySymbol}
+                        currency={currency}
                     />
                     <SliderInput
                         label="Monthly Medical"
@@ -356,6 +363,7 @@ const Phase1Inputs: React.FC<Phase1InputsProps> = ({
                         step={100}
                         prefix={currencySymbol}
                         tooltip="Health insurance, doctor visits, prescriptions"
+                        currency={currency}
                     />
                     <SliderInput
                         label="Kids Monthly Edu"
@@ -366,6 +374,7 @@ const Phase1Inputs: React.FC<Phase1InputsProps> = ({
                         step={100}
                         prefix={currencySymbol}
                         tooltip="Monthly school fees, tuition, and basic education costs"
+                        currency={currency}
                     />
                     <SliderInput
                         label="Monthly Surplus"
@@ -376,6 +385,7 @@ const Phase1Inputs: React.FC<Phase1InputsProps> = ({
                         step={100}
                         prefix={currencySymbol}
                         tooltip={`Total family income minus expenses = savings available for investments`}
+                        currency={currency}
                     />
                 </div>
             </section>

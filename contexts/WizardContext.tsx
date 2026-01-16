@@ -1,7 +1,7 @@
-import React, { createContext, useContext, useState, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { FinancialData } from '../types';
 
-export type WizardStep = 1 | 2;
+export type WizardStep = 1 | 2 | 3;
 
 interface WizardContextType {
     currentStep: WizardStep;
@@ -16,28 +16,42 @@ interface WizardContextType {
 
 const WizardContext = createContext<WizardContextType | undefined>(undefined);
 
-export const WizardProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-    const [currentStep, setCurrentStep] = useState<WizardStep>(1);
+export const WizardProvider: React.FC<{
+    children: ReactNode;
+    initialStep?: WizardStep;
+    onStepChange?: (step: WizardStep) => void;
+}> = ({ children, initialStep = 1, onStepChange }) => {
+    const [currentStep, setCurrentStep] = useState<WizardStep>(initialStep);
     const [canProgress, setCanProgress] = useState<boolean>(true);
 
+    // Sync internal state if initialStep changes (e.g. from async load)
+    useEffect(() => {
+        if (initialStep) setCurrentStep(initialStep);
+    }, [initialStep]);
+
+    const handleStepChange = (newStep: WizardStep) => {
+        setCurrentStep(newStep);
+        onStepChange?.(newStep);
+    };
+
     const goToStep = (step: WizardStep) => {
-        setCurrentStep(step);
+        handleStepChange(step);
     };
 
     const nextStep = () => {
-        if (currentStep < 2) {
-            setCurrentStep((prev) => (prev + 1) as WizardStep);
+        if (currentStep < 3) {
+            handleStepChange((currentStep + 1) as WizardStep);
         }
     };
 
     const prevStep = () => {
         if (currentStep > 1) {
-            setCurrentStep((prev) => (prev - 1) as WizardStep);
+            handleStepChange((currentStep - 1) as WizardStep);
         }
     };
 
     const isFirstStep = currentStep === 1;
-    const isLastStep = currentStep === 2;
+    const isLastStep = currentStep === 3;
 
     return (
         <WizardContext.Provider
