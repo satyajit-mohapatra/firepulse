@@ -929,6 +929,21 @@ const InternationalPlanner: React.FC<{
     const prevTab = tabs[currentTabIndex - 1];
     const nextTab = tabs[currentTabIndex + 1];
 
+    // Sync profile data from main data to scenario whenever it changes
+    useEffect(() => {
+        setScenario(prev => ({
+            ...prev,
+            currentAge: data.currentAge,
+            retirementAge: data.retirementAge,
+            lifeExpectancy: data.liveUntilAge,
+            spouseEnabled: data.spouse.enabled,
+            spouseCurrentAge: data.spouse.currentAge,
+            spouseRetirementAge: data.spouse.retirementAge,
+            spouseLiveUntilAge: data.spouse.liveUntilAge,
+        }));
+        setShowSpouseSection(data.spouse.enabled);
+    }, [data.currentAge, data.retirementAge, data.liveUntilAge, data.spouse.enabled, data.spouse.currentAge, data.spouse.retirementAge, data.spouse.liveUntilAge, setScenario]);
+
     // Recalculate results when scenario changes
     const results = useMemo(() => calculateInternationalScenario(scenario), [scenario]);
 
@@ -1181,36 +1196,37 @@ const InternationalPlanner: React.FC<{
                             </div>
                         </div>
 
-                        {/* Basic Settings */}
-                        <div className="bg-white p-4 sm:p-6 rounded-2xl border border-purple-100 shadow-sm">
-                            <h3 className="text-sm font-black text-purple-700 uppercase tracking-wider mb-4 flex items-center gap-2">
-                                <span className="w-2 h-2 bg-gradient-to-r from-purple-600 to-pink-600 rounded-full"></span>
-                                👤 You
-                            </h3>
-                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                                <ModernSliderInput
-                                    label="Age Now"
-                                    value={scenario.currentAge}
-                                    onChange={(v) => setScenario(prev => ({ ...prev, currentAge: v }))}
-                                    min={18}
-                                    max={scenario.retirementAge - 1}
-                                />
-                                <ModernSliderInput
-                                    label="Retire Age"
-                                    value={scenario.retirementAge}
-                                    onChange={(v) => setScenario(prev => ({ ...prev, retirementAge: v }))}
-                                    min={scenario.currentAge + 1}
-                                    max={scenario.lifeExpectancy - 1}
-                                    tooltip="Target age to stop working"
-                                />
-                                <ModernSliderInput
-                                    label="Live Until Age"
-                                    value={scenario.lifeExpectancy}
-                                    onChange={(v) => setScenario(prev => ({ ...prev, lifeExpectancy: v }))}
-                                    min={scenario.retirementAge + 1}
-                                    max={110}
-                                    tooltip="Planning horizon for your financial projections"
-                                />
+                        {/* Info Box - Ages are from Profile Page */}
+                        <div className="bg-gradient-to-br from-purple-50 to-indigo-50 p-4 sm:p-6 rounded-2xl border border-purple-200 shadow-sm">
+                            <div className="flex items-start gap-3">
+                                <div className="flex-shrink-0 w-10 h-10 bg-gradient-to-br from-purple-600 to-pink-600 rounded-xl flex items-center justify-center shadow-lg">
+                                    <span className="text-xl">👤</span>
+                                </div>
+                                <div className="flex-1">
+                                    <h3 className="text-sm font-black text-purple-700 uppercase tracking-wider mb-2">
+                                        Your Profile
+                                    </h3>
+                                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 text-xs">
+                                        <div className="bg-white/80 backdrop-blur-sm px-3 py-2 rounded-lg border border-purple-100">
+                                            <div className="text-slate-500 font-bold uppercase tracking-wider text-[10px]">Age Now</div>
+                                            <div className="text-purple-700 font-black text-lg">{scenario.currentAge}</div>
+                                        </div>
+                                        <div className="bg-white/80 backdrop-blur-sm px-3 py-2 rounded-lg border border-purple-100">
+                                            <div className="text-slate-500 font-bold uppercase tracking-wider text-[10px]">Retire Age</div>
+                                            <div className="text-purple-700 font-black text-lg">{scenario.retirementAge}</div>
+                                        </div>
+                                        <div className="bg-white/80 backdrop-blur-sm px-3 py-2 rounded-lg border border-purple-100">
+                                            <div className="text-slate-500 font-bold uppercase tracking-wider text-[10px]">Live Until</div>
+                                            <div className="text-purple-700 font-black text-lg">{scenario.lifeExpectancy}</div>
+                                        </div>
+                                    </div>
+                                    <p className="text-xs text-purple-600 mt-3 flex items-center gap-1.5">
+                                        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                        </svg>
+                                        <span className="font-semibold">These values are set in the Profile page</span>
+                                    </p>
+                                </div>
                             </div>
                         </div>
 
@@ -1259,6 +1275,7 @@ const InternationalPlanner: React.FC<{
                             </div>
                         </div>
 
+
                         {/* Spouse / Partner Section */}
                         <div className="bg-white p-4 sm:p-6 rounded-2xl border border-rose-100 shadow-sm">
                             <div className="flex items-center justify-between mb-4">
@@ -1271,6 +1288,8 @@ const InternationalPlanner: React.FC<{
                                         const newEnabled = !scenario.spouseEnabled;
                                         setScenario(prev => ({ ...prev, spouseEnabled: newEnabled }));
                                         setShowSpouseSection(newEnabled);
+                                        // Also update the main data spouse enabled state
+                                        updateSpouseData('enabled', newEnabled);
                                     }}
                                     className={`relative w-14 h-7 rounded-full transition-all duration-300 ${scenario.spouseEnabled
                                         ? 'bg-gradient-to-r from-rose-500 to-pink-500 shadow-lg shadow-rose-500/30'
@@ -1286,33 +1305,37 @@ const InternationalPlanner: React.FC<{
 
                             {scenario.spouseEnabled && (
                                 <div className="space-y-4 animate-in fade-in slide-in-from-top-2 duration-300">
-                                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                                        <ModernSliderInput
-                                            label="Spouse Age"
-                                            value={scenario.spouseCurrentAge || 18}
-                                            onChange={(v) => setScenario(prev => ({ ...prev, spouseCurrentAge: v }))}
-                                            min={18}
-                                            max={(scenario.spouseRetirementAge || 60) - 1}
-                                            color="rose"
-                                        />
-                                        <ModernSliderInput
-                                            label="Spouse Retire Age"
-                                            value={scenario.spouseRetirementAge || 60}
-                                            onChange={(v) => setScenario(prev => ({ ...prev, spouseRetirementAge: v }))}
-                                            min={(scenario.spouseCurrentAge || 18) + 1}
-                                            max={(scenario.spouseLiveUntilAge || 95) - 1}
-                                            tooltip="Spouse's target retirement age - can be different from yours"
-                                            color="rose"
-                                        />
-                                        <ModernSliderInput
-                                            label="Spouse Live Until"
-                                            value={scenario.spouseLiveUntilAge || 95}
-                                            onChange={(v) => setScenario(prev => ({ ...prev, spouseLiveUntilAge: v }))}
-                                            min={(scenario.spouseRetirementAge || 60) + 1}
-                                            max={110}
-                                            tooltip="Planning horizon for spouse. Uses longer of both for calculations."
-                                            color="rose"
-                                        />
+                                    <div className="bg-gradient-to-br from-rose-50 to-pink-50 p-4 rounded-xl border border-rose-200">
+                                        <div className="flex items-start gap-3">
+                                            <div className="flex-shrink-0 w-10 h-10 bg-gradient-to-br from-rose-600 to-pink-600 rounded-xl flex items-center justify-center shadow-lg">
+                                                <span className="text-xl">💑</span>
+                                            </div>
+                                            <div className="flex-1">
+                                                <h4 className="text-sm font-black text-rose-700 uppercase tracking-wider mb-2">
+                                                    Spouse Profile
+                                                </h4>
+                                                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 text-xs">
+                                                    <div className="bg-white/80 backdrop-blur-sm px-3 py-2 rounded-lg border border-rose-100">
+                                                        <div className="text-slate-500 font-bold uppercase tracking-wider text-[10px]">Age Now</div>
+                                                        <div className="text-rose-700 font-black text-lg">{scenario.spouseCurrentAge || data.spouse.currentAge}</div>
+                                                    </div>
+                                                    <div className="bg-white/80 backdrop-blur-sm px-3 py-2 rounded-lg border border-rose-100">
+                                                        <div className="text-slate-500 font-bold uppercase tracking-wider text-[10px]">Retire Age</div>
+                                                        <div className="text-rose-700 font-black text-lg">{scenario.spouseRetirementAge || data.spouse.retirementAge}</div>
+                                                    </div>
+                                                    <div className="bg-white/80 backdrop-blur-sm px-3 py-2 rounded-lg border border-rose-100">
+                                                        <div className="text-slate-500 font-bold uppercase tracking-wider text-[10px]">Live Until</div>
+                                                        <div className="text-rose-700 font-black text-lg">{scenario.spouseLiveUntilAge || data.spouse.liveUntilAge}</div>
+                                                    </div>
+                                                </div>
+                                                <p className="text-xs text-rose-600 mt-3 flex items-center gap-1.5">
+                                                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                                    </svg>
+                                                    <span className="font-semibold">These values are set in the Profile page</span>
+                                                </p>
+                                            </div>
+                                        </div>
                                     </div>
                                     <div className="p-3 bg-rose-50 rounded-lg border border-rose-100">
                                         <p className="text-xs text-rose-600 font-medium flex items-center gap-2">
