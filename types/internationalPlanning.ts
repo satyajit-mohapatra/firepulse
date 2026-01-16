@@ -177,6 +177,8 @@ export interface YearlyProjectionIntl {
     // Income
     grossIncome: number;
     grossIncomeUSD: number;
+    primaryIncome?: number;
+    spouseIncome?: number;
     taxPaid: number;
     netIncome: number;
     passiveIncome: number;

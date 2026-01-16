@@ -309,6 +309,8 @@ export const calculateInternationalScenario = (
         let grossIncome = 0;
         let netIncome = 0;
         let retirementContributions = 0;
+        let currentIncomePrimary = 0;
+        let currentIncomeSpouse = 0;
 
         if (currentPhase.type === 'work' || (currentPhase.spouseIsWorking && currentPhase.annualIncomeSpouse && currentPhase.annualIncomeSpouse > 0)) {
             // Primary person income - only if working in this phase
@@ -329,8 +331,8 @@ export const calculateInternationalScenario = (
             const primaryWorkYears = Math.max(0, age - currentPhase.startAge);
             const spouseWorkYears = spouseInRange ? Math.max(0, age - spouseWorkStart) : 0;
 
-            const currentIncomePrimary = primaryIsWorking ? incomePrimary * Math.pow(1 + growthRatePrimary / 100, primaryWorkYears) : 0;
-            const currentIncomeSpouse = (spouseIsWorking && spouseInRange) ? incomeSpouse * Math.pow(1 + growthRateSpouse / 100, spouseWorkYears) : 0;
+            currentIncomePrimary = primaryIsWorking ? incomePrimary * Math.pow(1 + growthRatePrimary / 100, primaryWorkYears) : 0;
+            currentIncomeSpouse = (spouseIsWorking && spouseInRange) ? incomeSpouse * Math.pow(1 + growthRateSpouse / 100, spouseWorkYears) : 0;
 
             grossIncome = currentIncomePrimary + currentIncomeSpouse;
 
@@ -441,6 +443,8 @@ export const calculateInternationalScenario = (
             currency: country.currency,
             grossIncome,
             grossIncomeUSD: grossIncome * country.exchangeRateToUSD,
+            primaryIncome: currentIncomePrimary,
+            spouseIncome: currentIncomeSpouse,
             taxPaid: grossIncome > netIncome ? grossIncome - netIncome : 0,
             netIncome,
             passiveIncome,

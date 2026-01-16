@@ -86,11 +86,14 @@ export interface FinancialData {
 export interface YearProjection {
   year: number;
   age: number;
+  spouseAge?: number;
   openingBalance: number;
   returns: number;
   netWorth: number;
   isRetired: boolean;
   income: number;
+  primaryIncome?: number;
+  spouseIncome?: number;
   livingExpenses: number;
   medicalExpenses: number;
   kidsEducationExpenses: number;

@@ -85,7 +85,7 @@ export const formatNumberForDisplay = (value: number, currency: string = 'USD'):
         if (absVal >= 10000000) {
             return sign + (absVal / 10000000).toFixed(1).replace(/\.0$/, '') + 'Cr';
         } else if (absVal >= 100000) {
-            return sign + (absVal / 100000).toFixed(1).replace(/\.0$/, '') + 'L';
+            return sign + (absVal / 100000).toFixed(1).replace(/\.0$/, '') + 'Lac';
         } else if (absVal >= 1000) {
             return sign + (absVal / 1000).toFixed(1).replace(/\.0$/, '') + 'K';
         }

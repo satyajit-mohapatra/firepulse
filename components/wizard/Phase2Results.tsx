@@ -328,10 +328,10 @@ const Phase2Results: React.FC<Phase2ResultsProps> = ({
                             <table className="w-full text-xs">
                                 <thead className="bg-slate-50 border-b border-slate-100">
                                     <tr>
-                                        <th className="px-3 py-3 text-left font-black uppercase text-slate-500 tracking-wider">Year (You/Spouse)</th>
+                                        <th className="px-3 py-3 text-left font-black uppercase text-slate-500 tracking-wider">Year (Age/Spouse)</th>
                                         <th className="px-3 py-3 text-left font-black uppercase text-slate-500 tracking-wider">Phase</th>
                                         <th className="px-3 py-3 text-left font-black uppercase text-slate-500 tracking-wider">Country/Location</th>
-                                        <th className="px-3 py-3 text-right font-black uppercase text-slate-500 tracking-wider">Income (Local)</th>
+                                        <th className="px-3 py-3 text-right font-black uppercase text-slate-500 tracking-wider">Income (You/Spouse)</th>
                                         <th className="px-3 py-3 text-right font-black uppercase text-slate-500 tracking-wider">Growth (Local)</th>
                                         <th className="px-3 py-3 text-right font-black uppercase text-slate-500 tracking-wider">Exp (Local)</th>
                                         <th className="px-3 py-3 text-right font-black uppercase text-slate-500 tracking-wider">Portfolio (Local)</th>
@@ -363,8 +363,17 @@ const Phase2Results: React.FC<Phase2ResultsProps> = ({
                                                         <span>{COUNTRIES[p.country]?.name || p.country}</span>
                                                     </span>
                                                 </td>
-                                                <td className="px-3 py-2 text-right text-emerald-600 font-medium">
-                                                    {p.grossIncome > 0 ? `${symbol} ${formatIntlCompact(p.grossIncome, p.currency)}` : '—'}
+                                                <td className="px-3 py-2 text-right text-emerald-600 font-medium whitespace-nowrap">
+                                                    {p.grossIncome > 0 ? (
+                                                        <div className="flex flex-col items-end">
+                                                            <span className="text-[10px] text-slate-400 font-normal">Total: {symbol} {formatIntlCompact(p.grossIncome, p.currency)}</span>
+                                                            <span>
+                                                                {symbol} {formatIntlCompact(p.primaryIncome || 0, p.currency)}
+                                                                <span className="mx-1 text-slate-300">/</span>
+                                                                {p.spouseAge !== undefined ? `${symbol} ${formatIntlCompact(p.spouseIncome || 0, p.currency)}` : '—'}
+                                                            </span>
+                                                        </div>
+                                                    ) : '—'}
                                                 </td>
                                                 <td className="px-3 py-2 text-right text-indigo-600 font-medium">
                                                     {symbol} {formatIntlCompact(p.investmentGrowth / p.exchangeRate, p.currency)}
@@ -384,9 +393,9 @@ const Phase2Results: React.FC<Phase2ResultsProps> = ({
                             <table className="w-full text-sm">
                                 <thead className="bg-slate-50">
                                     <tr>
-                                        <th className="px-4 py-3 text-left font-semibold text-slate-600">Age</th>
+                                        <th className="px-4 py-3 text-left font-semibold text-slate-600">Year (Age/Spouse)</th>
                                         <th className="px-4 py-3 text-left font-semibold text-slate-600">Phase</th>
-                                        <th className="px-4 py-3 text-right font-semibold text-slate-600">Income</th>
+                                        <th className="px-4 py-3 text-right font-semibold text-slate-600">Income (You/Spouse)</th>
                                         <th className="px-4 py-3 text-right font-semibold text-slate-600">Growth</th>
                                         <th className="px-4 py-3 text-right font-semibold text-slate-600">Expenses</th>
                                         <th className="px-4 py-3 text-right font-semibold text-slate-600">Net Worth</th>
@@ -396,15 +405,24 @@ const Phase2Results: React.FC<Phase2ResultsProps> = ({
                                     {results.projections.map((p, idx) => (
                                         <tr key={idx} className={`hover:bg-slate-50 ${p.isRetired ? 'bg-indigo-50/30' : ''}`}>
                                             <td className="px-4 py-2.5 font-medium text-slate-800">
-                                                {p.age} <span className="text-slate-400">({p.year})</span>
+                                                {p.year} <span className="text-slate-400 ml-1 text-xs">({p.age}{p.spouseAge !== undefined ? `/${p.spouseAge}` : ''})</span>
                                             </td>
                                             <td className="px-4 py-2.5">
                                                 <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${!p.isRetired ? 'bg-emerald-100 text-emerald-700' : 'bg-indigo-100 text-indigo-700'}`}>
                                                     {!p.isRetired ? 'Working' : 'Retired'}
                                                 </span>
                                             </td>
-                                            <td className="px-4 py-2.5 text-right text-emerald-600 font-medium">
-                                                {p.income > 0 ? formatCurrencyCompact(p.income, currency) : '—'}
+                                            <td className="px-4 py-2.5 text-right text-emerald-600 font-medium whitespace-nowrap">
+                                                {p.income > 0 ? (
+                                                    <div className="flex flex-col items-end">
+                                                        <span className="text-[10px] text-slate-400 font-normal">Total: {formatCurrencyCompact(p.income, currency)}</span>
+                                                        <span className="text-sm">
+                                                            {formatCurrencyCompact(p.primaryIncome || 0, currency)}
+                                                            <span className="mx-1 text-slate-300">/</span>
+                                                            {p.spouseAge !== undefined ? formatCurrencyCompact(p.spouseIncome || 0, currency) : '—'}
+                                                        </span>
+                                                    </div>
+                                                ) : '—'}
                                             </td>
                                             <td className="px-4 py-2.5 text-right text-indigo-600 font-medium">
                                                 {p.returns !== 0 ? formatCurrencyCompact(p.returns, currency) : '—'}

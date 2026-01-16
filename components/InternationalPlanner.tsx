@@ -60,7 +60,8 @@ const PhaseEditor: React.FC<{
     isLast: boolean;
     onMatchLifestyle?: () => void;
     showSpouse: boolean;
-}> = ({ phase, onChange, onDelete, onMoveUp, onMoveDown, isFirst, isLast, onMatchLifestyle, showSpouse }) => {
+    spouseAgeGap: number;
+}> = ({ phase, onChange, onDelete, onMoveUp, onMoveDown, isFirst, isLast, onMatchLifestyle, showSpouse, spouseAgeGap }) => {
     const countryData = COUNTRIES[phase.country];
 
     const phaseColors = {
@@ -229,9 +230,10 @@ const PhaseEditor: React.FC<{
                                         value={phase.annualIncomePrimary || phase.annualIncome || 0}
                                         onChange={(v) => onChange({ ...phase, annualIncomePrimary: v, annualIncome: v })}
                                         min={0}
-                                        max={1000000}
-                                        step={5000}
+                                        max={phase.country === 'IN' ? 50000000 : 2000000}
+                                        step={phase.country === 'IN' ? 100000 : 10000}
                                         prefix={countryData?.currencySymbol || '$'}
+                                        currency={(countryData?.currency as any) || 'USD'}
                                         tooltip="Estimate pre-tax annual income for primary person"
                                         color="emerald"
                                     />
@@ -282,19 +284,19 @@ const PhaseEditor: React.FC<{
                                         <div className="grid grid-cols-2 gap-2 p-2 bg-rose-100/30 rounded-lg">
                                             <ModernSliderInput
                                                 label="Work Start Age"
-                                                value={phase.spouseWorkStartAge ?? phase.startAge}
-                                                onChange={(v) => onChange({ ...phase, spouseWorkStartAge: v })}
-                                                min={phase.startAge}
-                                                max={phase.spouseWorkEndAge ?? phase.endAge}
+                                                value={(phase.spouseWorkStartAge ?? phase.startAge) + spouseAgeGap}
+                                                onChange={(v) => onChange({ ...phase, spouseWorkStartAge: v - spouseAgeGap })}
+                                                min={phase.startAge + spouseAgeGap}
+                                                max={(phase.spouseWorkEndAge ?? phase.endAge) + spouseAgeGap}
                                                 tooltip="Age when spouse starts working in this phase"
                                                 color="rose"
                                             />
                                             <ModernSliderInput
                                                 label="Work End Age"
-                                                value={phase.spouseWorkEndAge ?? phase.endAge}
-                                                onChange={(v) => onChange({ ...phase, spouseWorkEndAge: v })}
-                                                min={phase.spouseWorkStartAge ?? phase.startAge}
-                                                max={phase.endAge}
+                                                value={(phase.spouseWorkEndAge ?? phase.endAge) + spouseAgeGap}
+                                                onChange={(v) => onChange({ ...phase, spouseWorkEndAge: v - spouseAgeGap })}
+                                                min={(phase.spouseWorkStartAge ?? phase.startAge) + spouseAgeGap}
+                                                max={phase.endAge + spouseAgeGap}
                                                 tooltip="Spouse's retirement age (can retire before you)"
                                                 color="rose"
                                             />
@@ -304,9 +306,10 @@ const PhaseEditor: React.FC<{
                                             value={phase.annualIncomeSpouse || 0}
                                             onChange={(v) => onChange({ ...phase, annualIncomeSpouse: v })}
                                             min={0}
-                                            max={1000000}
-                                            step={5000}
+                                            max={phase.country === 'IN' ? 50000000 : 2000000}
+                                            step={phase.country === 'IN' ? 100000 : 10000}
                                             prefix={countryData?.currencySymbol || '$'}
+                                            currency={(countryData?.currency as any) || 'USD'}
                                             tooltip="Estimate pre-tax annual income for spouse"
                                             color="rose"
                                         />
@@ -363,10 +366,10 @@ const PhaseEditor: React.FC<{
                                 <div className="grid grid-cols-2 gap-2 p-2 bg-rose-100/30 rounded-lg">
                                     <ModernSliderInput
                                         label="Work Until Age"
-                                        value={phase.spouseWorkEndAge ?? phase.startAge + 5}
-                                        onChange={(v) => onChange({ ...phase, spouseWorkEndAge: v, spouseWorkStartAge: phase.startAge })}
-                                        min={phase.startAge}
-                                        max={phase.endAge}
+                                        value={(phase.spouseWorkEndAge ?? phase.startAge + 5) + spouseAgeGap}
+                                        onChange={(v) => onChange({ ...phase, spouseWorkEndAge: v - spouseAgeGap, spouseWorkStartAge: phase.startAge })}
+                                        min={phase.startAge + spouseAgeGap}
+                                        max={phase.endAge + spouseAgeGap}
                                         tooltip="When spouse stops working during your retirement"
                                         color="rose"
                                     />
@@ -408,9 +411,10 @@ const PhaseEditor: React.FC<{
                         value={phase.monthlyExpenses}
                         onChange={(v) => onChange({ ...phase, monthlyExpenses: v })}
                         min={100}
-                        max={1000000}
-                        step={100}
+                        max={phase.country === 'IN' ? 1000000 : 50000}
+                        step={phase.country === 'IN' ? 5000 : 250}
                         prefix={countryData?.currencySymbol || '$'}
+                        currency={(countryData?.currency as any) || 'USD'}
                         tooltip={`Monthly living costs including rent/food (Cost of Living Index: ${countryData?.costOfLivingIndex || 100})`}
                         color="amber"
                     />
@@ -481,9 +485,10 @@ const PhaseEditor: React.FC<{
                                             value={expense.amount}
                                             onChange={(v) => updateBulkExpense(expense.id, 'amount', v)}
                                             min={0}
-                                            max={10000000}
-                                            step={1000}
+                                            max={phase.country === 'IN' ? 100000000 : 5000000}
+                                            step={phase.country === 'IN' ? 100000 : 5000}
                                             prefix={countryData?.currencySymbol || '$'}
+                                            currency={(countryData?.currency as any) || 'USD'}
                                             color="purple"
                                         />
                                     </div>
@@ -559,7 +564,8 @@ const TimelineVisualization: React.FC<{
     phases: LifePhase[];
     currentAge: number;
     lifeExpectancy: number;
-}> = ({ phases, currentAge, lifeExpectancy }) => {
+    spouseAgeGap: number;
+}> = ({ phases, currentAge, lifeExpectancy, spouseAgeGap }) => {
     const maxAge = Math.max(lifeExpectancy, ...phases.map(p => p.endAge));
     const totalYears = Math.max(1, maxAge - currentAge);
 
@@ -622,7 +628,7 @@ const TimelineVisualization: React.FC<{
                                             <div className="flex justify-between gap-4">
                                                 <span className="text-slate-400">💑 Spouse:</span>
                                                 <span className="font-bold text-rose-300">
-                                                    {phase.spouseWorkStartAge ?? phase.startAge} — {phase.spouseWorkEndAge ?? phase.endAge}
+                                                    {(phase.spouseWorkStartAge ?? phase.startAge) + spouseAgeGap} — {(phase.spouseWorkEndAge ?? phase.endAge) + spouseAgeGap}
                                                     <span className="text-emerald-400 text-[9px] ml-1">(working)</span>
                                                 </span>
                                             </div>
@@ -951,6 +957,9 @@ const InternationalPlanner: React.FC<{
                             ...phase,
                             startAge: prev.currentAge,
                             annualIncome: data.monthlyIncome * 12,
+                            annualIncomePrimary: data.monthlyIncome * 12,
+                            annualIncomeSpouse: data.spouse.enabled ? data.spouse.monthlyIncome * 12 : 0,
+                            spouseIsWorking: data.spouse.enabled,
                             monthlyExpenses: data.monthlyExpenses,
                         };
                     }
@@ -1068,12 +1077,13 @@ const InternationalPlanner: React.FC<{
                 monthlyExpenses: lastPhase?.monthlyExpenses || 4000,
                 bulkExpenses: [],
                 ...(type === 'work' ? {
-                    annualIncome: 100000,
-                    annualIncomePrimary: 100000,
-                    annualIncomeSpouse: 0,
-                    incomeGrowthRate: 3,
-                    incomeGrowthRatePrimary: 3,
-                    incomeGrowthRateSpouse: 3
+                    annualIncome: lastPhase?.annualIncome || 100000,
+                    annualIncomePrimary: lastPhase?.annualIncomePrimary || lastPhase?.annualIncome || 100000,
+                    annualIncomeSpouse: lastPhase?.annualIncomeSpouse || 0,
+                    spouseIsWorking: lastPhase?.spouseIsWorking ?? prev.spouseEnabled,
+                    incomeGrowthRate: lastPhase?.incomeGrowthRate || 3,
+                    incomeGrowthRatePrimary: lastPhase?.incomeGrowthRatePrimary || 3,
+                    incomeGrowthRateSpouse: lastPhase?.incomeGrowthRateSpouse || 3
                 } : {}),
             };
 
@@ -1095,6 +1105,7 @@ const InternationalPlanner: React.FC<{
                     phases={scenario.phases}
                     currentAge={scenario.currentAge}
                     lifeExpectancy={scenario.lifeExpectancy}
+                    spouseAgeGap={scenario.spouseEnabled ? ((scenario.spouseCurrentAge || scenario.currentAge) - scenario.currentAge) : 0}
                 />
             </div>
 
@@ -1336,6 +1347,7 @@ const InternationalPlanner: React.FC<{
                                     isFirst={idx === 0}
                                     isLast={idx === scenario.phases.length - 1}
                                     showSpouse={showSpouseSection}
+                                    spouseAgeGap={scenario.spouseEnabled ? ((scenario.spouseCurrentAge || scenario.currentAge) - scenario.currentAge) : 0}
                                     onMatchLifestyle={idx > 0 ? () => {
                                         const basePhase = scenario.phases[0];
                                         const matched = calculateLifestyleMatch(
@@ -1419,9 +1431,10 @@ const InternationalPlanner: React.FC<{
                                                         setScenario(prev => ({ ...prev, liquidAssets: newAssets }));
                                                     }}
                                                     min={0}
-                                                    max={100000000 / (countryData?.exchangeRateToUSD || 1)}
-                                                    step={10000}
+                                                    max={asset.country === 'IN' ? 100000000 : 5000000}
+                                                    step={asset.country === 'IN' ? 100000 : 10000}
                                                     prefix={countryData?.currencySymbol || '$'}
+                                                    currency={(countryData?.currency as any) || 'USD'}
                                                     tooltip={`Value in USD: ${formatIntlCurrency(asset.valueInUSD, 'USD')}`}
                                                 />
                                             </div>
@@ -1534,9 +1547,10 @@ const InternationalPlanner: React.FC<{
                                                         setScenario(prev => ({ ...prev, retirementAccounts: newAccounts }));
                                                     }}
                                                     min={0}
-                                                    max={50000000 / (countryData?.exchangeRateToUSD || 1)}
-                                                    step={5000}
+                                                    max={account.country === 'IN' ? 100000000 : 5000000}
+                                                    step={account.country === 'IN' ? 50000 : 5000}
                                                     prefix={countryData?.currencySymbol || '$'}
+                                                    currency={(countryData?.currency as any) || 'USD'}
                                                     tooltip={`Value in USD: ${formatIntlCurrency(account.valueInUSD, 'USD')}`}
                                                 />
                                             </div>
@@ -1633,9 +1647,10 @@ const InternationalPlanner: React.FC<{
                                                         setScenario(prev => ({ ...prev, realEstateAssets: newAssets }));
                                                     }}
                                                     min={0}
-                                                    max={50000000 / (countryData?.exchangeRateToUSD || 1)}
-                                                    step={50000}
+                                                    max={asset.country === 'IN' ? 500000000 : 10000000}
+                                                    step={asset.country === 'IN' ? 500000 : 50000}
                                                     prefix={countryData?.currencySymbol || '$'}
+                                                    currency={(countryData?.currency as any) || 'USD'}
                                                 />
                                             </div>
                                             <div>
