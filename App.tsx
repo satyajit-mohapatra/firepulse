@@ -1,7 +1,7 @@
 
 import React, { useState, useMemo, useEffect } from 'react';
 import { FinancialData, CalculationResults, CurrencyCode, Milestone, InvestmentGoal } from './types';
-import { calculateFIRE, formatCurrency, formatCurrencyCompact, getCurrencySymbol, formatCompactNumber, getAgeBasedAllocation, currencies } from './utils/finance';
+import { formatCurrency, formatCurrencyCompact, getCurrencySymbol, formatCompactNumber, getAgeBasedAllocation, currencies, calculateFIRE } from './utils/finance';
 import SliderInput from './components/SliderInput';
 import ProjectionChart from './components/ProjectionChart';
 import { WizardProvider } from './contexts/WizardContext';
@@ -10,8 +10,10 @@ import Phase3International from './components/wizard/Phase3International';
 import FAQ from './components/FAQ';
 import ThemeToggle from './components/ThemeToggle';
 import { InternationalScenario, ScenarioResults } from './types/internationalPlanning';
-import { calculateInternationalScenario, createDefaultScenario } from './utils/internationalCalculations';
+import { calculateInternationalScenario, createDefaultScenario, formatIntlCompact } from './utils/internationalCalculations';
 import { useWizardPersistence } from './hooks/useWizardPersistence';
+import { COUNTRIES } from './data/countries';
+import FIREProgressRing from './components/FIREProgressRing';
 
 
 const DEFAULT_FINANCIAL_DATA: FinancialData = {
@@ -242,9 +244,91 @@ const App: React.FC = () => {
   };
 
   const exportToPDF = () => {
+    // If we're in basic mode, sync to advanced scenario first to ensure "Adv print" format
+    if (uiMode === 'basic') {
+      const countryCode = Object.keys(COUNTRIES).find(code => COUNTRIES[code].currency === currency) || 'US';
+      const country = COUNTRIES[countryCode];
+      const exchangeRate = country.exchangeRateToUSD;
+
+      setInternationalScenario(prev => ({
+        ...prev,
+        currentAge: data.currentAge,
+        retirementAge: data.retirementAge,
+        lifeExpectancy: data.liveUntilAge,
+        spouseEnabled: data.spouse.enabled,
+        spouseCurrentAge: data.spouse.currentAge,
+        liquidAssets: [{
+          country: countryCode,
+          currency: currency,
+          currentValue: data.currentNetWorth,
+          valueInUSD: data.currentNetWorth * exchangeRate,
+          assetType: 'mixed',
+          expectedReturn: data.liquidAssetReturn,
+          taxEfficient: false,
+        }],
+        retirementAccounts: [{
+          country: countryCode,
+          accountType: '401k',
+          currentBalance: data.retirementAssets,
+          valueInUSD: data.retirementAssets * exchangeRate,
+          vestingPercentage: 100,
+          portableToCountries: [countryCode],
+          earlyWithdrawalPenalty: 10,
+          withdrawalAge: country.pensionWithdrawalAge,
+          expectedReturn: data.retirementAssetReturn,
+        }],
+        realEstateAssets: data.nonLiquidAssets > 0 ? [{
+          id: 're-1',
+          name: 'Primary Residence',
+          country: countryCode,
+          currency: currency,
+          currentValue: data.nonLiquidAssets,
+          valueInUSD: data.nonLiquidAssets * exchangeRate,
+          mortgageBalance: 0,
+          expectedReturn: data.nonLiquidAssetReturn,
+        }] : [],
+        phases: [
+          {
+            id: 'work-1',
+            type: 'work',
+            country: countryCode,
+            startAge: data.currentAge,
+            endAge: data.retirementAge,
+            annualIncome: (data.monthlyIncome + (data.spouse.enabled ? data.spouse.monthlyIncome : 0)) * 12,
+            annualIncomePrimary: data.monthlyIncome * 12,
+            annualIncomeSpouse: data.spouse.enabled ? data.spouse.monthlyIncome * 12 : 0,
+            incomeGrowthRate: data.incomeIncreaseRate,
+            incomeGrowthRatePrimary: data.incomeIncreaseRate,
+            incomeGrowthRateSpouse: data.spouse.enabled ? data.spouse.incomeIncreaseRate : 0,
+            monthlyExpenses: data.monthlyExpenses + data.monthlyMedical + data.monthlyKidsEducation,
+            bulkExpenses: data.bulkExpenses.map(e => ({
+              ...e,
+              category: (e.category.toLowerCase() === 'vehicle' || e.category.toLowerCase() === 'travel') ? 'general' : e.category.toLowerCase() as any
+            })),
+            primaryIsWorking: true,
+            spouseIsWorking: data.spouse.enabled,
+            spouseWorkStartAge: data.spouse.currentAge,
+            spouseWorkEndAge: data.spouse.retirementAge,
+          },
+          {
+            id: 'retire-1',
+            type: 'retirement',
+            country: countryCode,
+            startAge: data.retirementAge + 1,
+            endAge: data.liveUntilAge,
+            monthlyExpenses: (data.monthlyExpenses + data.monthlyMedical) * (data.retirementExpenseMultiplier / 100),
+            bulkExpenses: [], // No bulk expenses in retirement by default for simple sync
+            primaryIsWorking: false,
+            spouseIsWorking: false,
+          }
+        ]
+      }) as any);
+    }
+
     setShowExportMenu(false);
-    showToast('info', 'Opening print dialog for PDF export...');
-    setTimeout(() => window.print(), 300);
+    showToast('info', 'Preparing your Advanced FIRE Report...');
+    // Give state updates time to propagate before printing
+    setTimeout(() => window.print(), 800);
   };
 
   // Parse and validate CSV data
@@ -718,7 +802,7 @@ const App: React.FC = () => {
                   <div style={{ textAlign: 'right', fontSize: '11px', color: '#64748b', background: '#f1f5f9', padding: '8px 12px', borderRadius: '8px' }}>
                     <div style={{ fontWeight: 600 }}>📅 Generated: {new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</div>
                     <div>⏰ {new Date().toLocaleTimeString()}</div>
-                    <div style={{ marginTop: '4px', fontWeight: 600, color: '#6366f1' }}>Mode: {viewMode === 'simple' ? '🎯 Simple Calculator' : '🌍 Advanced International'}</div>
+                    <div style={{ marginTop: '4px', fontWeight: 600, color: '#6366f1' }}>Type: 🌍 Advanced International FIRE Report</div>
                   </div>
                 </div>
                 <div style={{ background: 'linear-gradient(90deg, #6366f1, #8b5cf6, #a855f7)', height: '4px', borderRadius: '2px', marginTop: '8px' }}></div>
@@ -748,28 +832,28 @@ const App: React.FC = () => {
               {/* Executive Summary - Hero Section with Enhanced Colors */}
               <div className="print-section print-hero" style={{ background: 'linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%)', border: '3px solid #6366f1', borderRadius: '12px' }}>
                 <h3 style={{ color: '#4f46e5', marginBottom: '16px', fontSize: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <span style={{ fontSize: '20px' }}>📊</span> Your FIRE Dashboard
+                  <span style={{ fontSize: '20px' }}>📊</span> Your Advanced FIRE Dashboard
                 </h3>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: '12px' }}>
                   {/* FIRE Age Card */}
-                  <div style={{ textAlign: 'center', padding: '16px', background: results.fiAge ? 'linear-gradient(135deg, #dcfce7, #bbf7d0)' : 'linear-gradient(135deg, #fee2e2, #fecaca)', borderRadius: '10px', border: results.fiAge ? '2px solid #22c55e' : '2px solid #ef4444' }}>
-                    <div style={{ fontSize: '32px', fontWeight: 900, color: results.fiAge ? '#15803d' : '#dc2626' }}>
-                      {results.fiAge || '—'}
+                  <div style={{ textAlign: 'center', padding: '16px', background: internationalResults.fiAge ? 'linear-gradient(135deg, #dcfce7, #bbf7d0)' : 'linear-gradient(135deg, #fee2e2, #fecaca)', borderRadius: '10px', border: internationalResults.fiAge ? '2px solid #22c55e' : '2px solid #ef4444' }}>
+                    <div style={{ fontSize: '32px', fontWeight: 900, color: internationalResults.fiAge ? '#15803d' : '#dc2626' }}>
+                      {internationalResults.fiAge || '—'}
                     </div>
-                    <div style={{ fontSize: '11px', color: results.fiAge ? '#166534' : '#991b1b', textTransform: 'uppercase', fontWeight: 700, letterSpacing: '0.5px' }}>🎂 FIRE Age</div>
+                    <div style={{ fontSize: '11px', color: internationalResults.fiAge ? '#166534' : '#991b1b', textTransform: 'uppercase', fontWeight: 700, letterSpacing: '0.5px' }}>🎂 FIRE Age</div>
                     <div style={{ fontSize: '9px', color: '#64748b', marginTop: '4px' }}>
-                      {results.fiAge ? `Age when you become financially free` : 'Not achievable with current plan'}
+                      {internationalResults.fiAge ? `Age when you become financially free` : 'Not achievable with current plan'}
                     </div>
                   </div>
 
-                  {/* Time to FI Card */}
-                  <div style={{ textAlign: 'center', padding: '16px', background: 'linear-gradient(135deg, #ede9fe, #ddd6fe)', borderRadius: '10px', border: '2px solid #8b5cf6' }}>
-                    <div style={{ fontSize: '32px', fontWeight: 900, color: '#7c3aed' }}>
-                      {results.timeToFI ? `${results.timeToFI}y` : '—'}
+                  {/* Success Rate Card */}
+                  <div style={{ textAlign: 'center', padding: '16px', background: internationalResults.successProbability >= 80 ? 'linear-gradient(135deg, #dcfce7, #bbf7d0)' : internationalResults.successProbability >= 60 ? 'linear-gradient(135deg, #fef3c7, #fde68a)' : 'linear-gradient(135deg, #fee2e2, #fecaca)', borderRadius: '10px', border: internationalResults.successProbability >= 80 ? '2px solid #22c55e' : internationalResults.successProbability >= 60 ? '2px solid #f59e0b' : '2px solid #ef4444' }}>
+                    <div style={{ fontSize: '32px', fontWeight: 900, color: internationalResults.successProbability >= 80 ? '#15803d' : internationalResults.successProbability >= 60 ? '#d97706' : '#dc2626' }}>
+                      {internationalResults.successProbability.toFixed(0)}%
                     </div>
-                    <div style={{ fontSize: '11px', color: '#5b21b6', textTransform: 'uppercase', fontWeight: 700, letterSpacing: '0.5px' }}>⏳ Time to FI</div>
+                    <div style={{ fontSize: '11px', color: '#5b21b6', textTransform: 'uppercase', fontWeight: 700, letterSpacing: '0.5px' }}>📈 Success Rate</div>
                     <div style={{ fontSize: '9px', color: '#64748b', marginTop: '4px' }}>
-                      Years until financial independence
+                      Portfolio solvency until age {data.liveUntilAge}
                     </div>
                   </div>
 
@@ -784,14 +868,14 @@ const App: React.FC = () => {
                     </div>
                   </div>
 
-                  {/* Solvency Status Card */}
-                  <div style={{ textAlign: 'center', padding: '16px', background: results.isSolventAtEnd ? 'linear-gradient(135deg, #dcfce7, #bbf7d0)' : 'linear-gradient(135deg, #fee2e2, #fecaca)', borderRadius: '10px', border: results.isSolventAtEnd ? '2px solid #22c55e' : '2px solid #ef4444' }}>
-                    <div style={{ fontSize: '32px', fontWeight: 900, color: results.isSolventAtEnd ? '#15803d' : '#dc2626' }}>
-                      {results.isSolventAtEnd ? '✅' : '⚠️'}
+                  {/* Tax Efficiency Card */}
+                  <div style={{ textAlign: 'center', padding: '16px', background: 'linear-gradient(135deg, #e0e7ff, #c7d2fe)', borderRadius: '10px', border: '2px solid #6366f1' }}>
+                    <div style={{ fontSize: '32px', fontWeight: 900, color: '#4338ca' }}>
+                      {internationalResults.taxEfficiency.toFixed(0)}%
                     </div>
-                    <div style={{ fontSize: '11px', color: results.isSolventAtEnd ? '#166534' : '#991b1b', textTransform: 'uppercase', fontWeight: 700, letterSpacing: '0.5px' }}>🏦 Solvency</div>
+                    <div style={{ fontSize: '11px', color: '#312e81', textTransform: 'uppercase', fontWeight: 700, letterSpacing: '0.5px' }}>📊 Tax Score</div>
                     <div style={{ fontSize: '9px', color: '#64748b', marginTop: '4px' }}>
-                      {results.isSolventAtEnd ? `Money lasts through age ${data.liveUntilAge}` : `Portfolio may deplete before ${data.liveUntilAge}`}
+                      How efficiently you manage your taxes
                     </div>
                   </div>
                 </div>
@@ -799,258 +883,163 @@ const App: React.FC = () => {
                 {/* Key Insights with Icons */}
                 <div style={{ marginTop: '16px', padding: '14px', background: 'linear-gradient(135deg, #eef2ff, #e0e7ff)', borderRadius: '10px', border: '1px solid #a5b4fc' }}>
                   <div style={{ fontWeight: 800, color: '#4338ca', marginBottom: '10px', fontSize: '12px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    <span>🔑</span> Key Insights & What They Mean
+                    <span>🔑</span> Key Advanced Insights
                   </div>
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', fontSize: '10px', color: '#374151' }}>
                     <div style={{ background: 'white', padding: '10px', borderRadius: '6px', borderLeft: '3px solid #6366f1' }}>
-                      <strong style={{ color: '#4338ca' }}>💵 FI Number Target:</strong> {formatCurrency(results.fiNumber, currency)}
-                      <div style={{ fontSize: '9px', color: '#64748b', marginTop: '2px' }}>This is 25× your annual expenses—the magic number for financial freedom!</div>
+                      <strong style={{ color: '#4338ca' }}>💼 Final Net Worth (Median):</strong> ${formatIntlCompact(internationalResults.medianEndBalance, currency)}
+                      <div style={{ fontSize: '9px', color: '#64748b', marginTop: '2px' }}>Projected wealth at age {data.liveUntilAge} under normal conditions.</div>
                     </div>
-                    <div style={{ background: 'white', padding: '10px', borderRadius: '6px', borderLeft: '3px solid #22c55e' }}>
-                      <strong style={{ color: '#15803d' }}>🏧 Safe Withdrawal:</strong> {formatCurrency(results.safeWithdrawalAmount, currency)}/year
-                      <div style={{ fontSize: '9px', color: '#64748b', marginTop: '2px' }}>At {data.withdrawalRate}% rate, this is what you can safely spend annually in retirement</div>
+                    <div style={{ background: 'white', padding: '10px', borderRadius: '6px', borderLeft: '2px solid #f43f5e' }}>
+                      <strong style={{ color: '#be123c' }}>📉 Worst Case (Safety Net):</strong> ${formatIntlCompact(internationalResults.worstCaseEndBalance, currency)}
+                      <div style={{ fontSize: '9px', color: '#64748b', marginTop: '2px' }}>Estimated floor if market conditions are unfavorable.</div>
                     </div>
                     <div style={{ background: 'white', padding: '10px', borderRadius: '6px', borderLeft: '3px solid #8b5cf6' }}>
-                      <strong style={{ color: '#6d28d9' }}>📈 Current Progress:</strong> {formatCurrency(currentAllocation.totalAssets, currency)} ({((currentAllocation.totalAssets / results.fiNumber) * 100).toFixed(1)}%)
-                      <div style={{ fontSize: '9px', color: '#64748b', marginTop: '2px' }}>You're {((currentAllocation.totalAssets / results.fiNumber) * 100).toFixed(1)}% of the way to your FI goal!</div>
+                      <strong style={{ color: '#6d28d9' }}>💱 Currency Risk:</strong> {internationalResults.exchangeRateRisk.toUpperCase()}
+                      <div style={{ fontSize: '9px', color: '#64748b', marginTop: '2px' }}>Sensitivity of your plan to exchange rate fluctuations.</div>
                     </div>
-                    {results.fiAge && (
-                      <div style={{ background: 'white', padding: '10px', borderRadius: '6px', borderLeft: '3px solid #f59e0b' }}>
-                        <strong style={{ color: '#d97706' }}>🌴 Freedom Years:</strong> {data.liveUntilAge - results.fiAge} years
-                        <div style={{ fontSize: '9px', color: '#64748b', marginTop: '2px' }}>Years of financial freedom to enjoy after reaching FIRE!</div>
-                      </div>
+                    <div style={{ background: 'white', padding: '10px', borderRadius: '6px', borderLeft: '3px solid #f59e0b' }}>
+                      <strong style={{ color: '#d97706' }}>📈 Inflation Risk:</strong> {internationalResults.inflationRisk.toUpperCase()}
+                      <div style={{ fontSize: '9px', color: '#64748b', marginTop: '2px' }}>Sensitivity of your plan to rising living costs.</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Asset Allocation & Personal Profile sections remain similar but we can tighten them */}
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                {/* Asset Allocation */}
+                <div style={{ background: 'linear-gradient(135deg, #f0fdf4, #dcfce7)', border: '2px solid #86efac', borderRadius: '10px', padding: '14px' }}>
+                  <h3 style={{ color: '#166534', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '8px', margin: '0 0 10px 0' }}>
+                    <span style={{ fontSize: '16px' }}>🥧</span> Assets
+                  </h3>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', fontSize: '10px' }}>
+                    <div style={{ background: 'white', padding: '8px', borderRadius: '6px', border: '1px solid #86efac' }}>
+                      <div style={{ color: '#64748b', fontWeight: 700 }}>LIQUID</div>
+                      <div style={{ fontSize: '14px', fontWeight: 900, color: '#0891b2' }}>{formatCurrency(data.currentNetWorth, currency)}</div>
+                    </div>
+                    <div style={{ background: 'white', padding: '8px', borderRadius: '6px', border: '1px solid #86efac' }}>
+                      <div style={{ color: '#64748b', fontWeight: 700 }}>RETIREMENT</div>
+                      <div style={{ fontSize: '14px', fontWeight: 900, color: '#7c3aed' }}>{formatCurrency(data.retirementAssets, currency)}</div>
+                    </div>
+                  </div>
+                  <div style={{ background: 'white', padding: '8px', borderRadius: '6px', border: '1px solid #86efac', marginTop: '8px', textAlign: 'center' }}>
+                    <div style={{ color: '#64748b', fontWeight: 700 }}>TOTAL NET WORTH</div>
+                    <div style={{ fontSize: '16px', fontWeight: 900, color: '#166534' }}>{formatCurrency(currentAllocation.totalAssets, currency)}</div>
+                  </div>
+                </div>
+
+                {/* Profile */}
+                <div style={{ background: 'linear-gradient(135deg, #fef3c7, #fde68a)', border: '2px solid #fbbf24', borderRadius: '10px', padding: '14px' }}>
+                  <h3 style={{ color: '#92400e', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '8px', margin: '0 0 10px 0' }}>
+                    <span style={{ fontSize: '16px' }}>👤</span> Profile
+                  </h3>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', fontSize: '10px' }}>
+                    <div style={{ background: 'white', padding: '8px', borderRadius: '6px', border: '1px solid #fbbf24' }}>
+                      <div style={{ color: '#64748b', fontWeight: 700 }}>CURRENT AGE</div>
+                      <div style={{ fontSize: '14px', fontWeight: 900, color: '#d97706' }}>{data.currentAge}y</div>
+                    </div>
+                    <div style={{ background: 'white', padding: '8px', borderRadius: '6px', border: '1px solid #fbbf24' }}>
+                      <div style={{ color: '#64748b', fontWeight: 700 }}>STOP WORKING</div>
+                      <div style={{ fontSize: '14px', fontWeight: 900, color: '#d97706' }}>{data.retirementAge}y</div>
+                    </div>
+                  </div>
+                  <div style={{ background: 'white', padding: '8px', borderRadius: '6px', border: '1px solid #fbbf24', marginTop: '8px', textAlign: 'center' }}>
+                    <div style={{ color: '#64748b', fontWeight: 700 }}>PLANNING UNTIL</div>
+                    <div style={{ fontSize: '16px', fontWeight: 900, color: '#d97706' }}>{data.liveUntilAge}y</div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Cash Flow Analysis Section - Keeping it but using advanced data where possible */}
+              <div className="print-section" style={{ background: 'linear-gradient(135deg, #e0e7ff, #c7d2fe)', border: '2px solid #818cf8', borderRadius: '10px' }}>
+                <h3 style={{ color: '#4338ca', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <span style={{ fontSize: '18px' }}>💸</span> Annual Cash Flow Analysis
+                </h3>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                  <div style={{ background: 'white', padding: '12px', borderRadius: '8px', border: '2px solid #22c55e' }}>
+                    <div style={{ fontWeight: 800, color: '#166534', marginBottom: '8px', fontSize: '11px' }}>📈 INCOME (Combined)</div>
+                    <div style={{ fontSize: '11px', display: 'flex', justifyContent: 'space-between' }}>
+                      <span>Gross Annual Income:</span>
+                      <strong style={{ color: '#15803d' }}>{formatCurrency((data.monthlyIncome + (data.spouse.enabled ? data.spouse.monthlyIncome : 0)) * 12, currency)}</strong>
+                    </div>
+                  </div>
+                  <div style={{ background: 'white', padding: '12px', borderRadius: '8px', border: '2px solid #ef4444' }}>
+                    <div style={{ fontWeight: 800, color: '#991b1b', marginBottom: '8px', fontSize: '11px' }}>📉 EXPENSES (Annualized)</div>
+                    <div style={{ fontSize: '11px', display: 'flex', justifyContent: 'space-between' }}>
+                      <span>Total Annual Living:</span>
+                      <strong style={{ color: '#dc2626' }}>{formatCurrency((data.monthlyExpenses + data.monthlyMedical + data.monthlyKidsEducation) * 12, currency)}</strong>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Advanced Risk & Analysis Section */}
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                {/* Risk Analysis */}
+                <div className="print-section" style={{ background: 'linear-gradient(135deg, #fef2f2, #fee2e2)', border: '2px solid #f87171', borderRadius: '10px', margin: 0 }}>
+                  <h3 style={{ color: '#991b1b', fontSize: '13px' }}>⚠️ Risk Analysis</h3>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                    {internationalResults.warnings.length > 0 ? (
+                      internationalResults.warnings.map((w, i) => (
+                        <div key={i} style={{ fontSize: '9px', color: '#dc2626', background: 'white', padding: '4px 8px', borderRadius: '4px', border: '1px solid #fca5a5' }}>
+                          • {w}
+                        </div>
+                      ))
+                    ) : (
+                      <div style={{ fontSize: '9px', color: '#15803d', fontStyle: 'italic' }}>No critical risks identified.</div>
                     )}
                   </div>
                 </div>
-              </div>
 
-              {/* Asset Allocation - Visual & Colorful */}
-              <div className="print-section" style={{ background: 'linear-gradient(135deg, #f0fdf4, #dcfce7)', border: '2px solid #86efac', borderRadius: '10px' }}>
-                <h3 style={{ color: '#166534', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <span style={{ fontSize: '18px' }}>🥧</span> Your Asset Allocation
-                  <span style={{ fontSize: '10px', fontWeight: 400, color: '#64748b' }}>(How your money is distributed)</span>
-                </h3>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: '12px', fontSize: '11px' }}>
-                  <div style={{ background: 'white', padding: '12px', borderRadius: '8px', border: '1px solid #86efac', textAlign: 'center' }}>
-                    <div style={{ fontSize: '18px', marginBottom: '4px' }}>💼</div>
-                    <div style={{ fontWeight: 800, color: '#166534', fontSize: '14px' }}>{formatCurrency(currentAllocation.totalAssets, currency)}</div>
-                    <div style={{ fontSize: '10px', color: '#64748b', fontWeight: 600 }}>TOTAL ASSETS</div>
-                    <div style={{ fontSize: '9px', color: '#64748b', marginTop: '4px' }}>Everything you own combined</div>
-                  </div>
-                  <div style={{ background: 'white', padding: '12px', borderRadius: '8px', border: '1px solid #86efac', textAlign: 'center' }}>
-                    <div style={{ fontSize: '18px', marginBottom: '4px' }}>💵</div>
-                    <div style={{ fontWeight: 800, color: '#0891b2', fontSize: '14px' }}>{formatCurrency(data.currentNetWorth, currency)}</div>
-                    <div style={{ fontSize: '10px', color: '#64748b', fontWeight: 600 }}>LIQUID ({currentAllocation.liquidPercentage.toFixed(0)}%)</div>
-                    <div style={{ fontSize: '9px', color: '#64748b', marginTop: '4px' }}>Cash & easily accessible funds</div>
-                  </div>
-                  <div style={{ background: 'white', padding: '12px', borderRadius: '8px', border: '1px solid #86efac', textAlign: 'center' }}>
-                    <div style={{ fontSize: '18px', marginBottom: '4px' }}>🏦</div>
-                    <div style={{ fontWeight: 800, color: '#7c3aed', fontSize: '14px' }}>{formatCurrency(data.retirementAssets, currency)}</div>
-                    <div style={{ fontSize: '10px', color: '#64748b', fontWeight: 600 }}>401K/IRA ({currentAllocation.retirementPercentage.toFixed(0)}%)</div>
-                    <div style={{ fontSize: '9px', color: '#64748b', marginTop: '4px' }}>Tax-advantaged retirement accounts</div>
-                  </div>
-                  <div style={{ background: 'white', padding: '12px', borderRadius: '8px', border: '1px solid #86efac', textAlign: 'center' }}>
-                    <div style={{ fontSize: '18px', marginBottom: '4px' }}>🏠</div>
-                    <div style={{ fontWeight: 800, color: '#ea580c', fontSize: '14px' }}>{formatCurrency(data.nonLiquidAssets, currency)}</div>
-                    <div style={{ fontSize: '10px', color: '#64748b', fontWeight: 600 }}>REAL ESTATE ({currentAllocation.nonLiquidPercentage.toFixed(0)}%)</div>
-                    <div style={{ fontSize: '9px', color: '#64748b', marginTop: '4px' }}>Property & non-liquid assets</div>
+                {/* Recommendations */}
+                <div className="print-section" style={{ background: 'linear-gradient(135deg, #f0fdf4, #dcfce7)', border: '2px solid #4ade80', borderRadius: '10px', margin: 0 }}>
+                  <h3 style={{ color: '#166534', fontSize: '13px' }}>💡 Top Recommendations</h3>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                    {internationalResults.recommendations.slice(0, 3).map((r, i) => (
+                      <div key={i} style={{ fontSize: '9px', color: '#15803d', background: 'white', padding: '4px 8px', borderRadius: '4px', border: '1px solid #86efac' }}>
+                        <strong>{r.title}:</strong> {r.description.slice(0, 80)}...
+                      </div>
+                    ))}
                   </div>
                 </div>
               </div>
 
-              {/* Personal Profile - Core Parameters */}
-              <div className="print-section" style={{ background: 'linear-gradient(135deg, #fef3c7, #fde68a)', border: '2px solid #fbbf24', borderRadius: '10px' }}>
-                <h3 style={{ color: '#92400e', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <span style={{ fontSize: '18px' }}>👤</span> Your Profile & Life Timeline
-                </h3>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '12px', fontSize: '11px' }}>
-                  <div style={{ background: 'white', padding: '12px', borderRadius: '8px', border: '1px solid #fbbf24' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '4px' }}>
-                      <span>🎂</span><strong style={{ color: '#92400e' }}>Current Age:</strong>
-                    </div>
-                    <div style={{ fontSize: '20px', fontWeight: 800, color: '#d97706' }}>{data.currentAge} years</div>
-                    <div style={{ fontSize: '9px', color: '#64748b' }}>Your starting point on the FIRE journey</div>
-                  </div>
-                  <div style={{ background: 'white', padding: '12px', borderRadius: '8px', border: '1px solid #fbbf24' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '4px' }}>
-                      <span>🏖️</span><strong style={{ color: '#92400e' }}>Planned Retirement:</strong>
-                    </div>
-                    <div style={{ fontSize: '20px', fontWeight: 800, color: '#d97706' }}>{data.retirementAge} years</div>
-                    <div style={{ fontSize: '9px', color: '#64748b' }}>When you plan to stop working full-time</div>
-                  </div>
-                  <div style={{ background: 'white', padding: '12px', borderRadius: '8px', border: '1px solid #fbbf24' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '4px' }}>
-                      <span>⏳</span><strong style={{ color: '#92400e' }}>Plan Until Age:</strong>
-                    </div>
-                    <div style={{ fontSize: '20px', fontWeight: 800, color: '#d97706' }}>{data.liveUntilAge} years</div>
-                    <div style={{ fontSize: '9px', color: '#64748b' }}>Planning horizon (be conservative!)</div>
-                  </div>
-                </div>
-                <div style={{ marginTop: '10px', padding: '8px 12px', background: 'white', borderRadius: '6px', border: '1px solid #fbbf24', fontSize: '10px', color: '#92400e' }}>
-                  <strong>💡 Pro Tip:</strong> Plan for a longer life expectancy than you expect. Many financial plans fail because people outlive their savings!
-                </div>
-              </div>
-
-              {/* Cash Flow Analysis */}
-              <div className="print-section" style={{ background: 'linear-gradient(135deg, #e0e7ff, #c7d2fe)', border: '2px solid #818cf8', borderRadius: '10px' }}>
-                <h3 style={{ color: '#4338ca', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <span style={{ fontSize: '18px' }}>💸</span> Monthly Cash Flow Analysis
-                  <span style={{ fontSize: '10px', fontWeight: 400, color: '#64748b' }}>(Money in vs. money out)</span>
-                </h3>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-                  {/* Income Side */}
-                  <div style={{ background: 'white', padding: '12px', borderRadius: '8px', border: '2px solid #22c55e' }}>
-                    <div style={{ fontWeight: 800, color: '#166534', marginBottom: '8px', fontSize: '11px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                      <span>📈</span> INCOME (Money Coming In)
-                    </div>
-                    <div style={{ fontSize: '11px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', padding: '6px', background: '#f0fdf4', borderRadius: '4px' }}>
-                        <span>💼 Monthly Income:</span>
-                        <strong style={{ color: '#15803d' }}>{formatCurrency(data.monthlyIncome, currency)}</strong>
-                      </div>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', padding: '6px', background: '#f0fdf4', borderRadius: '4px' }}>
-                        <span>📅 Annual Income:</span>
-                        <strong style={{ color: '#15803d' }}>{formatCurrency(data.monthlyIncome * 12, currency)}</strong>
-                      </div>
-                    </div>
-                  </div>
-                  {/* Expenses Side */}
-                  <div style={{ background: 'white', padding: '12px', borderRadius: '8px', border: '2px solid #ef4444' }}>
-                    <div style={{ fontWeight: 800, color: '#991b1b', marginBottom: '8px', fontSize: '11px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                      <span>📉</span> EXPENSES (Money Going Out)
-                    </div>
-                    <div style={{ fontSize: '11px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', padding: '6px', background: '#fef2f2', borderRadius: '4px' }}>
-                        <span>🏠 Living Expenses:</span>
-                        <strong style={{ color: '#dc2626' }}>{formatCurrency(data.monthlyExpenses, currency)}</strong>
-                      </div>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', padding: '6px', background: '#fef2f2', borderRadius: '4px' }}>
-                        <span>🏥 Medical:</span>
-                        <strong style={{ color: '#dc2626' }}>{formatCurrency(data.monthlyMedical, currency)}</strong>
-                      </div>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', padding: '6px', background: '#fef2f2', borderRadius: '4px' }}>
-                        <span>📚 Education:</span>
-                        <strong style={{ color: '#dc2626' }}>{formatCurrency(data.monthlyKidsEducation, currency)}</strong>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                {/* Net Savings Row */}
-                <div style={{ marginTop: '12px', padding: '12px', background: data.monthlySavings > 0 ? 'linear-gradient(135deg, #dcfce7, #bbf7d0)' : 'linear-gradient(135deg, #fee2e2, #fecaca)', borderRadius: '8px', border: data.monthlySavings > 0 ? '2px solid #22c55e' : '2px solid #ef4444', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <div>
-                    <div style={{ fontWeight: 800, fontSize: '12px', color: data.monthlySavings > 0 ? '#166534' : '#991b1b' }}>
-                      {data.monthlySavings > 0 ? '✅' : '⚠️'} Monthly Surplus (What you save)
-                    </div>
-                    <div style={{ fontSize: '10px', color: '#64748b' }}>
-                      {data.monthlySavings > 0 ? 'Great! This money grows your wealth' : 'Warning: You\'re spending more than you earn'}
-                    </div>
-                  </div>
-                  <div style={{ fontSize: '24px', fontWeight: 900, color: data.monthlySavings > 0 ? '#15803d' : '#dc2626' }}>
-                    {formatCurrency(data.monthlySavings, currency)}
-                  </div>
-                </div>
-              </div>
-
-              {/* Investment Assumptions - Educational */}
-              <div className="print-section" style={{ background: 'linear-gradient(135deg, #fce7f3, #fbcfe8)', border: '2px solid #f472b6', borderRadius: '10px' }}>
-                <h3 style={{ color: '#9d174d', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <span style={{ fontSize: '18px' }}>⚙️</span> Planning Assumptions
-                  <span style={{ fontSize: '10px', fontWeight: 400, color: '#64748b' }}>(The rates we used for calculations)</span>
-                </h3>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '10px', fontSize: '10px' }}>
-                  <div style={{ background: 'white', padding: '10px', borderRadius: '6px', border: '1px solid #f472b6' }}>
-                    <div style={{ fontWeight: 700, color: '#9d174d', marginBottom: '6px' }}>📈 Growth Rates</div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
-                      <span>Income Growth:</span><strong>{data.incomeIncreaseRate}%</strong>
-                    </div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
-                      <span>Liquid Return:</span><strong>{data.liquidAssetReturn}%</strong>
-                    </div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                      <span>Retirement Return:</span><strong>{data.retirementAssetReturn}%</strong>
-                    </div>
-                  </div>
-                  <div style={{ background: 'white', padding: '10px', borderRadius: '6px', border: '1px solid #f472b6' }}>
-                    <div style={{ fontWeight: 700, color: '#9d174d', marginBottom: '6px' }}>📉 Inflation Factors</div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
-                      <span>General Inflation:</span><strong>{data.inflationRate}%</strong>
-                    </div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
-                      <span>Medical Inflation:</span><strong>{data.medicalInflation}%</strong>
-                    </div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                      <span>Real Estate Return:</span><strong>{data.nonLiquidAssetReturn}%</strong>
-                    </div>
-                  </div>
-                  <div style={{ background: 'white', padding: '10px', borderRadius: '6px', border: '1px solid #f472b6' }}>
-                    <div style={{ fontWeight: 700, color: '#9d174d', marginBottom: '6px' }}>🎯 Retirement Settings</div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
-                      <span>Expense Level:</span><strong>{data.retirementExpenseMultiplier}%</strong>
-                    </div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
-                      <span>Tax Rate:</span><strong>{data.retirementTaxRate}%</strong>
-                    </div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                      <span>Simulation:</span><strong style={{ textTransform: 'capitalize' }}>{data.simulationMode}</strong>
-                    </div>
-                  </div>
-                </div>
-                <div style={{ marginTop: '10px', padding: '8px 12px', background: 'white', borderRadius: '6px', border: '1px solid #f472b6', fontSize: '10px', color: '#9d174d' }}>
-                  <strong>📖 Understanding these numbers:</strong> Returns are based on historical averages. Inflation erodes your purchasing power over time.
-                  Being conservative (lower returns, higher inflation) is safer for planning.
-                </div>
-              </div>
-
-              {/* Projection Table - Enhanced */}
+              {/* Projection Table - Enhanced to use Advanced Results */}
               <div className="print-section" style={{ border: '2px solid #94a3b8', borderRadius: '10px' }}>
                 <h3 style={{ color: '#334155', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <span style={{ fontSize: '18px' }}>📅</span> Year-by-Year Financial Projection
+                  <span style={{ fontSize: '18px' }}>📅</span> Advanced Financial Projections
                 </h3>
-                <div style={{ fontSize: '10px', marginBottom: '8px', padding: '8px', background: '#f1f5f9', borderRadius: '6px', color: '#475569' }}>
-                  <strong>📊 How to read this table:</strong> Each row shows your financial status at that age.
-                  <strong style={{ color: '#22c55e' }}> Green WORKING</strong> = still earning income.
-                  <strong style={{ color: '#8b5cf6' }}> Purple RETIRED</strong> = living off investments.
-                  Watch how your net worth changes over time!
-                </div>
-                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '9px' }}>
+                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '8px' }}>
                   <thead>
                     <tr style={{ background: 'linear-gradient(90deg, #6366f1, #8b5cf6)', color: 'white' }}>
-                      <th style={{ padding: '8px', textAlign: 'left', borderRadius: '6px 0 0 0' }}>Age/Year</th>
-                      <th style={{ padding: '8px', textAlign: 'right' }}>Start Balance</th>
-                      <th style={{ padding: '8px', textAlign: 'right' }}>Income</th>
-                      <th style={{ padding: '8px', textAlign: 'right' }}>Expenses</th>
-                      <th style={{ padding: '8px', textAlign: 'right' }}>Investment Returns</th>
-                      <th style={{ padding: '8px', textAlign: 'right' }}>End Balance</th>
-                      <th style={{ padding: '8px', textAlign: 'center', borderRadius: '0 6px 0 0' }}>Status</th>
+                      <th style={{ padding: '6px', textAlign: 'left' }}>Age/Year</th>
+                      <th style={{ padding: '6px', textAlign: 'left' }}>Country</th>
+                      <th style={{ padding: '6px', textAlign: 'right' }}>Annual Income</th>
+                      <th style={{ padding: '6px', textAlign: 'right' }}>Annual Exp.</th>
+                      <th style={{ padding: '6px', textAlign: 'right' }}>Invest. Return</th>
+                      <th style={{ padding: '6px', textAlign: 'right' }}>Net Worth (USD)</th>
+                      <th style={{ padding: '6px', textAlign: 'center' }}>Status</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {results.projections.map((p, index) => (
-                      <tr key={`${p.age}-${p.year}`} style={{ background: index % 2 === 0 ? '#f8fafc' : 'white', borderBottom: '1px solid #e2e8f0' }}>
-                        <td style={{ padding: '6px 8px', fontWeight: 600 }}>{p.age} ({p.year})</td>
-                        <td style={{ padding: '6px 8px', textAlign: 'right', color: '#64748b' }}>{formatCurrency(p.openingBalance, currency)}</td>
-                        <td style={{ padding: '6px 8px', textAlign: 'right', color: '#22c55e', fontWeight: 600 }}>+{formatCurrency(p.income, currency)}</td>
-                        <td style={{ padding: '6px 8px', textAlign: 'right', color: '#ef4444' }}>-{formatCurrency(p.totalOutflow, currency)}</td>
-                        <td style={{ padding: '6px 8px', textAlign: 'right', color: p.returns > 0 ? '#6366f1' : '#ef4444', fontWeight: 600 }}>{p.returns > 0 ? '+' : ''}{formatCurrency(p.returns, currency)}</td>
-                        <td style={{ padding: '6px 8px', textAlign: 'right', fontWeight: 800, color: p.netWorth > 0 ? '#0f172a' : '#dc2626' }}>{formatCurrency(p.netWorth, currency)}</td>
-                        <td style={{ padding: '6px 8px', textAlign: 'center' }}>
-                          <span style={{ padding: '2px 8px', borderRadius: '12px', fontSize: '8px', fontWeight: 700, background: p.isRetired ? '#ede9fe' : '#dcfce7', color: p.isRetired ? '#7c3aed' : '#15803d' }}>
-                            {p.isRetired ? '🏖️ RETIRED' : '💼 WORKING'}
+                    {internationalResults.projections.filter((_, i) => i % 2 === 0 || i === internationalResults.projections.length - 1).map((p, index) => (
+                      <tr key={index} style={{ background: index % 2 === 0 ? '#f8fafc' : 'white', borderBottom: '1px solid #e2e8f0' }}>
+                        <td style={{ padding: '4px 6px', fontWeight: 600 }}>{p.age} ({p.year})</td>
+                        <td style={{ padding: '4px 6px' }}>{p.country}</td>
+                        <td style={{ padding: '4px 6px', textAlign: 'right', color: '#22c55e' }}>{formatIntlCompact(p.grossIncomeUSD, 'USD')}</td>
+                        <td style={{ padding: '4px 6px', textAlign: 'right', color: '#ef4444' }}>{formatIntlCompact(p.livingExpensesUSD + p.healthcareCosts, 'USD')}</td>
+                        <td style={{ padding: '4px 6px', textAlign: 'right', color: '#6366f1' }}>{formatIntlCompact(p.investmentGrowth, 'USD')}</td>
+                        <td style={{ padding: '4px 6px', textAlign: 'right', fontWeight: 800 }}>{formatIntlCompact(p.totalNetWorthUSD, 'USD')}</td>
+                        <td style={{ padding: '4px 6px', textAlign: 'center' }}>
+                          <span style={{ padding: '1px 5px', borderRadius: '8px', fontSize: '7px', fontWeight: 700, background: p.phase === 'retirement' ? '#ede9fe' : '#dcfce7', color: p.phase === 'retirement' ? '#7c3aed' : '#15803d' }}>
+                            {p.phase === 'retirement' ? 'RETIRED' : 'WORKING'}
                           </span>
                         </td>
                       </tr>
                     ))}
                   </tbody>
                 </table>
-                <div style={{ marginTop: '10px', padding: '10px', background: results.isSolventAtEnd ? 'linear-gradient(135deg, #dcfce7, #bbf7d0)' : 'linear-gradient(135deg, #fee2e2, #fecaca)', borderRadius: '8px', border: results.isSolventAtEnd ? '2px solid #22c55e' : '2px solid #ef4444', fontSize: '11px' }}>
-                  <strong style={{ color: results.isSolventAtEnd ? '#166534' : '#991b1b' }}>
-                    {results.isSolventAtEnd ? '🎉 Good News!' : '⚠️ Warning!'}
-                  </strong>
-                  <span style={{ marginLeft: '8px', color: results.isSolventAtEnd ? '#166534' : '#991b1b' }}>
-                    FIRE achieved at age {results.fiAge || 'Not reached'} •
-                    Portfolio {results.isSolventAtEnd ? 'remains solvent and will last' : 'may not last'} through age {data.liveUntilAge}
-                  </span>
-                </div>
               </div>
 
               {/* Goals */}
