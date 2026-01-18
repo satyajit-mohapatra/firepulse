@@ -14,6 +14,7 @@ import { calculateInternationalScenario, createDefaultScenario, formatIntlCompac
 import { useWizardPersistence } from './hooks/useWizardPersistence';
 import { COUNTRIES } from './data/countries';
 import FIREProgressRing from './components/FIREProgressRing';
+import RecommendationModal from './components/RecommendationModal';
 
 
 const DEFAULT_FINANCIAL_DATA: FinancialData = {
@@ -86,6 +87,7 @@ const App: React.FC = () => {
   const [showExportMenu, setShowExportMenu] = useState(false);
   const [showImportModal, setShowImportModal] = useState(false);
   const [showFAQ, setShowFAQ] = useState(false);
+  const [showRecommendations, setShowRecommendations] = useState(false);
   const [importPreview, setImportPreview] = useState<{ data: Partial<FinancialData>, errors: string[], source: 'csv' | 'json' } | null>(null);
   const [toastMessage, setToastMessage] = useState<{ type: 'success' | 'error' | 'info', message: string } | null>(null);
 
@@ -701,6 +703,21 @@ const App: React.FC = () => {
                           </div>
                         </button>
 
+                        <button
+                          onClick={() => { setShowRecommendations(true); setShowExportMenu(false); }}
+                          className="w-full px-5 py-3 text-left hover:bg-purple-50 flex items-center gap-4 transition-all group"
+                        >
+                          <div className="w-10 h-10 rounded-xl bg-purple-100 flex items-center justify-center text-purple-600 group-hover:bg-purple-600 group-hover:text-white transition-all shadow-sm">
+                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+                            </svg>
+                          </div>
+                          <div>
+                            <div className="font-bold text-slate-800 text-sm">Recommendations</div>
+                            <div className="text-[10px] text-slate-400 font-bold uppercase tracking-tight">Personalized FIRE strategies</div>
+                          </div>
+                        </button>
+
                         <div className="h-px bg-slate-100 my-2" />
 
                         {/* Data Management Section */}
@@ -1221,6 +1238,14 @@ const App: React.FC = () => {
       )}
 
       {showFAQ && <FAQ onClose={() => setShowFAQ(false)} />}
+
+      {/* Recommendation Modal */}
+      <RecommendationModal
+        isOpen={showRecommendations}
+        onClose={() => setShowRecommendations(false)}
+        data={data}
+        currency={currency}
+      />
     </WizardProvider>
   );
 };
